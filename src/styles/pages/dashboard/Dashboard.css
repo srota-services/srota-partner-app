@@ -53,7 +53,7 @@
 }
 
 .placeholder-content {
-  background: white;
+  background: var(--color-bg-primary);
   border: 1px solid var(--color-border);
   border-radius: 16px;
   padding: 60px 20px;

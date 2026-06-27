@@ -562,7 +562,7 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #ffffff;
+  background: var(--color-bg-primary);
   color: var(--color-success);
   flex-shrink: 0;
 }

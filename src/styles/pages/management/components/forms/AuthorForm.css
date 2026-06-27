@@ -30,7 +30,7 @@
   font-size: 16px;
   border: 1.5px solid var(--color-border);
   border-radius: 10px;
-  background: white;
+  background: var(--color-bg-primary);
   color: var(--color-text-primary);
   transition: all var(--transition-base);
   font-family: inherit;

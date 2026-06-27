@@ -12,9 +12,11 @@ import organizationAuthorsReducer from './slices/organizationAuthorsSlice';
 import authorInboxReducer from './slices/authorInboxSlice';
 import partnerRegistrationReducer from './slices/partnerRegistrationSlice';
 import transcodingReducer from './slices/transcodingSlice';
+import themeReducer from './slices/themeSlice';
 export const store = configureStore({
   reducer: {
     auth: authReducer,
+    theme: themeReducer,
     audiobooks: audiobooksReducer,
     chapters: chaptersReducer,
     transcoding: transcodingReducer,

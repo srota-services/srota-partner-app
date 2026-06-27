@@ -5,7 +5,6 @@ import {
   BookOpen,
   Inbox,
   LayoutDashboard,
-  Settings,
   Upload,
   Users,
 } from 'lucide-react';
@@ -29,7 +28,6 @@ const navItems: NavItem[] = [
   { label: 'Manage', path: '/management', icon: Upload, orgStaffOnly: true },
   { label: 'Team', path: '/team', icon: Users },
   { label: 'Inbox', path: '/inbox', icon: Inbox },
-  { label: 'Settings', path: '/settings', icon: Settings },
 ];
 
 function isNavActive(item: NavItem, pathname: string): boolean {
