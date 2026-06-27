@@ -17,6 +17,10 @@ import {
   updateChapterThunk,
 } from '../../store/slices/chaptersSlice';
 import type { ChapterApiResponse, ChapterWizardData } from '../../types/audiobook';
+import {
+  getSubscriptionPlans,
+  type SubscriptionPlanItem,
+} from '../../utils/audiobookApi';
 import { showApiError } from '../../utils/toast';
 import {
   buildCreateChapterRequest,
@@ -85,6 +89,28 @@ function ChapterWizard() {
   >({});
   const [draftSaved, setDraftSaved] = useState(false);
   const [isLoadingMetadata, setIsLoadingMetadata] = useState(false);
+  const [subscriptionPlans, setSubscriptionPlans] = useState<
+    SubscriptionPlanItem[]
+  >([]);
+  const [subscriptionPlansLoading, setSubscriptionPlansLoading] =
+    useState(false);
+
+  useEffect(() => {
+    const fetchSubscriptionPlans = async () => {
+      setSubscriptionPlansLoading(true);
+
+      try {
+        const plans = await getSubscriptionPlans();
+        setSubscriptionPlans(plans);
+      } catch (error) {
+        showApiError(error);
+      } finally {
+        setSubscriptionPlansLoading(false);
+      }
+    };
+
+    void fetchSubscriptionPlans();
+  }, []);
 
   useEffect(() => {
     if (mode === 'create') {
@@ -234,7 +260,11 @@ function ChapterWizard() {
       draftSaved={draftSaved}
       isLoading={loading || isLoadingMetadata}
       preview={
-        <ChapterLivePreview data={data} coverPreviewUrl={coverPreviewUrl} />
+        <ChapterLivePreview
+          data={data}
+          coverPreviewUrl={coverPreviewUrl}
+          subscriptionPlans={subscriptionPlans}
+        />
       }
       onCancel={() =>
         audiobookId
@@ -260,6 +290,8 @@ function ChapterWizard() {
         <ChapterBasicsStep
           data={data}
           errors={errors}
+          subscriptionPlans={subscriptionPlans}
+          subscriptionPlansLoading={subscriptionPlansLoading}
           isLoading={loading}
           onChange={updateData}
         />

@@ -2,6 +2,8 @@ import type { LucideIcon } from 'lucide-react';
 import {
   BookOpen,
   Clock,
+  CreditCard,
+  Crown,
   FileText,
   Hash,
   Headphones,
@@ -11,6 +13,7 @@ import WizardReviewRow from '../../../../../components/wizard/WizardReviewRow';
 import type { ChapterWizardData } from '../../../../../types/audiobook';
 import type { ChapterWizardStep } from '../../../../../utils/chapterWizard';
 import { formatDurationDetailed } from '../../../../../utils/formatting';
+import { getSubscriptionPlanNameForTier } from '../../../../../utils/subscriptionPlans';
 
 interface ChapterReviewPublishStepProps {
   data: ChapterWizardData;
@@ -34,6 +37,11 @@ function ChapterReviewPublishStep({
     data.coverImage?.name || (data.existingCoverUrl ? 'Existing cover' : '—');
   const durationLabel =
     data.duration !== undefined ? formatDurationDetailed(data.duration) : '—';
+  const subscriptionPlanName =
+    data.isPaid && data.minSubscriptionTier != null
+      ? getSubscriptionPlanNameForTier(data.minSubscriptionTier) ||
+        `Tier ${data.minSubscriptionTier}`
+      : '—';
 
   const reviewRows: ReviewRowConfig[] = [
     {
@@ -52,6 +60,18 @@ function ChapterReviewPublishStep({
       label: 'Description',
       value: data.description || '—',
       icon: FileText,
+      step: 1,
+    },
+    {
+      label: 'Paid',
+      value: data.isPaid ? 'Yes' : 'No',
+      icon: CreditCard,
+      step: 1,
+    },
+    {
+      label: 'Subscription plan',
+      value: subscriptionPlanName,
+      icon: Crown,
       step: 1,
     },
     {

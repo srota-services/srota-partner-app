@@ -12,6 +12,11 @@
   min-width: 720px;
 }
 
+.authors-table-col-sent {
+  min-width: 7.5rem;
+  white-space: nowrap;
+}
+
 .authors-table-row {
   cursor: default;
 }

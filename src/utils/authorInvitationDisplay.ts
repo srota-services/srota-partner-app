@@ -18,3 +18,17 @@ export function getOrganizationDisplayName(
 ): string {
   return org.name;
 }
+
+/** Formats an invitation timestamp, or em dash when absent */
+export function formatInvitationDate(
+  dateStr: string | null | undefined
+): string {
+  if (!dateStr) {
+    return '—';
+  }
+  return new Date(dateStr).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}

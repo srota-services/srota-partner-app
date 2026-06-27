@@ -116,6 +116,8 @@ export interface ChapterFormData {
   endPosition?: number;
   scheduledAt?: string;
   coverImage: File | null;
+  isPaid: boolean;
+  minSubscriptionTier: number | null;
 }
 
 /**
@@ -233,6 +235,7 @@ export interface ChapterApiResponse {
   scheduledAt?: string;
   createdAt?: string;
   updatedAt?: string;
+  minSubscriptionTier?: number | null;
   audiobook?: ChapterAudiobookReference;
   bookmarks?: unknown[];
   notes?: unknown[];
@@ -253,6 +256,7 @@ export interface CreateChapterRequest {
   startPosition?: number;
   endPosition?: number;
   scheduledAt?: string;
+  minSubscriptionTier?: number | null;
 }
 
 /**
@@ -269,6 +273,7 @@ export interface UpdateChapterRequest {
   endPosition?: number;
   scheduledAt?: string;
   coverImage?: File;
+  minSubscriptionTier?: number | null;
 }
 
 /**
