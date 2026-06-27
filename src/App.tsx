@@ -45,7 +45,7 @@ const GuestRoute = ({ children }: { children: React.ReactElement }) => {
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/audiobooks" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;
@@ -129,7 +129,7 @@ function App() {
           >
             <Route
               path="/home"
-              element={<Navigate to="/audiobooks" replace />}
+              element={<Navigate to="/dashboard" replace />}
             />
             <Route path="/audiobooks/create" element={<AudiobookWizard />} />
             <Route path="/audiobooks/:id/edit" element={<AudiobookWizard />} />
@@ -150,7 +150,7 @@ function App() {
             <Route path="/inbox" element={<Inbox />} />
             <Route path="/settings" element={<Settings />} />
           </Route>
-          <Route path="*" element={<Navigate to="/audiobooks" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

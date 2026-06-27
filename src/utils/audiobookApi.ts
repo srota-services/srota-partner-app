@@ -159,6 +159,7 @@ export interface OrganizationItem {
   name: string;
   slug: string;
   description?: string;
+  image?: string | null;
   createdAt: string;
   updatedAt: string;
 }
