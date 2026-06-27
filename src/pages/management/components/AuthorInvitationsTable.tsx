@@ -1,5 +1,8 @@
 import type { AuthorInvitationForOrg } from '../../../types/authorInvitation';
-import { getInvitationAuthorName } from '../../../utils/authorInvitationDisplay';
+import {
+  formatInvitationDate,
+  getInvitationAuthorName,
+} from '../../../utils/authorInvitationDisplay';
 import {
   getInvitationStatusLabelForOrg,
   getInvitationStatusVariant,
@@ -10,14 +13,6 @@ import '../../../styles/pages/audiobooks/components/AudiobookTable.css';
 
 interface AuthorInvitationsTableProps {
   invitations: AuthorInvitationForOrg[];
-}
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
 }
 
 function AuthorInvitationsTable({ invitations }: AuthorInvitationsTableProps) {
@@ -31,7 +26,10 @@ function AuthorInvitationsTable({ invitations }: AuthorInvitationsTableProps) {
               <th>Status</th>
               <th>Email</th>
               <th>Contact</th>
-              <th>Sent</th>
+              <th className="authors-table-col-sent">Sent</th>
+              <th>Contact revealed</th>
+              <th>Org contact confirmed</th>
+              <th>User confirmation</th>
               <th>Guidance</th>
             </tr>
           </thead>
@@ -71,9 +69,24 @@ function AuthorInvitationsTable({ invitations }: AuthorInvitationsTableProps) {
                         : '—'}
                     </span>
                   </td>
+                  <td className="authors-table-col-sent">
+                    <span className="authors-table-cell">
+                      {formatInvitationDate(invitation.createdAt)}
+                    </span>
+                  </td>
                   <td>
                     <span className="authors-table-cell">
-                      {formatDate(invitation.createdAt)}
+                      {formatInvitationDate(invitation.contactRevealedAt)}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="authors-table-cell">
+                      {formatInvitationDate(invitation.orgContactConfirmedAt)}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="authors-table-cell">
+                      {formatInvitationDate(invitation.respondedAt)}
                     </span>
                   </td>
                   <td>
