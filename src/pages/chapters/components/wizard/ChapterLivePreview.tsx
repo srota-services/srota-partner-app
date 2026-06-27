@@ -1,14 +1,34 @@
 import WizardLivePreviewHeader from '../../../../components/wizard/WizardLivePreviewHeader';
 import { formatDurationDetailed } from '../../../../utils/formatting';
 import type { ChapterWizardData } from '../../../../types/audiobook';
+import type { SubscriptionPlanItem } from '../../../../utils/audiobookApi';
+import {
+  getSubscriptionPlanNameForTier,
+  resolveSubscriptionPlanTier,
+} from '../../../../utils/subscriptionPlans';
 import '../../../../styles/pages/chapters/components/ChapterCard.css';
 
 interface ChapterLivePreviewProps {
   data: ChapterWizardData;
   coverPreviewUrl: string | null;
+  subscriptionPlans: SubscriptionPlanItem[];
 }
 
-function ChapterLivePreview({ data, coverPreviewUrl }: ChapterLivePreviewProps) {
+function ChapterLivePreview({
+  data,
+  coverPreviewUrl,
+  subscriptionPlans,
+}: ChapterLivePreviewProps) {
+  const subscriptionPlanName =
+    data.isPaid && data.minSubscriptionTier != null
+      ? subscriptionPlans.find(
+          plan =>
+            resolveSubscriptionPlanTier(plan) === data.minSubscriptionTier
+        )?.name ||
+        getSubscriptionPlanNameForTier(data.minSubscriptionTier) ||
+        `Tier ${data.minSubscriptionTier}`
+      : undefined;
+
   return (
     <div className="wizard-preview-card">
       <WizardLivePreviewHeader subtitle="This is how your chapter will appear" />
@@ -32,6 +52,11 @@ function ChapterLivePreview({ data, coverPreviewUrl }: ChapterLivePreviewProps) 
           <h3 className="chapter-card-title">
             {data.title || 'Untitled Chapter'}
           </h3>
+          {subscriptionPlanName && (
+            <p className="chapter-card-description">
+              Subscription plan: {subscriptionPlanName}
+            </p>
+          )}
           {data.description && (
             <p className="chapter-card-description">
               {data.description.length > 120

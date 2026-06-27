@@ -1252,6 +1252,29 @@ export async function deleteAudiobook(audiobookId: string): Promise<void> {
  * @param chapterData - Chapter data including file
  * @returns Promise resolving to created chapter response or throwing an error
  */
+function appendChapterSubscriptionTier(
+  formData: FormData,
+  minSubscriptionTier: number | null | undefined
+): void {
+  if (minSubscriptionTier === undefined) {
+    return;
+  }
+  if (minSubscriptionTier === null) {
+    formData.append('minSubscriptionTier', '');
+    return;
+  }
+  formData.append('minSubscriptionTier', String(minSubscriptionTier));
+}
+
+function appendChapterSubscriptionTierToJson(
+  jsonData: Record<string, unknown>,
+  minSubscriptionTier: number | null | undefined
+): void {
+  if (minSubscriptionTier !== undefined) {
+    jsonData.minSubscriptionTier = minSubscriptionTier;
+  }
+}
+
 export async function createChapter(
   chapterData: CreateChapterRequest
 ): Promise<ChapterApiResponse> {
@@ -1334,6 +1357,9 @@ export async function createChapter(
       chapterData.scheduledAt.trim() !== ''
     ) {
       formData.append('scheduledAt', String(chapterData.scheduledAt).trim());
+    }
+    if (chapterData.minSubscriptionTier !== undefined) {
+      appendChapterSubscriptionTier(formData, chapterData.minSubscriptionTier);
     }
 
     // Use fetch with FormData - browser will automatically set Content-Type: multipart/form-data
@@ -1454,6 +1480,7 @@ export async function updateChapter(
       if (chapterData.coverImage !== undefined) {
         formData.append('coverImage', chapterData.coverImage);
       }
+      appendChapterSubscriptionTier(formData, chapterData.minSubscriptionTier);
       body = formData;
     } else {
       // Use JSON for non-file updates
@@ -1483,6 +1510,7 @@ export async function updateChapter(
       if (chapterData.scheduledAt !== undefined) {
         jsonData.scheduledAt = chapterData.scheduledAt;
       }
+      appendChapterSubscriptionTierToJson(jsonData, chapterData.minSubscriptionTier);
       body = JSON.stringify(jsonData);
     }
 

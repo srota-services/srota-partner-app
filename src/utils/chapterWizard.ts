@@ -24,6 +24,8 @@ export function createEmptyChapterWizardData(
     coverImage: null,
     existingCoverUrl: undefined,
     existingAudioUrl: undefined,
+    isPaid: false,
+    minSubscriptionTier: null,
   };
 }
 
@@ -67,6 +69,8 @@ export function hydrateChapterWizardData(
     coverImage: null,
     existingCoverUrl: initialData.coverImage,
     existingAudioUrl: initialData.fileUrl,
+    isPaid: initialData.minSubscriptionTier != null,
+    minSubscriptionTier: initialData.minSubscriptionTier ?? null,
   };
 }
 
@@ -85,6 +89,9 @@ export function validateChapterStep(
     }
     if (!data.description.trim()) {
       errors.description = 'Description is required';
+    }
+    if (data.isPaid && data.minSubscriptionTier == null) {
+      errors.minSubscriptionTier = 'Please select a subscription plan';
     }
   }
 
@@ -136,6 +143,18 @@ export function validateChapterForPublish(
   };
 }
 
+function buildChapterSubscriptionFields(data: ChapterFormData): {
+  minSubscriptionTier?: number | null;
+} {
+  if (data.isPaid && data.minSubscriptionTier != null) {
+    return { minSubscriptionTier: data.minSubscriptionTier };
+  }
+  if (data.isPaid) {
+    return {};
+  }
+  return { minSubscriptionTier: null };
+}
+
 export function buildCreateChapterRequest(
   audiobookId: string,
   data: ChapterFormData
@@ -155,6 +174,7 @@ export function buildCreateChapterRequest(
     endPosition: data.endPosition,
     scheduledAt: data.scheduledAt,
     coverImage: data.coverImage,
+    ...buildChapterSubscriptionFields(data),
   };
 }
 
@@ -179,6 +199,8 @@ export function buildUpdateChapterRequest(
   if (data.coverImage) {
     request.coverImage = data.coverImage;
   }
+
+  Object.assign(request, buildChapterSubscriptionFields(data));
 
   return request;
 }

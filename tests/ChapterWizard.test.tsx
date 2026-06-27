@@ -26,6 +26,11 @@ vi.mock('../src/utils/audiobookApi', async importOriginal => {
     ...actual,
     createChapter: createChapterMock,
     updateChapter: updateChapterMock,
+    getSubscriptionPlans: vi.fn().mockResolvedValue([
+      { name: 'Base Plan' },
+      { name: 'Standard Plan' },
+      { name: 'Premium Plan' },
+    ]),
     getChapters: vi.fn().mockResolvedValue({
       success: true,
       data: [],
@@ -170,6 +175,79 @@ describe('ChapterWizard', () => {
 
     expect(await screen.findByText(/title is required/i)).toBeInTheDocument();
     expect(screen.getByText(/description is required/i)).toBeInTheDocument();
+  });
+
+  it('shows subscription plan dropdown when paid switch is on', async () => {
+    const user = userEvent.setup();
+    renderCreateWizard();
+    await screen.findByLabelText(/^title/i);
+
+    expect(screen.queryByLabelText(/subscription plan/i)).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('switch', { name: /^paid$/i }));
+
+    expect(
+      screen.getByLabelText(/subscription plan/i).closest('.wizard-paid-plan-content')
+    ).toBeInTheDocument();
+  });
+
+  it('requires a subscription plan when paid switch is on', async () => {
+    const user = userEvent.setup();
+    renderCreateWizard();
+    await fillBasicsStep(user);
+    await user.click(screen.getByRole('switch', { name: /^paid$/i }));
+    await user.click(screen.getByRole('button', { name: /continue/i }));
+
+    expect(
+      await screen.findByText(/please select a subscription plan/i)
+    ).toBeInTheDocument();
+  });
+
+  it('updates live preview with subscription plan when selected', async () => {
+    const user = userEvent.setup();
+    renderCreateWizard();
+    await fillBasicsStep(user);
+    await user.click(screen.getByRole('switch', { name: /^paid$/i }));
+    await user.selectOptions(
+      screen.getByLabelText(/subscription plan/i),
+      'Standard Plan'
+    );
+
+    expect(
+      screen.getByText(/subscription plan: standard plan/i)
+    ).toBeInTheDocument();
+  });
+
+  it('publishes a paid chapter with subscription tier', async () => {
+    const user = userEvent.setup();
+    renderCreateWizard();
+    await fillBasicsStep(user);
+    await user.click(screen.getByRole('switch', { name: /^paid$/i }));
+    await user.selectOptions(
+      screen.getByLabelText(/subscription plan/i),
+      'Standard Plan'
+    );
+    await user.click(screen.getByRole('button', { name: /continue/i }));
+
+    const audioInput = await screen.findByLabelText(/audio file/i);
+    await user.upload(audioInput, testAudioFile);
+    await screen.findByText(/chapter\.mp3/i);
+    await user.click(screen.getByRole('button', { name: /continue/i }));
+
+    const coverInputs = document.querySelectorAll('input[type="file"]');
+    const coverInput = coverInputs[coverInputs.length - 1] as HTMLInputElement;
+    await user.upload(coverInput, testCoverFile);
+    await user.click(screen.getByRole('button', { name: /continue/i }));
+
+    await user.click(screen.getByRole('button', { name: /^publish$/i }));
+
+    await waitFor(() => {
+      expect(createChapterMock).toHaveBeenCalledTimes(1);
+    });
+
+    expect(createChapterMock.mock.calls[0][0]).toMatchObject({
+      minSubscriptionTier: 2,
+    });
   });
 
   it('loads audio metadata on file upload', async () => {
