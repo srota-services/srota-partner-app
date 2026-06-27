@@ -1,6 +1,8 @@
 import type { ApiError } from '../types/auth';
 import type {
   AuthorProfileDto,
+  AuthorAppProfile,
+  AuthorAppProfileResponse,
   CompletePartnerOrganizationInput,
   CreateOrganizationRequest,
   CreateOrganizationResponse,
@@ -163,6 +165,37 @@ export async function verifyRegistrationOtp(
     const verifyResponse = data as VerifyRegistrationOtpResponse;
     storeTokenFromResponse(verifyResponse);
     return verifyResponse;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Fetches the authenticated author's app-service profile (avatar)
+ */
+export async function getMyAuthorAppProfile(): Promise<AuthorAppProfile> {
+  try {
+    const headers = getAuthHeaders();
+    const response = await fetch(
+      `${getContentApiBaseUrl()}/api/v1/author-profiles/me`,
+      {
+        method: 'GET',
+        headers,
+      }
+    );
+    const data = await response.json();
+    if (!response.ok) {
+      const error: ApiError = {
+        message:
+          data.message || data.error || 'Failed to fetch author app profile',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    const profileResponse = data as AuthorAppProfileResponse;
+    return profileResponse.data;
   } catch (error) {
     throw handleApiError(error);
   }

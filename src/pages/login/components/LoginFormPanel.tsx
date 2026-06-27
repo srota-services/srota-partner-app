@@ -18,6 +18,10 @@ import {
   getStoredWorkspaceSlug,
   setStoredWorkspaceSlug,
 } from '../../../utils/workspaceSlug';
+import {
+  clearStoredAppType,
+  setStoredAppType,
+} from '../../../utils/workspaceAppType';
 import type { LoginRequest, LoginResponse } from '../../../types/auth';
 import { showApiError } from '../../../utils/toast';
 import { validateEmail } from '../../../utils/validation';
@@ -74,8 +78,10 @@ function LoginFormPanel() {
         dispatch(setUserRole(role));
       }
       if (loginResponse.appType) {
+        setStoredAppType(loginResponse.appType);
         dispatch(setAppType(loginResponse.appType));
       } else {
+        clearStoredAppType();
         dispatch(setAppType(null));
       }
       if (trimmedSlug) {
@@ -85,7 +91,13 @@ function LoginFormPanel() {
         dispatch(setWorkspaceSlug(null));
       }
       if (loginResponse.user) {
-        dispatch(setUser({ email: loginResponse.user.email }));
+        dispatch(
+          setUser({
+            id: loginResponse.user.id,
+            email: loginResponse.user.email,
+            name: loginResponse.user.name,
+          })
+        );
       } else {
         dispatch(setUser({ email: email.trim() }));
       }

@@ -1,0 +1,77 @@
+.authors-table-wrapper {
+  overflow: visible;
+}
+
+.authors-table-scroll {
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+.authors-table {
+  width: 100%;
+  min-width: 720px;
+}
+
+.authors-table-row {
+  cursor: default;
+}
+
+.authors-table-row:hover {
+  background: var(--color-bg-secondary);
+}
+
+.authors-table-cell {
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+}
+
+.authors-table-guidance {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  max-width: 240px;
+  display: block;
+  line-height: 1.4;
+}
+
+.authors-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.authors-page-header-actions {
+  display: flex;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.authors-tabs {
+  margin-bottom: 16px;
+}
+
+.authors-filter-bar {
+  margin-bottom: 20px;
+}
+
+.authors-search {
+  max-width: 360px;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+@media (max-width: 768px) {
+  .authors-page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .authors-search {
+    max-width: 100%;
+  }
+}

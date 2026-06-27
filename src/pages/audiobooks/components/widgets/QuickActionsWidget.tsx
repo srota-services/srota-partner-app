@@ -23,7 +23,7 @@ function QuickActionsWidget() {
       onClick: () => navigate('/audiobooks/create'),
     },
     { label: 'View Analytics', icon: BarChart3, onClick: () => navigate('/analytics') },
-    { label: 'Manage Metadata', icon: FileText, onClick: () => navigate('/management') },
+    { label: 'Manage Authors', icon: FileText, onClick: () => navigate('/management') },
   ];
 
   return (

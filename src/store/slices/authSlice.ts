@@ -6,6 +6,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import type { LoginAppType, UserRole } from '../../types/auth';
 
 export interface AuthUser {
+  id?: string;
   email?: string;
   name?: string;
   avatarUrl?: string;
