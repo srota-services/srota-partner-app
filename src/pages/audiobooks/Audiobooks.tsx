@@ -25,6 +25,7 @@ import RecentActivityWidget from './components/widgets/RecentActivityWidget';
 import Button from '../../components/common/Button';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Pagination from '../../components/common/Pagination';
+import SearchBar from '../../components/common/SearchBar';
 import { showApiError } from '../../utils/toast';
 import '../../styles/pages/audiobooks/Audiobooks.css';
 
@@ -181,12 +182,11 @@ const Audiobooks: React.FC = () => {
           </div>
 
           <div className="audiobooks-filters">
-            <input
-              type="search"
+            <SearchBar
               className="audiobooks-local-search"
-              placeholder="Search audiobooks"
               value={localSearch}
-              onChange={e => setLocalSearch(e.target.value)}
+              onChange={setLocalSearch}
+              placeholder="Search audiobooks"
             />
             <select
               className="audiobooks-filter-select"

@@ -25,7 +25,7 @@
 .current-image-preview {
   margin-bottom: 12px;
   padding: 8px;
-  background-color: #f9fafb;
+  background-color: var(--color-bg-secondary);
   border: 1px solid #e5e7eb;
   border-radius: 6px;
 }
@@ -60,7 +60,7 @@
   min-height: 100px;
 }
 .audiobook-form .readonly-input {
-  background-color: #f9fafb;
+  background-color: var(--color-bg-secondary);
   color: #6b7280;
   cursor: not-allowed;
 }
@@ -82,7 +82,7 @@
   padding: 12px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
-  background-color: #f9fafb;
+  background-color: var(--color-bg-secondary);
   min-height: 60px;
   transition: border-color 0.2s;
 }
@@ -148,7 +148,7 @@
   justify-content: space-between;
   margin-top: 8px;
   padding: 8px 12px;
-  background-color: #f9fafb;
+  background-color: var(--color-bg-secondary);
   border: 1px solid #e5e7eb;
   border-radius: 6px;
   font-size: 14px;
@@ -213,7 +213,7 @@
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 .react-datepicker__header {
-  background-color: #f9fafb;
+  background-color: var(--color-bg-secondary);
   border-bottom: 1px solid #e5e7eb;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
@@ -379,7 +379,7 @@
   padding: 12px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
-  background-color: #f9fafb;
+  background-color: var(--color-bg-secondary);
   min-height: 80px;
 }
 .meta-empty-message {

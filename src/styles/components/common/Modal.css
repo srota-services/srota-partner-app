@@ -14,7 +14,7 @@
 }
 
 .modal-content {
-  background: white;
+  background: var(--color-bg-primary);
   border-radius: 16px;
   box-shadow: var(--shadow-xl), var(--shadow-colored);
   max-height: 90vh;

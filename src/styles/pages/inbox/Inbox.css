@@ -32,7 +32,7 @@
 }
 
 .empty-state {
-  background: white;
+  background: var(--color-bg-primary);
   border: 1px dashed var(--color-border);
   border-radius: var(--radius-lg);
   padding: 48px 24px;

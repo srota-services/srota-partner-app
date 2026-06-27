@@ -26,6 +26,7 @@
   font-weight: 800;
   letter-spacing: -0.02em;
   margin-bottom: 4px;
+  color: var(--color-text-primary);
 }
 
 .audiobooks-subtitle {
@@ -80,10 +81,11 @@
 .audiobooks-local-search {
   flex: 1;
   min-width: 160px;
-  padding: 9px 14px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: 0.875rem;
+  max-width: none;
+}
+
+.audiobooks-local-search .search-input {
+  width: 100%;
 }
 
 .audiobooks-filter-select {

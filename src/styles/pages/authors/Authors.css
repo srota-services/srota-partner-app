@@ -8,15 +8,15 @@
   padding: 0;
   font-size: 28px;
   font-weight: 700;
-  color: #111827;
+  color: var(--color-text-primary);
 }
 .placeholder-content {
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 60px 20px;
   text-align: center;
-  color: #6b7280;
+  color: var(--color-text-secondary);
 }
 .placeholder-content p {
   font-size: 16px;

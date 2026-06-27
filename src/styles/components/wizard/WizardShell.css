@@ -575,7 +575,7 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #ffffff;
+  background: var(--color-bg-primary);
   flex-shrink: 0;
 }
 

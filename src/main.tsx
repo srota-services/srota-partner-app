@@ -4,11 +4,13 @@ import { Toaster } from 'react-hot-toast';
 import { store } from './store/store';
 import App from './App';
 import AuthInitializer from './components/common/AuthInitializer';
+import ThemeInitializer from './components/common/ThemeInitializer';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   // <React.StrictMode>
   <Provider store={store}>
+    <ThemeInitializer />
     <AuthInitializer />
     <App />
     <Toaster
