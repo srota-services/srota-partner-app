@@ -101,7 +101,7 @@ function LoginFormPanel() {
       } else {
         dispatch(setUser({ email: email.trim() }));
       }
-      navigate('/audiobooks', { replace: true });
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       showApiError(err);
     } finally {

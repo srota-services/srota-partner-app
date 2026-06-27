@@ -48,7 +48,7 @@ const TopNavigation: React.FC<TopNavigationProps> = ({
   return (
     <nav className="top-navigation">
       <div className="top-nav-left">
-        <Logo to="/audiobooks" />
+        <Logo to="/dashboard" />
       </div>
       <div className="top-nav-center">
         <SearchBar
