@@ -1,6 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import {
-   applyThemeToDocument,
    getStoredTheme,
    setStoredTheme,
    type ThemeMode,
@@ -24,18 +23,15 @@ const themeSlice = createSlice({
          const stored = getStoredTheme();
          state.mode = stored;
          state.initialized = true;
-         applyThemeToDocument(stored);
          setStoredTheme(stored);
       },
       setTheme: (state, action: PayloadAction<ThemeMode>) => {
          state.mode = action.payload;
-         applyThemeToDocument(action.payload);
          setStoredTheme(action.payload);
       },
       toggleTheme: state => {
          const nextMode: ThemeMode = state.mode === 'light' ? 'dark' : 'light';
          state.mode = nextMode;
-         applyThemeToDocument(nextMode);
          setStoredTheme(nextMode);
       },
    },

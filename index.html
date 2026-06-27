@@ -8,6 +8,12 @@
     <script>
       (function () {
         try {
+          var path = window.location.pathname;
+          var lightOnly =
+            path === '/' || path === '/login' || path === '/partner/register';
+          if (lightOnly) {
+            return;
+          }
           var theme = localStorage.getItem('@partner/theme');
           if (theme === 'dark') {
             document.documentElement.dataset.theme = 'dark';

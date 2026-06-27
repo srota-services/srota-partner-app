@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAppSelector } from './hooks/redux';
 import LoadingSpinner from './components/common/LoadingSpinner';
+import ThemeRouteSync from './components/common/ThemeRouteSync';
 
 const Landing = lazy(() => import('./pages/landing/Landing'));
 const Login = lazy(() => import('./pages/login/Login'));
@@ -73,6 +74,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
 function App() {
   return (
     <BrowserRouter>
+      <ThemeRouteSync />
       <Suspense
         fallback={
           <div
