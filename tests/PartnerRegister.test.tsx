@@ -10,7 +10,7 @@ import { MemoryRouter } from 'react-router-dom';
 
 import { store } from '../src/store/store';
 
-import { resetPartnerRegistration } from '../src/store/slices/partnerRegistrationSlice';
+import { resetPartnerRegistration, setPartnerType, setStep, setRegisteredEmail, setIsOtpVerified, setIndividualDetails, setIndividualPassword } from '../src/store/slices/partnerRegistrationSlice';
 
 import PartnerRegister from '../src/pages/partner/PartnerRegister';
 
@@ -710,6 +710,54 @@ describe('PartnerRegister organization flow', () => {
 
   });
 
+
+
+  it('skips OTP step when returning to account step after OTP is verified', async () => {
+
+    const user = userEvent.setup();
+
+    const { registerPartnerUser } = await import('../src/utils/partnerApi');
+
+
+
+    renderPartnerRegister();
+
+
+
+    await reachOrganizationProfileStep(user);
+
+
+
+    await user.click(screen.getByRole('button', { name: /back/i }));
+
+
+
+    expect(screen.getByLabelText(/work email/i)).toBeInTheDocument();
+
+    expect(screen.queryByText(/verify your email/i)).not.toBeInTheDocument();
+
+
+
+    await user.type(screen.getByLabelText(/^address/i), '456 Updated Lane');
+
+    await user.type(
+      document.getElementById('adminConfirmPassword') as HTMLInputElement,
+      'Secure1pass!'
+    );
+
+    await user.click(screen.getByRole('button', { name: /continue/i }));
+
+
+
+    await waitFor(() => {
+      expect(registerPartnerUser).toHaveBeenCalledTimes(1);
+      expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText(/verify your email/i)).not.toBeInTheDocument();
+
+  });
+
 });
 
 
@@ -1065,6 +1113,92 @@ describe('PartnerRegister individual flow', () => {
       expect(registerIndividualPartner).toHaveBeenCalledTimes(1);
 
     });
+
+  });
+
+
+
+  it('skips OTP when continuing from security step after OTP is verified', async () => {
+
+    const user = userEvent.setup();
+
+    const { endSessionAndRedirectToLogin } = await import('../src/utils/authSession');
+
+
+
+    store.dispatch(setPartnerType('individual'));
+
+    store.dispatch(setRegisteredEmail('author@example.com'));
+
+    store.dispatch(setIsOtpVerified(true));
+
+    store.dispatch(
+
+      setIndividualDetails({
+
+        firstName: 'Jane',
+
+        lastName: 'Author',
+
+        email: 'author@example.com',
+
+        address: '456 Author Street',
+
+        contact: '+1 555 0200',
+
+        image: null,
+
+      })
+
+    );
+
+    store.dispatch(
+
+      setIndividualPassword({
+
+        password: 'Secure1pass!',
+
+        acceptedTerms: true,
+
+      })
+
+    );
+
+    store.dispatch(setStep(3));
+
+
+
+    renderPartnerRegister();
+
+
+
+    expect(
+
+      screen.getByRole('heading', { name: /secure your account/i })
+
+    ).toBeInTheDocument();
+
+
+
+    await user.type(
+
+      document.getElementById('individualConfirmPassword') as HTMLInputElement,
+
+      'Secure1pass!'
+
+    );
+
+    await user.click(screen.getByRole('button', { name: /^continue$/i }));
+
+
+
+    await waitFor(() => {
+
+      expect(endSessionAndRedirectToLogin).toHaveBeenCalled();
+
+    });
+
+    expect(screen.queryByText(/verify your email/i)).not.toBeInTheDocument();
 
   });
 

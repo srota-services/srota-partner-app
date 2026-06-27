@@ -261,11 +261,8 @@ function PartnerRegister() {
 
 
     if (registeredEmail) {
-
-      dispatch(setStep(3));
-
+      dispatch(setStep(isOtpVerified ? 4 : 3));
       return;
-
     }
 
 
@@ -403,14 +400,27 @@ function PartnerRegister() {
 
     dispatch(setIndividualPassword(data));
 
-
+    if (registeredEmail && isOtpVerified) {
+      setIsLoading(true);
+      try {
+        await storeAuthorSlugAfterRegistration();
+        await endSessionAndRedirectToLogin(
+          dispatch,
+          navigate,
+          'Registration complete. Please sign in.'
+        );
+        dispatch(resetPartnerRegistration());
+      } catch (err) {
+        showApiError(err);
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
 
     if (registeredEmail) {
-
       dispatch(setStep(4));
-
       return;
-
     }
 
 
@@ -796,11 +806,8 @@ function PartnerRegister() {
                 onSubmit={handleOrganizationProfileSubmit}
 
                 onBack={draft => {
-
                   dispatch(setOrganizationProfile(draft));
-
-                  dispatch(setStep(3));
-
+                  dispatch(setStep(isOtpVerified ? 2 : 3));
                 }}
 
               />
