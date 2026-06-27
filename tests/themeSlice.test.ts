@@ -10,11 +10,12 @@ vi.mock('../src/utils/themeStorage', () => ({
   getStoredTheme: vi.fn(() => 'light' as const),
   setStoredTheme: vi.fn(),
   applyThemeToDocument: vi.fn(),
+  isLightOnlyRoute: vi.fn(),
+  resolveDocumentTheme: vi.fn(),
 }));
 
 const mockedGetStoredTheme = vi.mocked(themeStorage.getStoredTheme);
 const mockedSetStoredTheme = vi.mocked(themeStorage.setStoredTheme);
-const mockedApplyThemeToDocument = vi.mocked(themeStorage.applyThemeToDocument);
 
 describe('themeSlice', () => {
   beforeEach(() => {
@@ -35,7 +36,6 @@ describe('themeSlice', () => {
 
     expect(state.mode).toBe('dark');
     expect(state.initialized).toBe(true);
-    expect(mockedApplyThemeToDocument).toHaveBeenCalledWith('dark');
     expect(mockedSetStoredTheme).toHaveBeenCalledWith('dark');
   });
 
@@ -43,7 +43,6 @@ describe('themeSlice', () => {
     const state = themeReducer(undefined, setTheme('dark'));
 
     expect(state.mode).toBe('dark');
-    expect(mockedApplyThemeToDocument).toHaveBeenCalledWith('dark');
     expect(mockedSetStoredTheme).toHaveBeenCalledWith('dark');
   });
 
@@ -52,10 +51,10 @@ describe('themeSlice', () => {
     const darkState = themeReducer(lightState, toggleTheme());
 
     expect(darkState.mode).toBe('dark');
-    expect(mockedApplyThemeToDocument).toHaveBeenLastCalledWith('dark');
+    expect(mockedSetStoredTheme).toHaveBeenLastCalledWith('dark');
 
     const backToLight = themeReducer(darkState, toggleTheme());
     expect(backToLight.mode).toBe('light');
-    expect(mockedApplyThemeToDocument).toHaveBeenLastCalledWith('light');
+    expect(mockedSetStoredTheme).toHaveBeenLastCalledWith('light');
   });
 });

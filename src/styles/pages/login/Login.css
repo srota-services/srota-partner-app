@@ -218,6 +218,7 @@
   font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 8px;
+  color: var(--color-text-primary);
 }
 
 .login-form-subtitle {
@@ -295,8 +296,22 @@
   border: none;
   background: transparent;
   font-size: 0.9375rem;
+  color: var(--color-text-primary);
   outline: none;
   box-shadow: none;
+}
+
+.input-with-icon input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.input-with-icon input:-webkit-autofill,
+.input-with-icon input:-webkit-autofill:hover,
+.input-with-icon input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--color-text-primary);
+  caret-color: var(--color-text-primary);
+  -webkit-box-shadow: 0 0 0 1000px var(--color-bg-primary) inset;
+  box-shadow: 0 0 0 1000px var(--color-bg-primary) inset;
 }
 
 .input-with-icon input:focus,

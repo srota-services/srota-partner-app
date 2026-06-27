@@ -89,8 +89,12 @@
 }
 
 .profile-dropdown-logout:hover {
-  background-color: var(--color-danger-light);
-  color: var(--color-danger-hover);
+  background-color: var(--color-danger);
+  color: #ffffff;
+}
+
+.profile-dropdown-logout:hover span {
+  color: #ffffff;
 }
 
 .profile-dropdown-divider {
