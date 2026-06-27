@@ -14,6 +14,21 @@ export interface UserProfile {
   avatar?: string;
 }
 
+/** App-service author profile (avatar) for authenticated authors */
+export interface AuthorAppProfile {
+  id: string;
+  authorId: string;
+  avatar?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface AuthorAppProfileResponse {
+  success: boolean;
+  data: AuthorAppProfile;
+  message?: string;
+}
+
 export interface UserProfileResponse {
   success: boolean;
   data: UserProfile;

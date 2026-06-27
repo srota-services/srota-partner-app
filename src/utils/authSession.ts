@@ -4,6 +4,7 @@ import { logout as logoutAction } from '../store/slices/authSlice';
 import { logout } from './api';
 import { setAuthenticated } from './auth';
 import { removeAccessToken } from './token';
+import { clearStoredAppType } from './workspaceAppType';
 import { showSuccess } from './toast';
 
 /**
@@ -12,6 +13,7 @@ import { showSuccess } from './toast';
 export function clearClientAuthSession(dispatch: AppDispatch): void {
   removeAccessToken();
   setAuthenticated(false);
+  clearStoredAppType();
   dispatch(logoutAction());
 }
 

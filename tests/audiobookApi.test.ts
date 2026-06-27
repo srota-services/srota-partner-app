@@ -246,6 +246,42 @@ describe('audiobook API catalog endpoints', () => {
   });
 });
 
+describe('getAudiobooks ownerId query', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('includes ownerId in query string when provided', async () => {
+    const { getAudiobooks } = await import('../src/utils/audiobookApi');
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        data: [],
+        pagination: {
+          currentPage: 1,
+          totalPages: 1,
+          totalItems: 0,
+          itemsPerPage: 10,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        },
+      }),
+    } as Response);
+
+    await getAudiobooks(1, true, undefined, 'org-abc');
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.com/api/v1/audiobooks?page=1&active=true&ownerId=org-abc',
+      expect.objectContaining({ method: 'GET' })
+    );
+  });
+});
+
 describe('audiobook API paid and mood payloads', () => {
   beforeEach(() => {
     vi.restoreAllMocks();

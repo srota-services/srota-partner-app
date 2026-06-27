@@ -9,6 +9,8 @@ import {
   updateAudiobook,
   deleteAudiobook,
 } from '../../utils/audiobookApi';
+import { resolveAudiobookFetchOwnerId } from '../../utils/resolveAudiobookFetchOwnerId';
+import type { RootState } from '../store';
 import type {
   AudiobookApiResponse,
   AudiobooksApiResponse,
@@ -48,7 +50,7 @@ export const fetchAudiobooks = createAsyncThunk(
   'audiobooks/fetchAudiobooks',
   async (
     { page = 1, filter }: { page?: number; filter?: AudiobookFilter },
-    { rejectWithValue }
+    { rejectWithValue, getState }
   ) => {
     try {
       if (filter === 'drafts' || filter === 'archived') {
@@ -70,9 +72,17 @@ export const fetchAudiobooks = createAsyncThunk(
         } satisfies AudiobooksApiResponse;
       }
 
+      const { appType } = (getState() as RootState).auth;
+      const ownerId = await resolveAudiobookFetchOwnerId(appType);
+
       const active = filter === 'live' ? true : undefined;
       const scheduled = filter === 'scheduled' ? true : undefined;
-      const response = await getAudiobooks(page, active, scheduled);
+      const response = await getAudiobooks(
+        page,
+        active,
+        scheduled,
+        ownerId ?? undefined
+      );
       return response;
     } catch (error) {
       return rejectWithValue(error);

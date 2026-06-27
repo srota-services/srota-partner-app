@@ -1038,7 +1038,8 @@ export async function createAudiobook(
 export async function getAudiobooks(
   page?: number,
   active?: boolean,
-  scheduled?: boolean
+  scheduled?: boolean,
+  ownerId?: string
 ): Promise<AudiobooksApiResponse> {
   try {
     const headers = getAuthHeaders();
@@ -1053,6 +1054,9 @@ export async function getAudiobooks(
     }
     if (scheduled !== undefined) {
       queryParams.push(`scheduled=${scheduled}`);
+    }
+    if (ownerId) {
+      queryParams.push(`ownerId=${encodeURIComponent(ownerId)}`);
     }
 
     if (queryParams.length > 0) {

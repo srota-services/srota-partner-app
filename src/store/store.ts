@@ -8,6 +8,8 @@ import chaptersReducer from './slices/chaptersSlice';
 import genresReducer from './slices/genresSlice';
 import tagsReducer from './slices/tagsSlice';
 import authorsReducer from './slices/authorsSlice';
+import organizationAuthorsReducer from './slices/organizationAuthorsSlice';
+import authorInboxReducer from './slices/authorInboxSlice';
 import partnerRegistrationReducer from './slices/partnerRegistrationSlice';
 import transcodingReducer from './slices/transcodingSlice';
 export const store = configureStore({
@@ -19,6 +21,8 @@ export const store = configureStore({
     genres: genresReducer,
     tags: tagsReducer,
     authors: authorsReducer,
+    organizationAuthors: organizationAuthorsReducer,
+    authorInbox: authorInboxReducer,
     partnerRegistration: partnerRegistrationReducer,
   },
   middleware: getDefaultMiddleware =>

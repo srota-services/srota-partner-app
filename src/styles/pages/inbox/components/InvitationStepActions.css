@@ -1,0 +1,29 @@
+.invitation-step-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.invitation-step-copy {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  max-width: 420px;
+}
+
+.invitation-step-copy--muted {
+  color: var(--color-text-tertiary);
+  font-style: italic;
+}
+
+.invitation-step-copy--success {
+  color: var(--color-success, #059669);
+  font-weight: 500;
+}
+
+.invitation-step-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
