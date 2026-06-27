@@ -1,4 +1,12 @@
-import type { ApiError } from '../types/auth';
+import type {
+  ApiError,
+  ForgotPasswordRequest,
+  MessageResponse,
+  ResendOtpRequest,
+  ResendOtpResponse,
+  ResetPasswordRequest,
+  VerifyForgotPasswordOtpRequest,
+} from '../types/auth';
 import type {
   AuthorProfileDto,
   AuthorAppProfile,
@@ -30,6 +38,23 @@ import {
 } from './registerFormData';
 import { setStoredWorkspaceSlug } from './workspaceSlug';
 import { setAccessToken } from './token';
+import { requiresAuthForResendOtp } from './otpResend';
+
+function mapAuthApiError(data: Record<string, unknown>, status: number): ApiError {
+  return {
+    message:
+      (typeof data.message === 'string' ? data.message : undefined) ||
+      (typeof data.error === 'string' ? data.error : undefined) ||
+      'Request failed',
+    error: typeof data.error === 'string' ? data.error : undefined,
+    statusCode: status,
+    code: typeof data.code === 'string' ? data.code : undefined,
+    details:
+      data.details && typeof data.details === 'object'
+        ? (data.details as ApiError['details'])
+        : undefined,
+  };
+}
 
 function getPublicJsonHeaders(): HeadersInit {
   return {
@@ -165,6 +190,139 @@ export async function verifyRegistrationOtp(
     const verifyResponse = data as VerifyRegistrationOtpResponse;
     storeTokenFromResponse(verifyResponse);
     return verifyResponse;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Resends an OTP for registration, password reset, password change, or email update.
+ * Public purposes (REGISTRATION, PASSWORD_RESET) require no auth.
+ * Authenticated purposes (PASSWORD_UPDATE, EMAIL_UPDATE) require a Bearer token.
+ */
+export async function resendOtp(
+  payload: ResendOtpRequest
+): Promise<ResendOtpResponse> {
+  try {
+    const body: Record<string, string> = {
+      email: payload.email,
+      purpose: payload.purpose,
+    };
+    if (payload.verificationEmail !== undefined) {
+      body.verificationEmail = payload.verificationEmail;
+    }
+
+    const headers = requiresAuthForResendOtp(payload.purpose)
+      ? getAuthHeaders()
+      : getPublicJsonHeaders();
+
+    const response = await fetch(`${getAuthApiBaseUrl()}/auth/resend-otp`, {
+      method: 'POST',
+      credentials: 'include',
+      headers,
+      body: JSON.stringify(body),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to resend OTP',
+        error: data.error,
+        statusCode: response.status,
+        code: data.code,
+        details: data.details,
+      };
+      throw error;
+    }
+
+    return data as ResendOtpResponse;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Resends a registration OTP (convenience wrapper).
+ */
+export async function resendRegistrationOtp(
+  email: string
+): Promise<ResendOtpResponse> {
+  return resendOtp({ email, purpose: 'REGISTRATION' });
+}
+
+/**
+ * Requests a password reset OTP (step 1).
+ */
+export async function forgotPassword(
+  payload: ForgotPasswordRequest
+): Promise<MessageResponse> {
+  try {
+    const response = await fetch(`${getAuthApiBaseUrl()}/auth/forgot-password`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: getPublicJsonHeaders(),
+      body: JSON.stringify({ email: payload.email.trim() }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw mapAuthApiError(data, response.status);
+    }
+    return data as MessageResponse;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Verifies a forgot-password OTP (step 2).
+ */
+export async function verifyForgotPasswordOtp(
+  payload: VerifyForgotPasswordOtpRequest
+): Promise<MessageResponse> {
+  try {
+    const response = await fetch(
+      `${getAuthApiBaseUrl()}/auth/verify-forgot-password-otp`,
+      {
+        method: 'POST',
+        credentials: 'include',
+        headers: getPublicJsonHeaders(),
+        body: JSON.stringify({
+          email: payload.email.trim(),
+          otp: payload.otp.trim(),
+        }),
+      }
+    );
+    const data = await response.json();
+    if (!response.ok) {
+      throw mapAuthApiError(data, response.status);
+    }
+    return data as MessageResponse;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Resets password after OTP verification (step 3).
+ */
+export async function resetPassword(
+  payload: ResetPasswordRequest
+): Promise<MessageResponse> {
+  try {
+    const response = await fetch(`${getAuthApiBaseUrl()}/auth/reset-password`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: getPublicJsonHeaders(),
+      body: JSON.stringify({
+        email: payload.email.trim(),
+        newPassword: payload.newPassword,
+        confirmPassword: payload.confirmPassword,
+      }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw mapAuthApiError(data, response.status);
+    }
+    return data as MessageResponse;
   } catch (error) {
     throw handleApiError(error);
   }

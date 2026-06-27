@@ -5,6 +5,7 @@ import LoadingSpinner from './components/common/LoadingSpinner';
 
 const Landing = lazy(() => import('./pages/landing/Landing'));
 const Login = lazy(() => import('./pages/login/Login'));
+const ForgotPassword = lazy(() => import('./pages/forgot-password/ForgotPassword'));
 const PartnerRegister = lazy(() => import('./pages/partner/PartnerRegister'));
 const Layout = lazy(() => import('./components/layout/Layout'));
 const Audiobooks = lazy(() => import('./pages/audiobooks/Audiobooks'));
@@ -100,6 +101,14 @@ function App() {
             element={
               <GuestRoute>
                 <Login />
+              </GuestRoute>
+            }
+          />
+          <Route
+            path="/forgot-password"
+            element={
+              <GuestRoute>
+                <ForgotPassword />
               </GuestRoute>
             }
           />
