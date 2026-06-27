@@ -191,7 +191,11 @@ function LoginFormPanel() {
               />
               <span className="remember-me-text">Remember me</span>
             </label>
-            <button type="button" className="forgot-password">
+            <button
+              type="button"
+              className="forgot-password"
+              onClick={() => navigate('/forgot-password')}
+            >
               Forgot password?
             </button>
           </div>

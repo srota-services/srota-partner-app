@@ -65,12 +65,40 @@ export interface RefreshResponse {
 }
 
 /**
+ * OTP purposes accepted by POST /auth/resend-otp
+ */
+export type ResendOtpPurpose =
+  | 'REGISTRATION'
+  | 'PASSWORD_RESET'
+  | 'PASSWORD_UPDATE'
+  | 'EMAIL_UPDATE';
+
+/**
+ * Resend OTP request payload
+ */
+export interface ResendOtpRequest {
+  email: string;
+  purpose: ResendOtpPurpose;
+  /** Required when purpose is EMAIL_UPDATE */
+  verificationEmail?: string;
+}
+
+/**
+ * Resend OTP response
+ */
+export interface ResendOtpResponse {
+  message: string;
+}
+
+/**
  * API error response structure
  */
 export interface ApiError {
   message: string;
   error?: string;
   statusCode?: number;
+  code?: string;
+  details?: { remainingSeconds?: number };
 }
 
 /**
@@ -79,4 +107,35 @@ export interface ApiError {
 export interface LogoutResponse {
   message?: string;
   success?: boolean;
+}
+
+/**
+ * Forgot password request (step 1)
+ */
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+/**
+ * Verify forgot password OTP request (step 2)
+ */
+export interface VerifyForgotPasswordOtpRequest {
+  email: string;
+  otp: string;
+}
+
+/**
+ * Reset password request (step 3)
+ */
+export interface ResetPasswordRequest {
+  email: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+/**
+ * Generic message-only API response
+ */
+export interface MessageResponse {
+  message: string;
 }

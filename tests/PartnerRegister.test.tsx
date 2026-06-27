@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 
 import userEvent from '@testing-library/user-event';
 
@@ -35,6 +35,10 @@ vi.mock('../src/utils/partnerApi', () => ({
   fetchUserProfileWithRetry: vi.fn().mockResolvedValue({ id: 'profile-123' }),
 
   verifyRegistrationOtp: vi.fn().mockResolvedValue({ accessToken: 'access-token' }),
+
+  resendOtp: vi.fn().mockResolvedValue({
+    message: 'If the email exists, an OTP has been sent to your email',
+  }),
 
   completePartnerOrganizationSetup: vi.fn().mockResolvedValue({
     id: 'org-1',
@@ -899,6 +903,82 @@ describe('PartnerRegister individual flow', () => {
     expect(storeAuthorSlugAfterRegistration).toHaveBeenCalled();
 
     expect(endSessionAndRedirectToLogin).toHaveBeenCalled();
+
+  });
+
+
+
+  it('calls resendOtp when resend code is clicked on OTP step', async () => {
+
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+
+    const { resendOtp } = await import('../src/utils/partnerApi');
+
+
+
+    renderPartnerRegister();
+
+
+
+    await completeIndividualProfileStep(user);
+
+    await completeIndividualSecurityStep(user);
+
+
+
+    await waitFor(() => {
+
+      expect(screen.getByText(/verify your email/i)).toBeInTheDocument();
+
+    });
+
+
+
+    for (let i = 0; i < 30; i += 1) {
+
+      await act(async () => {
+
+        vi.advanceTimersByTime(1000);
+
+      });
+
+    }
+
+
+
+    await waitFor(() => {
+
+      expect(
+
+        screen.getByRole('button', { name: /^resend code$/i })
+
+      ).toBeEnabled();
+
+    });
+
+
+
+    await user.click(screen.getByRole('button', { name: /^resend code$/i }));
+
+
+
+    await waitFor(() => {
+
+      expect(resendOtp).toHaveBeenCalledWith({
+
+        email: 'author@example.com',
+
+        purpose: 'REGISTRATION',
+
+      });
+
+    });
+
+
+
+    vi.useRealTimers();
 
   });
 
