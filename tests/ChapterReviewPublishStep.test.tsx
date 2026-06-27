@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -12,6 +13,8 @@ const baseData: ChapterWizardData = {
   file: null,
   duration: 120,
   coverImage: null,
+  isPaid: false,
+  minSubscriptionTier: null,
 };
 
 describe('ChapterReviewPublishStep', () => {
