@@ -23,3 +23,15 @@
   flex-shrink: 0;
   color: var(--color-primary);
 }
+
+.wizard-field-label-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+  overflow: visible;
+}
+
+.wizard-field-label-row .wizard-field-label {
+  margin-bottom: 0;
+}

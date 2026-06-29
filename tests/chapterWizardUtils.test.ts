@@ -8,7 +8,7 @@ import {
 import { testAudioFile, testCoverFile } from './wizardTestHelpers';
 
 describe('chapterWizard subscription fields', () => {
-  it('omits minSubscriptionTier when chapter is not paid', () => {
+  it('sends minSubscriptionTier 0 when chapter is not paid', () => {
     const data = createEmptyChapterWizardData();
     data.title = 'Chapter One';
     data.description = 'Description';
@@ -17,7 +17,7 @@ describe('chapterWizard subscription fields', () => {
 
     const request = buildCreateChapterRequest('ab-1', data);
 
-    expect(request.minSubscriptionTier).toBeNull();
+    expect(request.minSubscriptionTier).toBe(0);
   });
 
   it('includes minSubscriptionTier when chapter is paid', () => {
@@ -46,6 +46,20 @@ describe('chapterWizard subscription fields', () => {
 
     expect(hydrated.isPaid).toBe(true);
     expect(hydrated.minSubscriptionTier).toBe(3);
+  });
+
+  it('hydrates free state when minSubscriptionTier is 0', () => {
+    const hydrated = hydrateChapterWizardData({
+      id: 'ch-2',
+      title: 'Free Chapter',
+      description: 'Description',
+      chapterNumber: 2,
+      audiobookId: 'ab-1',
+      minSubscriptionTier: 0,
+    });
+
+    expect(hydrated.isPaid).toBe(false);
+    expect(hydrated.minSubscriptionTier).toBeNull();
   });
 
   it('requires a subscription plan when paid switch is on', () => {

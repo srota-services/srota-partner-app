@@ -928,6 +928,12 @@ function appendAudiobookPaidAndMoodFields(
   if (audiobookData.moodId !== undefined) {
     formData.append('moodId', audiobookData.moodId);
   }
+  if (audiobookData.subscriptionGatingMode !== undefined) {
+    formData.append(
+      'subscriptionGatingMode',
+      audiobookData.subscriptionGatingMode
+    );
+  }
 }
 
 export async function createAudiobook(

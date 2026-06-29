@@ -212,7 +212,7 @@
   flex-direction: column;
   min-width: 0;
   min-height: 100%;
-  background: rgb(230, 232, 248);
+  background: var(--color-wizard-content-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
   padding: 24px;

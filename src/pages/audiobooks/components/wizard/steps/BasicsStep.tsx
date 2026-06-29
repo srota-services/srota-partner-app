@@ -1,16 +1,9 @@
-import { AlignLeft, BookOpen, Globe, Sparkles, Wallet } from 'lucide-react';
-import PillSwitch from '../../../../../components/common/PillSwitch';
+import { AlignLeft, BookOpen, Globe, Sparkles } from 'lucide-react';
 import WizardFieldLabel from '../../../../../components/wizard/WizardFieldLabel';
 import WizardSinglePillSelector from '../../../../../components/wizard/WizardSinglePillSelector';
 import type { AudiobookWizardData } from '../../../../../types/audiobook';
 import { AUDIOBOOK_LANGUAGE_OPTIONS } from '../../../../../utils/audiobookWizard';
-import { buildSubscriptionPlanSelectOptions } from '../../../../../utils/subscriptionPlans';
-import type {
-  GenreItem,
-  MoodItem,
-  SubscriptionPlanItem,
-  TagItem,
-} from '../../../../../utils/audiobookApi';
+import type { GenreItem, MoodItem, TagItem } from '../../../../../utils/audiobookApi';
 import GenreTagSelectors from '../fields/GenreTagSelectors';
 
 interface BasicsStepProps {
@@ -19,11 +12,9 @@ interface BasicsStepProps {
   genres: GenreItem[];
   tags: TagItem[];
   moods: MoodItem[];
-  subscriptionPlans: SubscriptionPlanItem[];
   genresLoading: boolean;
   tagsLoading: boolean;
   moodsLoading: boolean;
-  subscriptionPlansLoading: boolean;
   isLoading?: boolean;
   onChange: (updates: Partial<AudiobookWizardData>) => void;
 }
@@ -34,18 +25,12 @@ function BasicsStep({
   genres,
   tags,
   moods,
-  subscriptionPlans,
   genresLoading,
   tagsLoading,
   moodsLoading,
-  subscriptionPlansLoading,
   isLoading = false,
   onChange,
 }: BasicsStepProps) {
-  const subscriptionPlanOptions = buildSubscriptionPlanSelectOptions(
-    subscriptionPlans ?? []
-  );
-
   const moodOptions = (moods ?? []).map(mood => ({
     id: mood.id,
     label: mood.name,
@@ -149,74 +134,6 @@ function BasicsStep({
             </option>
           ))}
         </select>
-      </div>
-
-      <div className="wizard-field-group">
-        <div className="wizard-paid-plan-layout">
-          <div className="wizard-paid-switch">
-            <PillSwitch
-              id="audiobook-paid-switch"
-              label="Paid"
-              checked={data.isPaid}
-              disabled={isLoading}
-              onChange={checked => {
-                if (checked) {
-                  onChange({ isPaid: true });
-                } else {
-                  onChange({ isPaid: false, minSubscriptionTier: null });
-                }
-              }}
-            />
-          </div>
-          {data.isPaid && (
-            <div className="wizard-paid-plan-content">
-              <WizardFieldLabel
-                htmlFor="audiobook-subscription-plan"
-                icon={Wallet}
-                required
-              >
-                Subscription plan
-              </WizardFieldLabel>
-              <div className="wizard-paid-plan-dropdown">
-                <select
-                  id="audiobook-subscription-plan"
-                  value={
-                    data.minSubscriptionTier != null
-                      ? String(data.minSubscriptionTier)
-                      : ''
-                  }
-                  onChange={e => {
-                    const tier = e.target.value ? Number(e.target.value) : null;
-                    onChange({
-                      minSubscriptionTier:
-                        tier != null && !Number.isNaN(tier) ? tier : null,
-                    });
-                  }}
-                  disabled={
-                    isLoading || !data.isPaid || subscriptionPlansLoading
-                  }
-                  aria-invalid={Boolean(errors.minSubscriptionTier)}
-                >
-                  <option value="">
-                    {subscriptionPlansLoading
-                      ? 'Loading plans...'
-                      : 'Select a subscription plan'}
-                  </option>
-                  {subscriptionPlanOptions.map(option => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                {errors.minSubscriptionTier && (
-                  <span className="wizard-field-error">
-                    {errors.minSubscriptionTier}
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
       </div>
 
       <div className="wizard-field-group">
