@@ -1,0 +1,63 @@
+import { describe, expect, it } from 'vitest';
+import type { ReactElement } from 'react';
+import { render, screen } from '@testing-library/react';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
+import ChapterTable from '../src/pages/chapters/components/ChapterTable';
+import type { ChapterApiResponse } from '../src/types/audiobook';
+import transcodingReducer from '../src/store/slices/transcodingSlice';
+import '../src/styles/pages/audiobooks/components/AudiobookTable.css';
+import '../src/styles/pages/chapters/components/ChapterTable.css';
+import '../src/styles/pages/chapters/components/ChapterTranscodingStatus.css';
+
+const baseChapter: ChapterApiResponse = {
+  id: 'ch-1',
+  title: 'Chapter One',
+  description: 'Description',
+  chapterNumber: 1,
+  audiobookId: 'ab-1',
+};
+
+function renderWithStore(ui: ReactElement) {
+  const store = configureStore({
+    reducer: { transcoding: transcodingReducer },
+  });
+
+  return render(<Provider store={store}>{ui}</Provider>);
+}
+
+describe('ChapterTable subscription column', () => {
+  it('shows Free when minSubscriptionTier is 0 or unset', () => {
+    renderWithStore(
+      <ChapterTable
+        chapters={[
+          { ...baseChapter, minSubscriptionTier: 0 },
+          { ...baseChapter, id: 'ch-2', title: 'Chapter Two', minSubscriptionTier: null },
+        ]}
+        statusByChapter={{}}
+        onEdit={() => undefined}
+        onDelete={() => undefined}
+      />
+    );
+
+    expect(screen.getAllByText('Free')).toHaveLength(2);
+    expect(screen.getByRole('columnheader', { name: 'Subscription' })).toBeInTheDocument();
+  });
+
+  it('shows tier labels for paid chapters', () => {
+    renderWithStore(
+      <ChapterTable
+        chapters={[
+          { ...baseChapter, minSubscriptionTier: 1 },
+          { ...baseChapter, id: 'ch-2', title: 'Chapter Two', minSubscriptionTier: 3 },
+        ]}
+        statusByChapter={{}}
+        onEdit={() => undefined}
+        onDelete={() => undefined}
+      />
+    );
+
+    expect(screen.getByText('Base')).toBeInTheDocument();
+    expect(screen.getByText('Premium')).toBeInTheDocument();
+  });
+});

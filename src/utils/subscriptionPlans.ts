@@ -91,7 +91,7 @@ export function getSubscriptionPlanNameForTier(
 export function getAudiobookSubscriptionTierLabel(
   minSubscriptionTier: number | null | undefined
 ): string {
-  if (minSubscriptionTier == null) {
+  if (minSubscriptionTier == null || minSubscriptionTier === 0) {
     return 'Free';
   }
 
@@ -99,5 +99,5 @@ export function getAudiobookSubscriptionTierLabel(
     return SUBSCRIPTION_TIER_LABELS[minSubscriptionTier];
   }
 
-  return `Tier ${minSubscriptionTier}`;
+  return `${minSubscriptionTier}`;
 }

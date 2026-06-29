@@ -53,6 +53,7 @@ describe('subscriptionPlans', () => {
   it('maps audiobook subscription tiers to table labels', () => {
     expect(getAudiobookSubscriptionTierLabel(null)).toBe('Free');
     expect(getAudiobookSubscriptionTierLabel(undefined)).toBe('Free');
+    expect(getAudiobookSubscriptionTierLabel(0)).toBe('Free');
     expect(getAudiobookSubscriptionTierLabel(1)).toBe('Base');
     expect(getAudiobookSubscriptionTierLabel(2)).toBe('Standard');
     expect(getAudiobookSubscriptionTierLabel(3)).toBe('Premium');
