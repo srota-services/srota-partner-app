@@ -47,6 +47,7 @@ function ChapterTable({
               <th>Chapter</th>
               <th>#</th>
               <th>Status</th>
+              <th>Subscription</th>
               <th>Duration</th>
               <th>Stream</th>
               <th>Transcoding</th>

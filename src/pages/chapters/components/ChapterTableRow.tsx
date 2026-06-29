@@ -4,6 +4,7 @@ import TableActionsMenu from '../../../components/common/TableActionsMenu';
 import type { ChapterApiResponse } from '../../../types/audiobook';
 import type { ChapterTranscodingStatus } from '../../../types/streaming';
 import { formatDuration } from '../../../utils/formatting';
+import { getAudiobookSubscriptionTierLabel } from '../../../utils/subscriptionPlans';
 import { computeStreamBadge } from '../../../utils/streamingApi';
 import { getChapterStatus } from './chapterTableStatus';
 import ChapterTranscodingStatusPanel from './ChapterTranscodingStatus';
@@ -72,6 +73,11 @@ function ChapterTableRow({
         >
           {status.label}
         </span>
+      </td>
+      <td>
+        <p className="audiobook-table-subscription">
+          {getAudiobookSubscriptionTierLabel(chapter.minSubscriptionTier)}
+        </p>
       </td>
       <td>{formatDuration(chapter.duration)}</td>
       <td>
