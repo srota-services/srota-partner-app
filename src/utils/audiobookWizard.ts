@@ -3,6 +3,7 @@ import type {
   AudiobookFormData,
   AudiobookWizardData,
   CreateAudiobookRequest,
+  SubscriptionGatingMode,
   UpdateAudiobookRequest,
 } from '../types/audiobook';
 import type { GenreItem, TagItem } from './audiobookApi';
@@ -19,8 +20,27 @@ export const AUDIOBOOK_LANGUAGE_OPTIONS = [
   'Mandarin',
 ] as const;
 
-export type AudiobookWizardStep = 1 | 2 | 3 | 4;
+export type AudiobookWizardStep = 1 | 2 | 3 | 4 | 5;
 export type WizardMode = 'create' | 'edit';
+
+export const SUBSCRIPTION_GATING_MODE_OPTIONS: {
+  id: SubscriptionGatingMode;
+  label: string;
+}[] = [
+  { id: 'NONE', label: 'None' },
+  { id: 'AUDIOBOOK', label: 'Audiobook' },
+  { id: 'CHAPTER', label: 'Chapter' },
+];
+
+const SUBSCRIPTION_GATING_MODE_LABELS = Object.fromEntries(
+  SUBSCRIPTION_GATING_MODE_OPTIONS.map(option => [option.id, option.label])
+) as Record<SubscriptionGatingMode, string>;
+
+export function getSubscriptionGatingModeLabel(
+  mode: SubscriptionGatingMode
+): string {
+  return SUBSCRIPTION_GATING_MODE_LABELS[mode];
+}
 
 export function createEmptyAudiobookWizardData(): AudiobookWizardData {
   return {
@@ -37,6 +57,7 @@ export function createEmptyAudiobookWizardData(): AudiobookWizardData {
     isPaid: false,
     minSubscriptionTier: null,
     moodId: null,
+    subscriptionGatingMode: 'NONE',
     existingCoverUrl: undefined,
   };
 }
@@ -99,8 +120,11 @@ export function hydrateAudiobookWizardData(
     scheduledAt: undefined,
     meta: initialData.meta || {},
     isPaid: initialData.isPublic === false,
-    minSubscriptionTier: null,
+    minSubscriptionTier: initialData.minSubscriptionTier ?? null,
     moodId: null,
+    subscriptionGatingMode:
+      initialData.subscriptionGatingMode ??
+      (initialData.isPublic === false ? 'AUDIOBOOK' : 'NONE'),
     existingCoverUrl: initialData.coverImage,
   };
 }
@@ -127,9 +151,6 @@ export function validateAudiobookStep(
     if (data.tags.length === 0) {
       errors.tags = 'At least one tag is required';
     }
-    if (data.isPaid && data.minSubscriptionTier == null) {
-      errors.minSubscriptionTier = 'Please select a subscription plan';
-    }
   }
 
   if (step === 2) {
@@ -145,7 +166,17 @@ export function validateAudiobookStep(
     }
   }
 
-  if (step === 4 && !data.scheduledAt && mode === 'create') {
+  if (step === 4) {
+    if (
+      data.subscriptionGatingMode === 'AUDIOBOOK' &&
+      data.isPaid &&
+      data.minSubscriptionTier == null
+    ) {
+      errors.minSubscriptionTier = 'Please select a subscription plan';
+    }
+  }
+
+  if (step === 5 && !data.scheduledAt && mode === 'create') {
     // scheduledAt validated only when scheduling explicitly
   }
 
@@ -159,6 +190,7 @@ export function validateAudiobookForSchedule(
     ...validateAudiobookStep(1, data, 'create'),
     ...validateAudiobookStep(2, data, 'create'),
     ...validateAudiobookStep(3, data, 'create'),
+    ...validateAudiobookStep(4, data, 'create'),
   };
 
   if (!data.scheduledAt) {
@@ -176,6 +208,7 @@ export function validateAudiobookForPublish(
     ...validateAudiobookStep(1, data, mode),
     ...validateAudiobookStep(2, data, mode),
     ...validateAudiobookStep(3, data, mode),
+    ...validateAudiobookStep(4, data, mode),
   };
 }
 
@@ -197,6 +230,11 @@ function buildPaidAndMoodFields(data: AudiobookFormData): {
     }
   } else {
     fields.isPublic = true;
+  }
+
+  if (data.subscriptionGatingMode === 'CHAPTER') {
+    fields.isPublic = true;
+    fields.minSubscriptionTier = 0;
   }
 
   if (data.moodId) {
@@ -229,6 +267,7 @@ export function buildCreateAudiobookRequest(
     coverImage: data.coverImage || undefined,
     scheduledAt: data.scheduledAt,
     meta: Object.keys(filteredMeta).length > 0 ? filteredMeta : undefined,
+    subscriptionGatingMode: data.subscriptionGatingMode,
     ...buildPaidAndMoodFields(data),
   };
 }
@@ -256,6 +295,7 @@ export function buildUpdateAudiobookRequest(
     coverImage: data.coverImage || undefined,
     scheduledAt: data.scheduledAt,
     meta: Object.keys(filteredMeta).length > 0 ? filteredMeta : undefined,
+    subscriptionGatingMode: data.subscriptionGatingMode,
     ...buildPaidAndMoodFields(data),
   };
 }

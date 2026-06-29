@@ -16,6 +16,7 @@ import type { AudiobookWizardData } from '../../../../../types/audiobook';
 import type { GenreItem, MoodItem, TagItem } from '../../../../../utils/audiobookApi';
 import {
   filterAudiobookMeta,
+  getSubscriptionGatingModeLabel,
   type AudiobookWizardStep,
 } from '../../../../../utils/audiobookWizard';
 import { getSubscriptionPlanNameForTier } from '../../../../../utils/subscriptionPlans';
@@ -98,17 +99,27 @@ function ReviewPublishStep({
       step: 1,
     },
     {
-      label: 'Paid',
-      value: data.isPaid ? 'Yes' : 'No',
-      icon: CreditCard,
-      step: 1,
-    },
-    {
-      label: 'Subscription plan',
-      value: subscriptionPlanName,
+      label: 'Subscription level',
+      value: getSubscriptionGatingModeLabel(data.subscriptionGatingMode),
       icon: Crown,
-      step: 1,
+      step: 4,
     },
+    ...(data.subscriptionGatingMode === 'AUDIOBOOK'
+      ? ([
+          {
+            label: 'Paid',
+            value: data.isPaid ? 'Yes' : 'No',
+            icon: CreditCard,
+            step: 4 as AudiobookWizardStep,
+          },
+          {
+            label: 'Subscription plan',
+            value: subscriptionPlanName,
+            icon: Crown,
+            step: 4 as AudiobookWizardStep,
+          },
+        ] satisfies ReviewRowConfig[])
+      : []),
     {
       label: 'Mood',
       value: moodName,

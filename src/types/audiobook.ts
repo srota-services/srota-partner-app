@@ -23,6 +23,8 @@ export interface AudiobookGenre {
   name: string;
 }
 
+export type SubscriptionGatingMode = 'AUDIOBOOK' | 'CHAPTER' | 'NONE';
+
 /**
  * Audiobook structure from API response
  */
@@ -50,6 +52,7 @@ export interface AudiobookApiResponse {
   genres?: AudiobookGenre[];
   meta?: Record<string, string>;
   minSubscriptionTier?: number | null;
+  subscriptionGatingMode?: SubscriptionGatingMode;
 }
 
 /**
@@ -97,6 +100,7 @@ export interface AudiobookFormData {
   isPaid: boolean;
   minSubscriptionTier: number | null;
   moodId: string | null;
+  subscriptionGatingMode: SubscriptionGatingMode;
 }
 
 export type AudiobookWizardData = AudiobookFormData & {
@@ -150,6 +154,7 @@ export interface CreateAudiobookRequest {
   isPublic?: boolean;
   minSubscriptionTier?: number;
   moodId?: string;
+  subscriptionGatingMode?: SubscriptionGatingMode;
 }
 
 /**
@@ -172,6 +177,7 @@ export interface UpdateAudiobookRequest {
   isPublic?: boolean;
   minSubscriptionTier?: number;
   moodId?: string;
+  subscriptionGatingMode?: SubscriptionGatingMode;
 }
 
 export type ChapterWizardData = ChapterFormData & {

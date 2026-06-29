@@ -3,6 +3,7 @@ import { useFilePreviewUrl } from '../../hooks/useFilePreviewUrl';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import {
   BookOpen,
+  Crown,
   FileText,
   Image as ImageIcon,
   Users,
@@ -43,6 +44,7 @@ import BasicsStep from './components/wizard/steps/BasicsStep';
 import ContributorsStep from './components/wizard/steps/ContributorsStep';
 import ContentAssetsStep from './components/wizard/steps/ContentAssetsStep';
 import ReviewPublishStep from './components/wizard/steps/ReviewPublishStep';
+import SubscriptionTiersStep from './components/wizard/steps/SubscriptionTiersStep';
 import '../../styles/components/wizard/WizardShell.css';
 import '../../styles/pages/audiobooks/AudiobookWizard.css';
 
@@ -53,6 +55,11 @@ const AUDIOBOOK_STEPS: WizardStepConfig[] = [
     label: 'Content & Assets',
     description: 'Upload cover image',
     icon: ImageIcon,
+  },
+  {
+    label: 'Subscription tiers',
+    description: 'Set access and pricing',
+    icon: Crown,
   },
   {
     label: 'Review & Publish',
@@ -190,7 +197,7 @@ function AudiobookWizard() {
     if (!validateCurrentStep()) {
       return;
     }
-    setStep(prev => Math.min(4, prev + 1) as AudiobookWizardStep);
+    setStep(prev => Math.min(5, prev + 1) as AudiobookWizardStep);
   };
 
   const handleBack = () => {
@@ -263,7 +270,7 @@ function AudiobookWizard() {
       subtitle={subtitle}
       mode={mode}
       currentStep={step}
-      totalSteps={4}
+      totalSteps={5}
       steps={AUDIOBOOK_STEPS}
       draftSaved={draftSaved}
       isLoading={loading}
@@ -280,9 +287,9 @@ function AudiobookWizard() {
       onCancel={() => navigate('/audiobooks')}
       onSaveDraft={mode === 'create' ? handleSaveDraft : undefined}
       onBack={step > 1 ? handleBack : undefined}
-      onContinue={step < 4 ? handleContinue : undefined}
-      onPublish={step === 4 ? () => void submitAudiobook(false) : undefined}
-      onSchedule={step === 4 ? () => void submitAudiobook(true) : undefined}
+      onContinue={step < 5 ? handleContinue : undefined}
+      onPublish={step === 5 ? () => void submitAudiobook(false) : undefined}
+      onSchedule={step === 5 ? () => void submitAudiobook(true) : undefined}
       scheduledAt={data.scheduledAt}
       scheduleError={errors.scheduledAt}
       onScheduledAtChange={scheduledAt => {
@@ -290,8 +297,8 @@ function AudiobookWizard() {
         setErrors(prev => ({ ...prev, scheduledAt: undefined }));
       }}
       showBack={step > 1}
-      showContinue={step < 4}
-      showPublishActions={step === 4}
+      showContinue={step < 5}
+      showPublishActions={step === 5}
     >
       {ownerError && step === 1 && mode === 'create' && (
         <p className="wizard-field-error">{ownerError}</p>
@@ -304,11 +311,9 @@ function AudiobookWizard() {
           genres={genres}
           tags={tags}
           moods={moods}
-          subscriptionPlans={subscriptionPlans}
           genresLoading={genresLoading}
           tagsLoading={tagsLoading}
           moodsLoading={moodsLoading}
-          subscriptionPlansLoading={subscriptionPlansLoading}
           isLoading={loading}
           onChange={updateData}
         />
@@ -330,6 +335,16 @@ function AudiobookWizard() {
         />
       )}
       {step === 4 && (
+        <SubscriptionTiersStep
+          data={data}
+          errors={errors}
+          subscriptionPlans={subscriptionPlans}
+          subscriptionPlansLoading={subscriptionPlansLoading}
+          isLoading={loading}
+          onChange={updateData}
+        />
+      )}
+      {step === 5 && (
         <ReviewPublishStep
           data={data}
           genres={genres}

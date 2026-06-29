@@ -42,7 +42,9 @@ function AudiobookLivePreview({
     ? moods.find(mood => mood.id === data.moodId)
     : undefined;
   const subscriptionPlanName =
-    data.isPaid && data.minSubscriptionTier != null
+    data.subscriptionGatingMode === 'AUDIOBOOK' &&
+    data.isPaid &&
+    data.minSubscriptionTier != null
       ? subscriptionPlans.find(
           plan =>
             resolveSubscriptionPlanTier(plan) === data.minSubscriptionTier

@@ -71,6 +71,7 @@
     rgba(255, 255, 255, 0) 100%
   );
   --landing-hue-flat: #e6e2ec;
+  --color-wizard-content-bg: rgb(230, 232, 248);
   /* Transitions */
   --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-base: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -110,6 +111,7 @@
     rgba(15, 23, 42, 0) 100%
   );
   --landing-hue-flat: #1e293b;
+  --color-wizard-content-bg: var(--color-bg-secondary);
 }
 
 * {

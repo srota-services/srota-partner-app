@@ -305,6 +305,7 @@ describe('audiobook API paid and mood payloads', () => {
       isPublic: true,
       minSubscriptionTier: 2,
       moodId: 'mood-1',
+      subscriptionGatingMode: 'AUDIOBOOK',
     });
 
     const [, request] = fetchMock.mock.calls[0];
@@ -312,6 +313,7 @@ describe('audiobook API paid and mood payloads', () => {
     expect(body.isPublic).toBe(true);
     expect(body.minSubscriptionTier).toBe(2);
     expect(body.moodId).toBe('mood-1');
+    expect(body.subscriptionGatingMode).toBe('AUDIOBOOK');
   });
 
   it('includes paid and mood fields in FormData create payload', async () => {
@@ -330,6 +332,7 @@ describe('audiobook API paid and mood payloads', () => {
       isPublic: true,
       minSubscriptionTier: 3,
       moodId: 'mood-2',
+      subscriptionGatingMode: 'CHAPTER',
     });
 
     const [, request] = fetchMock.mock.calls[0];
@@ -337,6 +340,7 @@ describe('audiobook API paid and mood payloads', () => {
     expect(formData.get('isPublic')).toBe('true');
     expect(formData.get('minSubscriptionTier')).toBe('3');
     expect(formData.get('moodId')).toBe('mood-2');
+    expect(formData.get('subscriptionGatingMode')).toBe('CHAPTER');
   });
 
   it('includes owner as JSON string in FormData create payload', async () => {

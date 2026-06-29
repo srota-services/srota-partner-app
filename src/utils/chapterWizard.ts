@@ -69,8 +69,11 @@ export function hydrateChapterWizardData(
     coverImage: null,
     existingCoverUrl: initialData.coverImage,
     existingAudioUrl: initialData.fileUrl,
-    isPaid: initialData.minSubscriptionTier != null,
-    minSubscriptionTier: initialData.minSubscriptionTier ?? null,
+    isPaid: (initialData.minSubscriptionTier ?? 0) > 0,
+    minSubscriptionTier:
+      (initialData.minSubscriptionTier ?? 0) > 0
+        ? initialData.minSubscriptionTier ?? null
+        : null,
   };
 }
 
@@ -152,7 +155,7 @@ function buildChapterSubscriptionFields(data: ChapterFormData): {
   if (data.isPaid) {
     return {};
   }
-  return { minSubscriptionTier: null };
+  return { minSubscriptionTier: 0 };
 }
 
 export function buildCreateChapterRequest(
