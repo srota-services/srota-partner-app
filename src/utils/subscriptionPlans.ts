@@ -24,6 +24,40 @@ function isSubscriptionTier(value: number): value is SubscriptionTier {
   return value === 1 || value === 2 || value === 3;
 }
 
+const SUBSCRIPTION_TIER_CODE_TO_NUMBER: Record<string, SubscriptionTier> = {
+  BASE: 1,
+  STANDARD: 2,
+  PREMIUM: 3,
+};
+
+/** Normalizes API tier values (number or enum string) to 1–3, or null when free. */
+export function normalizeMinSubscriptionTier(
+  tier: number | string | null | undefined
+): number | null {
+  if (tier == null) {
+    return null;
+  }
+
+  if (typeof tier === 'number') {
+    if (tier <= 0) {
+      return null;
+    }
+    return tier;
+  }
+
+  const normalized = tier.trim().toUpperCase();
+  if (normalized in SUBSCRIPTION_TIER_CODE_TO_NUMBER) {
+    return SUBSCRIPTION_TIER_CODE_TO_NUMBER[normalized];
+  }
+
+  const parsed = Number(normalized);
+  if (!Number.isNaN(parsed) && parsed > 0) {
+    return parsed;
+  }
+
+  return null;
+}
+
 export function getSubscriptionTierForPlanName(
   name: string
 ): SubscriptionTier | undefined {

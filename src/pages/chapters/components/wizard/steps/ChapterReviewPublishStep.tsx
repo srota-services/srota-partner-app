@@ -12,7 +12,7 @@ import {
 import WizardReviewRow from '../../../../../components/wizard/WizardReviewRow';
 import type { ChapterWizardData } from '../../../../../types/audiobook';
 import type { ChapterWizardStep } from '../../../../../utils/chapterWizard';
-import { formatDurationDetailed } from '../../../../../utils/formatting';
+import { formatDurationDetailed, getFileNameFromUrl } from '../../../../../utils/formatting';
 import { getSubscriptionPlanNameForTier } from '../../../../../utils/subscriptionPlans';
 
 interface ChapterReviewPublishStepProps {
@@ -32,9 +32,11 @@ function ChapterReviewPublishStep({
   onNavigateToStep,
 }: ChapterReviewPublishStepProps) {
   const audioLabel =
-    data.file?.name || (data.existingAudioUrl ? 'Existing file' : '—');
+    data.file?.name ||
+    (data.existingAudioUrl ? getFileNameFromUrl(data.existingAudioUrl) : '—');
   const coverLabel =
-    data.coverImage?.name || (data.existingCoverUrl ? 'Existing cover' : '—');
+    data.coverImage?.name ||
+    (data.existingCoverUrl ? 'Existing cover' : '—');
   const durationLabel =
     data.duration !== undefined ? formatDurationDetailed(data.duration) : '—';
   const subscriptionPlanName =

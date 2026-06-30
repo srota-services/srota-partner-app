@@ -330,6 +330,7 @@ function AudiobookWizard() {
         <ContentAssetsStep
           data={data}
           errors={errors}
+          mode={mode}
           isLoading={loading}
           onChange={updateData}
         />

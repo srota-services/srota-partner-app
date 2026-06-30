@@ -136,12 +136,7 @@ function ChapterWizard() {
 
   const handleFileChange = async (file: File | null) => {
     if (!file) {
-      updateData({
-        file: null,
-        duration: undefined,
-        startPosition: undefined,
-        endPosition: undefined,
-      });
+      updateData({ file: null });
       return;
     }
 
@@ -311,6 +306,7 @@ function ChapterWizard() {
         <ChapterContentAssetsStep
           data={data}
           errors={errors}
+          mode={mode}
           isLoading={loading}
           onChange={updateData}
         />

@@ -1,4 +1,5 @@
 import { AlignLeft, BookOpen, Globe, Sparkles } from 'lucide-react';
+import Select from '../../../../../components/common/Select';
 import WizardFieldLabel from '../../../../../components/wizard/WizardFieldLabel';
 import WizardSinglePillSelector from '../../../../../components/wizard/WizardSinglePillSelector';
 import type { AudiobookWizardData } from '../../../../../types/audiobook';
@@ -122,18 +123,17 @@ function BasicsStep({
         <WizardFieldLabel htmlFor="audiobook-language" icon={Globe}>
           Language
         </WizardFieldLabel>
-        <select
+        <Select
           id="audiobook-language"
+          placeholder={false}
+          options={AUDIOBOOK_LANGUAGE_OPTIONS.map(language => ({
+            value: language,
+            label: language,
+          }))}
           value={data.language}
           onChange={e => onChange({ language: e.target.value })}
           disabled={isLoading}
-        >
-          {AUDIOBOOK_LANGUAGE_OPTIONS.map(language => (
-            <option key={language} value={language}>
-              {language}
-            </option>
-          ))}
-        </select>
+        />
       </div>
 
       <div className="wizard-field-group">

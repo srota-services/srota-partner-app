@@ -5,6 +5,7 @@ import {
   Crown,
   FileText,
   Globe,
+  Image as ImageIcon,
   Mic,
   Smile,
   Tag,
@@ -60,6 +61,9 @@ function ReviewPublishStep({
   const moodName = data.moodId
     ? moods.find(mood => mood.id === data.moodId)?.name || '—'
     : '—';
+  const coverLabel =
+    data.coverImage?.name ||
+    (data.existingCoverUrl ? 'Existing cover' : '—');
 
   const reviewRows: ReviewRowConfig[] = [
     {
@@ -97,6 +101,12 @@ function ReviewPublishStep({
       value: tagNames.length > 0 ? tagNames.join(', ') : '—',
       icon: Tag,
       step: 1,
+    },
+    {
+      label: 'Cover',
+      value: coverLabel,
+      icon: ImageIcon,
+      step: 3,
     },
     {
       label: 'Subscription level',

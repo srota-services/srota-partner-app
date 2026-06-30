@@ -1,5 +1,6 @@
 import { Crown, Wallet } from 'lucide-react';
 import InfoHint from '../../../../../components/common/InfoHint';
+import Select from '../../../../../components/common/Select';
 import PillSwitch from '../../../../../components/common/PillSwitch';
 import WizardFieldLabel from '../../../../../components/wizard/WizardFieldLabel';
 import WizardSinglePillSelector from '../../../../../components/wizard/WizardSinglePillSelector';
@@ -92,8 +93,15 @@ function SubscriptionTiersStep({
                   Subscription plan
                 </WizardFieldLabel>
                 <div className="wizard-paid-plan-dropdown">
-                  <select
+                  <Select
                     id="audiobook-subscription-plan"
+                    options={subscriptionPlanOptions}
+                    placeholder={
+                      subscriptionPlansLoading
+                        ? 'Loading plans...'
+                        : 'Select a subscription plan'
+                    }
+                    loading={subscriptionPlansLoading}
                     value={
                       data.minSubscriptionTier != null
                         ? String(data.minSubscriptionTier)
@@ -111,19 +119,8 @@ function SubscriptionTiersStep({
                     disabled={
                       isLoading || !data.isPaid || subscriptionPlansLoading
                     }
-                    aria-invalid={Boolean(errors.minSubscriptionTier)}
-                  >
-                    <option value="">
-                      {subscriptionPlansLoading
-                        ? 'Loading plans...'
-                        : 'Select a subscription plan'}
-                    </option>
-                    {subscriptionPlanOptions.map(option => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
+                    error={Boolean(errors.minSubscriptionTier)}
+                  />
                   {errors.minSubscriptionTier && (
                     <span className="wizard-field-error">
                       {errors.minSubscriptionTier}

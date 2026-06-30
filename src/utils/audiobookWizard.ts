@@ -7,6 +7,7 @@ import type {
   UpdateAudiobookRequest,
 } from '../types/audiobook';
 import type { GenreItem, TagItem } from './audiobookApi';
+import { normalizeMinSubscriptionTier } from './subscriptionPlans';
 
 export const DEFAULT_AUDIOBOOK_LANGUAGE = 'English';
 
@@ -105,6 +106,17 @@ export function hydrateAudiobookWizardData(
     narrators.push(initialData.narrator);
   }
 
+  const minSubscriptionTier = normalizeMinSubscriptionTier(
+    initialData.minSubscriptionTier
+  );
+  const subscriptionGatingMode: SubscriptionGatingMode =
+    initialData.subscriptionGatingMode ??
+    (minSubscriptionTier != null
+      ? 'AUDIOBOOK'
+      : initialData.isPublic === false
+        ? 'AUDIOBOOK'
+        : 'NONE');
+
   return {
     title: initialData.title || '',
     author: initialData.author || '',
@@ -119,12 +131,12 @@ export function hydrateAudiobookWizardData(
     coverImage: null,
     scheduledAt: undefined,
     meta: initialData.meta || {},
-    isPaid: initialData.isPublic === false,
-    minSubscriptionTier: initialData.minSubscriptionTier ?? null,
+    isPaid:
+      subscriptionGatingMode === 'AUDIOBOOK' &&
+      (minSubscriptionTier != null || initialData.isPublic === false),
+    minSubscriptionTier,
     moodId: null,
-    subscriptionGatingMode:
-      initialData.subscriptionGatingMode ??
-      (initialData.isPublic === false ? 'AUDIOBOOK' : 'NONE'),
+    subscriptionGatingMode,
     existingCoverUrl: initialData.coverImage,
   };
 }
