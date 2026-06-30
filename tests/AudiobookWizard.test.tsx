@@ -481,8 +481,19 @@ describe('AudiobookWizard', () => {
     await user.selectOptions(screen.getByLabelText(/^language$/i), 'Spanish');
     await user.click(screen.getByRole('button', { name: /continue/i }));
     await user.click(screen.getByRole('button', { name: /continue/i }));
+
+    expect(
+      await screen.findByAltText(/existing audiobook/i)
+    ).toBeInTheDocument();
+
     await user.click(screen.getByRole('button', { name: /continue/i }));
+
+    expect(screen.getByLabelText(/subscription plan/i)).toHaveValue('2');
+
     await user.click(screen.getByRole('button', { name: /continue/i }));
+
+    expect(screen.getByText(/existing cover/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/standard plan/i).length).toBeGreaterThan(0);
 
     await user.click(screen.getByRole('button', { name: /^update$/i }));
 

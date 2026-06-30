@@ -21,6 +21,7 @@ interface AudioUploadZoneProps {
   onChange: (file: File | null) => void;
   disabled?: boolean;
   isLoading?: boolean;
+  existingFileLabel?: string | null;
   ariaLabel?: string;
 }
 
@@ -41,6 +42,7 @@ function AudioUploadZone({
   onChange,
   disabled = false,
   isLoading = false,
+  existingFileLabel = null,
   ariaLabel = 'Upload audio file',
 }: AudioUploadZoneProps) {
   const inputId = useId();
@@ -135,6 +137,12 @@ function AudioUploadZone({
           >
             <X size={14} />
           </button>
+        </div>
+      )}
+
+      {!value && existingFileLabel && (
+        <div className="audio-upload-selected audio-upload-selected--existing">
+          <span className="audio-upload-selected-name">{existingFileLabel}</span>
         </div>
       )}
 

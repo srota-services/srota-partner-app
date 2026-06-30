@@ -62,6 +62,20 @@ describe('chapterWizard subscription fields', () => {
     expect(hydrated.minSubscriptionTier).toBeNull();
   });
 
+  it('hydrates tier enum strings from the API', () => {
+    const hydrated = hydrateChapterWizardData({
+      id: 'ch-3',
+      title: 'Premium Chapter',
+      description: 'Description',
+      chapterNumber: 3,
+      audiobookId: 'ab-1',
+      minSubscriptionTier: 'PREMIUM' as unknown as number,
+    });
+
+    expect(hydrated.isPaid).toBe(true);
+    expect(hydrated.minSubscriptionTier).toBe(3);
+  });
+
   it('requires a subscription plan when paid switch is on', () => {
     const data = createEmptyChapterWizardData();
     data.title = 'Chapter One';

@@ -26,6 +26,7 @@ import Button from '../../components/common/Button';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Pagination from '../../components/common/Pagination';
 import SearchBar from '../../components/common/SearchBar';
+import Select from '../../components/common/Select';
 import { showApiError } from '../../utils/toast';
 import '../../styles/pages/audiobooks/Audiobooks.css';
 
@@ -188,8 +189,10 @@ const Audiobooks: React.FC = () => {
               onChange={setLocalSearch}
               placeholder="Search audiobooks"
             />
-            <select
-              className="audiobooks-filter-select"
+            <Select
+              fieldSize="sm"
+              wrapperClassName="audiobooks-filter-select"
+              placeholder={false}
               value={genreFilter}
               onChange={e => setGenreFilter(e.target.value)}
             >
@@ -199,13 +202,23 @@ const Audiobooks: React.FC = () => {
                   {genre.name}
                 </option>
               ))}
-            </select>
-            <select className="audiobooks-filter-select" defaultValue="all">
+            </Select>
+            <Select
+              fieldSize="sm"
+              wrapperClassName="audiobooks-filter-select"
+              placeholder={false}
+              defaultValue="all"
+            >
               <option value="all">Language</option>
-            </select>
-            <select className="audiobooks-filter-select" defaultValue="recent">
+            </Select>
+            <Select
+              fieldSize="sm"
+              wrapperClassName="audiobooks-filter-select"
+              placeholder={false}
+              defaultValue="recent"
+            >
               <option value="recent">Sort by</option>
-            </select>
+            </Select>
           </div>
 
           {loading && (
@@ -248,10 +261,15 @@ const Audiobooks: React.FC = () => {
                     onPageChange={handlePageChange}
                   />
                 )}
-                <select className="audiobooks-filter-select" defaultValue="10">
+                <Select
+                  fieldSize="sm"
+                  wrapperClassName="audiobooks-filter-select"
+                  placeholder={false}
+                  defaultValue="10"
+                >
                   <option value="10">10 / page</option>
                   <option value="25">25 / page</option>
-                </select>
+                </Select>
               </div>
             </>
           )}

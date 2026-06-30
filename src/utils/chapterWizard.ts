@@ -5,6 +5,7 @@ import type {
   CreateChapterRequest,
   UpdateChapterRequest,
 } from '../types/audiobook';
+import { normalizeMinSubscriptionTier } from './subscriptionPlans';
 
 export type ChapterWizardStep = 1 | 2 | 3 | 4;
 export type WizardMode = 'create' | 'edit';
@@ -57,6 +58,10 @@ export async function loadAudioMetadata(file: File): Promise<{
 export function hydrateChapterWizardData(
   initialData: ChapterApiResponse
 ): ChapterWizardData {
+  const minSubscriptionTier = normalizeMinSubscriptionTier(
+    initialData.minSubscriptionTier
+  );
+
   return {
     title: initialData.title || '',
     description: initialData.description || '',
@@ -65,15 +70,12 @@ export function hydrateChapterWizardData(
     duration: initialData.duration,
     startPosition: initialData.startPosition,
     endPosition: initialData.endPosition,
-    scheduledAt: undefined,
+    scheduledAt: initialData.scheduledAt,
     coverImage: null,
     existingCoverUrl: initialData.coverImage,
     existingAudioUrl: initialData.fileUrl,
-    isPaid: (initialData.minSubscriptionTier ?? 0) > 0,
-    minSubscriptionTier:
-      (initialData.minSubscriptionTier ?? 0) > 0
-        ? initialData.minSubscriptionTier ?? null
-        : null,
+    isPaid: minSubscriptionTier != null,
+    minSubscriptionTier,
   };
 }
 

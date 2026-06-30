@@ -349,7 +349,7 @@
   margin-bottom: 0;
 }
 
-.wizard-paid-plan-dropdown select {
+.wizard-paid-plan-dropdown .select-wrapper {
   width: 100%;
 }
 
@@ -359,7 +359,7 @@
   gap: 12px;
 }
 
-.wizard-language-continue-row select {
+.wizard-language-continue-row .select-wrapper {
   flex: 1;
   min-width: 0;
   width: auto;

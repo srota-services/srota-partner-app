@@ -31,6 +31,9 @@ export const mockAudiobook: AudiobookApiResponse = {
   genres: [{ name: 'Fiction' }],
   audiobookTags: [{ name: 'Bestseller', type: 'general' }],
   meta: { Producer: 'Studio X' },
+  subscriptionGatingMode: 'AUDIOBOOK',
+  isPublic: false,
+  minSubscriptionTier: 2,
 };
 
 export const mockChapter: ChapterApiResponse = {
@@ -44,6 +47,7 @@ export const mockChapter: ChapterApiResponse = {
   coverImage: 'https://cdn.example.com/chapter-cover.jpg',
   fileUrl: 'https://cdn.example.com/chapter-audio.mp3',
   audiobookId: 'ab-1',
+  minSubscriptionTier: 2,
 };
 
 export const testCoverFile = new File(['cover'], 'cover.png', {

@@ -4,6 +4,7 @@ import {
   getAudiobookSubscriptionTierLabel,
   getSubscriptionPlanNameForTier,
   getSubscriptionTierForPlanName,
+  normalizeMinSubscriptionTier,
   resolveSubscriptionPlanTier,
 } from '../src/utils/subscriptionPlans';
 
@@ -57,6 +58,13 @@ describe('subscriptionPlans', () => {
     expect(getAudiobookSubscriptionTierLabel(1)).toBe('Base');
     expect(getAudiobookSubscriptionTierLabel(2)).toBe('Standard');
     expect(getAudiobookSubscriptionTierLabel(3)).toBe('Premium');
-    expect(getAudiobookSubscriptionTierLabel(4)).toBe('Tier 4');
+    expect(getAudiobookSubscriptionTierLabel(4)).toBe('4');
+  });
+
+  it('normalizes API tier values', () => {
+    expect(normalizeMinSubscriptionTier('STANDARD')).toBe(2);
+    expect(normalizeMinSubscriptionTier('premium')).toBe(3);
+    expect(normalizeMinSubscriptionTier(0)).toBeNull();
+    expect(normalizeMinSubscriptionTier(null)).toBeNull();
   });
 });

@@ -1,6 +1,18 @@
 /**
  * Utility functions for formatting data
  */
+
+/** Extracts a readable filename from a URL for existing asset display. */
+export function getFileNameFromUrl(url: string): string {
+  try {
+    const pathname = new URL(url).pathname;
+    const fileName = decodeURIComponent(pathname.split('/').pop() || '');
+    return fileName || 'Existing file';
+  } catch {
+    const fallback = url.split('/').pop() || 'Existing file';
+    return decodeURIComponent(fallback);
+  }
+}
 /**
  * Formats duration in seconds to human-readable format (e.g., "2h 30m")
  * @param seconds - Duration in seconds

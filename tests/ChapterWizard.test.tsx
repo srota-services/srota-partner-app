@@ -319,9 +319,24 @@ describe('ChapterWizard', () => {
       expect(screen.getByDisplayValue('Existing Chapter')).toBeInTheDocument();
     });
 
+    expect(screen.getByLabelText(/subscription plan/i)).toHaveValue('2');
+
     await user.click(screen.getByRole('button', { name: /continue/i }));
+
+    expect(await screen.findByText(/chapter-audio\.mp3/i)).toBeInTheDocument();
+    expect(screen.getByDisplayValue('03:00')).toBeInTheDocument();
+
     await user.click(screen.getByRole('button', { name: /continue/i }));
+
+    expect(
+      await screen.findByAltText(/existing chapter/i)
+    ).toBeInTheDocument();
+
     await user.click(screen.getByRole('button', { name: /continue/i }));
+
+    expect(await screen.findByText(/chapter-audio\.mp3/i)).toBeInTheDocument();
+    expect(screen.getByText(/existing cover/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/standard plan/i).length).toBeGreaterThan(0);
 
     await user.click(screen.getByRole('button', { name: /^update$/i }));
 

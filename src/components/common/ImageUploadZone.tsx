@@ -11,6 +11,7 @@ interface ImageUploadZoneProps {
   onChange: (file: File | null) => void;
   disabled?: boolean;
   previewUrl?: string | null;
+  onClearExisting?: () => void;
   compact?: boolean;
   showPreview?: boolean;
   ariaLabel?: string;
@@ -46,6 +47,7 @@ function ImageUploadZone({
   onChange,
   disabled = false,
   previewUrl,
+  onClearExisting,
   compact = false,
   showPreview = true,
   ariaLabel = 'Upload image',
@@ -94,8 +96,14 @@ function ImageUploadZone({
     showPreview && !previewUrl ? value : null
   );
   const objectPreview = showPreview ? (previewUrl ?? localPreviewUrl) : null;
+  const isExistingPreview = Boolean(objectPreview && previewUrl && !value);
 
   const clearFile = () => {
+    if (isExistingPreview && onClearExisting) {
+      onClearExisting();
+      return;
+    }
+
     onChange(null);
     if (inputRef.current) {
       inputRef.current.value = '';
