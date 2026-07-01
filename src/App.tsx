@@ -133,18 +133,18 @@ function App() {
               path="/home"
               element={<Navigate to="/dashboard" replace />}
             />
-            <Route path="/audiobooks/create" element={<AudiobookWizard />} />
-            <Route path="/audiobooks/:id/edit" element={<AudiobookWizard />} />
+            <Route path="/library/create" element={<AudiobookWizard />} />
+            <Route path="/library/:id/edit" element={<AudiobookWizard />} />
             <Route
-              path="/audiobooks/:id/chapters/create"
+              path="/library/:id/chapters/create"
               element={<ChapterWizard />}
             />
             <Route
-              path="/audiobooks/:id/chapters/:chapterId/edit"
+              path="/library/:id/chapters/:chapterId/edit"
               element={<ChapterWizard />}
             />
-            <Route path="/audiobooks/:id/chapters" element={<Chapters />} />
-            <Route path="/audiobooks" element={<Audiobooks />} />
+            <Route path="/library/:id/chapters" element={<Chapters />} />
+            <Route path="/library" element={<Audiobooks />} />
             <Route path="/analytics" element={<Analytics />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/management" element={<Management />} />

@@ -72,6 +72,29 @@ vi.mock('../src/utils/audiobookApi', async importOriginal => {
       { name: 'Standard Plan' },
       { name: 'Premium Plan' },
     ]),
+    getLanguages: vi.fn().mockResolvedValue([
+      {
+        id: 'lang-en',
+        name: 'English',
+        code: 'en',
+        createdAt: '2024-01-01T00:00:00.000Z',
+        updatedAt: '2024-01-01T00:00:00.000Z',
+      },
+      {
+        id: 'lang-hi',
+        name: 'Hindi',
+        code: 'hi',
+        createdAt: '2024-01-01T00:00:00.000Z',
+        updatedAt: '2024-01-01T00:00:00.000Z',
+      },
+      {
+        id: 'lang-es',
+        name: 'Spanish',
+        code: 'es',
+        createdAt: '2024-01-01T00:00:00.000Z',
+        updatedAt: '2024-01-01T00:00:00.000Z',
+      },
+    ]),
     getAudiobooks: vi.fn().mockResolvedValue({
       success: true,
       data: [],
@@ -95,6 +118,7 @@ async function waitForCatalogOptions() {
   await waitFor(() => {
     expect(screen.getByRole('checkbox', { name: /fiction/i })).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: /calm/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/^language$/i)).toBeInTheDocument();
   });
 }
 
@@ -145,10 +169,10 @@ async function advanceToReviewStep(user: ReturnType<typeof userEvent.setup>) {
 function renderCreateWizard() {
   return render(
     <Provider store={store}>
-      <MemoryRouter initialEntries={['/audiobooks/create']}>
+      <MemoryRouter initialEntries={['/library/create']}>
         <Routes>
-          <Route path="/audiobooks/create" element={<AudiobookWizard />} />
-          <Route path="/audiobooks" element={<div>Audiobooks List</div>} />
+          <Route path="/library/create" element={<AudiobookWizard />} />
+          <Route path="/library" element={<div>Library List</div>} />
         </Routes>
       </MemoryRouter>
     </Provider>
@@ -161,14 +185,14 @@ function renderEditWizard() {
       <MemoryRouter
         initialEntries={[
           {
-            pathname: '/audiobooks/ab-edit-1/edit',
+            pathname: '/library/ab-edit-1/edit',
             state: { audiobook: mockAudiobook },
           },
         ]}
       >
         <Routes>
-          <Route path="/audiobooks/:id/edit" element={<AudiobookWizard />} />
-          <Route path="/audiobooks" element={<div>Audiobooks List</div>} />
+          <Route path="/library/:id/edit" element={<AudiobookWizard />} />
+          <Route path="/library" element={<div>Library List</div>} />
         </Routes>
       </MemoryRouter>
     </Provider>
@@ -322,7 +346,7 @@ describe('AudiobookWizard', () => {
       subscriptionGatingMode: 'NONE',
     });
     expect(
-      await screen.findByText('Audiobooks List')
+      await screen.findByText('Library List')
     ).toBeInTheDocument();
   });
 

@@ -18,7 +18,7 @@ const Layout: React.FC = () => {
   useUserProfile();
   // Update Redux search query when search value changes and we're on audiobooks page
   useEffect(() => {
-    if (location.pathname.startsWith('/audiobooks')) {
+    if (location.pathname.startsWith('/library')) {
       dispatch(setSearchQuery(searchValue));
     }
   }, [searchValue, location.pathname, dispatch]);

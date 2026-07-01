@@ -13,6 +13,7 @@ import WizardShell from '../../components/wizard/WizardShell';
 import type { WizardStepConfig } from '../../components/wizard/WizardStepper';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { fetchGenres } from '../../store/slices/genresSlice';
+import { fetchLanguages } from '../../store/slices/languagesSlice';
 import { fetchTags } from '../../store/slices/tagsSlice';
 import {
   createAudiobookThunk,
@@ -39,6 +40,7 @@ import {
   validateAudiobookStep,
   type AudiobookWizardStep,
 } from '../../utils/audiobookWizard';
+import { resolveDefaultLanguageName } from '../../utils/languages';
 import AudiobookLivePreview from './components/wizard/AudiobookLivePreview';
 import BasicsStep from './components/wizard/steps/BasicsStep';
 import ContributorsStep from './components/wizard/steps/ContributorsStep';
@@ -81,6 +83,9 @@ function AudiobookWizard() {
   const { genres, loading: genresLoading } = useAppSelector(
     state => state.genres
   );
+  const { languages, loading: languagesLoading } = useAppSelector(
+    state => state.languages
+  );
   const { tags, loading: tagsLoading } = useAppSelector(state => state.tags);
   const { loading, filter } = useAppSelector(state => state.audiobooks);
 
@@ -114,13 +119,47 @@ function AudiobookWizard() {
     if (tags.length === 0) {
       dispatch(fetchTags());
     }
-  }, [dispatch, genres.length, tags.length]);
+    if (languages.length === 0) {
+      dispatch(fetchLanguages());
+    }
+  }, [dispatch, genres.length, tags.length, languages.length]);
 
   useEffect(() => {
-    if (mode === 'edit' && editingAudiobook && genres.length > 0 && tags.length > 0) {
-      setData(hydrateAudiobookWizardData(editingAudiobook, genres, tags));
+    if (
+      mode === 'edit' &&
+      editingAudiobook &&
+      genres.length > 0 &&
+      tags.length > 0
+    ) {
+      setData(
+        hydrateAudiobookWizardData(
+          editingAudiobook,
+          genres,
+          tags,
+          languages
+        )
+      );
     }
-  }, [mode, editingAudiobook, genres, tags]);
+  }, [mode, editingAudiobook, genres, tags, languages]);
+
+  useEffect(() => {
+    if (mode !== 'create' || languages.length === 0) {
+      return;
+    }
+
+    const defaultLanguage = resolveDefaultLanguageName(languages);
+    setData(prev => {
+      const hasKnownLanguage = languages.some(
+        language => language.name === prev.language
+      );
+
+      if (hasKnownLanguage) {
+        return prev;
+      }
+
+      return { ...prev, language: defaultLanguage };
+    });
+  }, [mode, languages]);
 
   useEffect(() => {
     if (mode === 'edit') {
@@ -250,7 +289,7 @@ function AudiobookWizard() {
       }
       await dispatch(fetchAudiobooks({ page: 1, filter }));
       localStorage.removeItem(DRAFT_STORAGE_KEY);
-      navigate('/audiobooks');
+      navigate('/library');
     } catch (error) {
       showApiError(error);
     }
@@ -284,7 +323,7 @@ function AudiobookWizard() {
           subscriptionPlans={subscriptionPlans}
         />
       }
-      onCancel={() => navigate('/audiobooks')}
+      onCancel={() => navigate('/library')}
       onSaveDraft={mode === 'create' ? handleSaveDraft : undefined}
       onBack={step > 1 ? handleBack : undefined}
       onContinue={step < 5 ? handleContinue : undefined}
@@ -311,9 +350,11 @@ function AudiobookWizard() {
           genres={genres}
           tags={tags}
           moods={moods}
+          languages={languages}
           genresLoading={genresLoading}
           tagsLoading={tagsLoading}
           moodsLoading={moodsLoading}
+          languagesLoading={languagesLoading}
           isLoading={loading}
           onChange={updateData}
         />

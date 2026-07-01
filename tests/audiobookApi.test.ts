@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createAudiobook,
+  getLanguages,
   getMoods,
   getSubscriptionPlans,
   updateAudiobook,
@@ -172,6 +173,34 @@ describe('audiobook API catalog endpoints', () => {
     );
     expect(moods[0].name).toBe('Calm');
     expect(moods[0].color).toBe('#38BDF8');
+  });
+
+  it('fetches languages from content API', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        data: [
+          {
+            id: 'lang-hi',
+            name: 'Hindi',
+            code: 'hi',
+            createdAt: '2024-01-01T00:00:00.000Z',
+            updatedAt: '2024-01-01T00:00:00.000Z',
+          },
+        ],
+      }),
+    } as Response);
+
+    const languages = await getLanguages();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.com/api/v1/languages',
+      expect.objectContaining({ method: 'GET' })
+    );
+    expect(languages).toHaveLength(1);
+    expect(languages[0]?.name).toBe('Hindi');
+    expect(languages[0]?.code).toBe('hi');
   });
 
   it('returns an empty array when subscription plans response has no data array', async () => {

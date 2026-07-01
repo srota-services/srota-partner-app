@@ -103,14 +103,14 @@ function mockAudioMetadata() {
 function renderCreateWizard() {
   return render(
     <Provider store={store}>
-      <MemoryRouter initialEntries={['/audiobooks/ab-1/chapters/create']}>
+      <MemoryRouter initialEntries={['/library/ab-1/chapters/create']}>
         <Routes>
           <Route
-            path="/audiobooks/:id/chapters/create"
+            path="/library/:id/chapters/create"
             element={<ChapterWizard />}
           />
           <Route
-            path="/audiobooks/:id/chapters"
+            path="/library/:id/chapters"
             element={<div>Chapters List</div>}
           />
         </Routes>
@@ -125,18 +125,18 @@ function renderEditWizard() {
       <MemoryRouter
         initialEntries={[
           {
-            pathname: '/audiobooks/ab-1/chapters/ch-edit-1/edit',
+            pathname: '/library/ab-1/chapters/ch-edit-1/edit',
             state: { chapter: mockChapter },
           },
         ]}
       >
         <Routes>
           <Route
-            path="/audiobooks/:id/chapters/:chapterId/edit"
+            path="/library/:id/chapters/:chapterId/edit"
             element={<ChapterWizard />}
           />
           <Route
-            path="/audiobooks/:id/chapters"
+            path="/library/:id/chapters"
             element={<div>Chapters List</div>}
           />
         </Routes>
