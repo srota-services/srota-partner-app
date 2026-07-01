@@ -30,6 +30,45 @@ export function createEmptyChapterWizardData(
   };
 }
 
+export function createEmptyChapterFormData(
+  chapterNumber = 1
+): ChapterFormData {
+  const data = createEmptyChapterWizardData(chapterNumber);
+  return {
+    title: data.title,
+    description: data.description,
+    chapterNumber: data.chapterNumber,
+    file: data.file,
+    duration: data.duration,
+    startPosition: data.startPosition,
+    endPosition: data.endPosition,
+    scheduledAt: data.scheduledAt,
+    coverImage: data.coverImage,
+    isPaid: data.isPaid,
+    minSubscriptionTier: data.minSubscriptionTier,
+  };
+}
+
+export function chapterResponseToFormData(
+  initialData: ChapterApiResponse,
+  nextChapterNumber: number
+): ChapterFormData {
+  const data = hydrateChapterWizardData(initialData);
+  return {
+    title: data.title,
+    description: data.description,
+    chapterNumber: initialData.chapterNumber || nextChapterNumber,
+    file: null,
+    duration: data.duration,
+    startPosition: data.startPosition,
+    endPosition: data.endPosition,
+    scheduledAt: data.scheduledAt,
+    coverImage: null,
+    isPaid: data.isPaid,
+    minSubscriptionTier: data.minSubscriptionTier,
+  };
+}
+
 export async function loadAudioMetadata(file: File): Promise<{
   duration: number;
   startPosition: number;

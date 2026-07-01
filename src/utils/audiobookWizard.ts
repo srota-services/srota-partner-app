@@ -54,6 +54,26 @@ export function createEmptyAudiobookWizardData(): AudiobookWizardData {
   };
 }
 
+export function createEmptyAudiobookFormData(): AudiobookFormData {
+  const data = createEmptyAudiobookWizardData();
+  return {
+    title: data.title,
+    author: data.author,
+    narrators: data.narrators,
+    description: data.description,
+    genres: data.genres,
+    tags: data.tags,
+    language: data.language,
+    coverImage: data.coverImage,
+    scheduledAt: data.scheduledAt,
+    meta: data.meta,
+    isPaid: data.isPaid,
+    minSubscriptionTier: data.minSubscriptionTier,
+    moodId: data.moodId,
+    subscriptionGatingMode: data.subscriptionGatingMode,
+  };
+}
+
 export function filterAudiobookMeta(
   meta: Record<string, string>
 ): Record<string, string> {
