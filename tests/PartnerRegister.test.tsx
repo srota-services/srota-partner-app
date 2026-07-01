@@ -645,7 +645,20 @@ describe('PartnerRegister organization flow', () => {
 
 
 
-    await completeOrganizationOtpStep(user);
+    await user.type(
+      document.getElementById('adminConfirmPassword') as HTMLInputElement,
+      'Secure1pass!'
+    );
+
+    await user.click(screen.getByRole('button', { name: /continue/i }));
+
+
+
+    await waitFor(() => {
+
+      expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument();
+
+    });
 
 
 
