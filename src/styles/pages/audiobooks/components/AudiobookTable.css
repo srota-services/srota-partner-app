@@ -35,11 +35,17 @@
 
 .audiobook-table-row {
   cursor: pointer;
-  transition: background var(--transition-fast);
 }
 
-.audiobook-table-row:hover {
-  background: var(--color-bg-secondary);
+.audiobook-table tbody td,
+.chapter-table tbody td {
+  background-color: var(--color-bg-primary);
+  transition: background-color var(--transition-fast);
+}
+
+.audiobook-table-row:hover > td,
+.chapter-table-row:hover > td {
+  background-color: var(--color-bg-secondary);
 }
 
 .audiobook-table-title-cell {
@@ -108,13 +114,7 @@
   position: sticky;
   right: 0;
   z-index: 2;
-  background: var(--color-bg-primary);
   box-shadow: -8px 0 12px -10px rgba(15, 23, 42, 0.18);
-}
-
-.audiobook-table-row:hover .audiobook-table-actions-cell,
-.chapter-table-row:hover .chapter-table-actions-cell {
-  background: var(--color-bg-secondary);
 }
 
 .audiobook-table thead th:last-child,
