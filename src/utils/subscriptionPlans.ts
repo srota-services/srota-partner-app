@@ -24,11 +24,17 @@ function isSubscriptionTier(value: number): value is SubscriptionTier {
   return value === 1 || value === 2 || value === 3;
 }
 
-const SUBSCRIPTION_TIER_CODE_TO_NUMBER: Record<string, SubscriptionTier> = {
+const SUBSCRIPTION_TIER_CODE_TO_NUMBER = {
   BASE: 1,
   STANDARD: 2,
   PREMIUM: 3,
-};
+} as const;
+
+type SubscriptionTierCode = keyof typeof SUBSCRIPTION_TIER_CODE_TO_NUMBER;
+
+function isSubscriptionTierCode(value: string): value is SubscriptionTierCode {
+  return value in SUBSCRIPTION_TIER_CODE_TO_NUMBER;
+}
 
 /** Normalizes API tier values (number or enum string) to 1–3, or null when free. */
 export function normalizeMinSubscriptionTier(
@@ -46,7 +52,7 @@ export function normalizeMinSubscriptionTier(
   }
 
   const normalized = tier.trim().toUpperCase();
-  if (normalized in SUBSCRIPTION_TIER_CODE_TO_NUMBER) {
+  if (isSubscriptionTierCode(normalized)) {
     return SUBSCRIPTION_TIER_CODE_TO_NUMBER[normalized];
   }
 
