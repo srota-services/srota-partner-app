@@ -34,14 +34,6 @@
   vertical-align: middle;
 }
 
-.chapter-table-row {
-  transition: background var(--transition-fast);
-}
-
-.chapter-table-row:hover {
-  background: var(--color-bg-secondary);
-}
-
 .chapter-table-title-cell {
   display: flex;
   align-items: center;
