@@ -3,8 +3,13 @@ import Select from '../../../../../components/common/Select';
 import WizardFieldLabel from '../../../../../components/wizard/WizardFieldLabel';
 import WizardSinglePillSelector from '../../../../../components/wizard/WizardSinglePillSelector';
 import type { AudiobookWizardData } from '../../../../../types/audiobook';
-import { AUDIOBOOK_LANGUAGE_OPTIONS } from '../../../../../utils/audiobookWizard';
-import type { GenreItem, MoodItem, TagItem } from '../../../../../utils/audiobookApi';
+import { buildLanguageSelectOptions } from '../../../../../utils/languages';
+import type {
+  GenreItem,
+  LanguageItem,
+  MoodItem,
+  TagItem,
+} from '../../../../../utils/audiobookApi';
 import GenreTagSelectors from '../fields/GenreTagSelectors';
 
 interface BasicsStepProps {
@@ -13,9 +18,11 @@ interface BasicsStepProps {
   genres: GenreItem[];
   tags: TagItem[];
   moods: MoodItem[];
+  languages: LanguageItem[];
   genresLoading: boolean;
   tagsLoading: boolean;
   moodsLoading: boolean;
+  languagesLoading: boolean;
   isLoading?: boolean;
   onChange: (updates: Partial<AudiobookWizardData>) => void;
 }
@@ -26,9 +33,11 @@ function BasicsStep({
   genres,
   tags,
   moods,
+  languages,
   genresLoading,
   tagsLoading,
   moodsLoading,
+  languagesLoading,
   isLoading = false,
   onChange,
 }: BasicsStepProps) {
@@ -36,6 +45,7 @@ function BasicsStep({
     id: mood.id,
     label: mood.name,
   }));
+  const languageOptions = buildLanguageSelectOptions(languages);
 
   return (
     <div className="wizard-step-form">
@@ -123,17 +133,20 @@ function BasicsStep({
         <WizardFieldLabel htmlFor="audiobook-language" icon={Globe}>
           Language
         </WizardFieldLabel>
-        <Select
-          id="audiobook-language"
-          placeholder={false}
-          options={AUDIOBOOK_LANGUAGE_OPTIONS.map(language => ({
-            value: language,
-            label: language,
-          }))}
-          value={data.language}
-          onChange={e => onChange({ language: e.target.value })}
-          disabled={isLoading}
-        />
+        {languagesLoading && languageOptions.length === 0 ? (
+          <span className="wizard-field-hint">Loading languages...</span>
+        ) : languageOptions.length > 0 ? (
+          <Select
+            id="audiobook-language"
+            placeholder={false}
+            options={languageOptions}
+            value={data.language}
+            onChange={e => onChange({ language: e.target.value })}
+            disabled={isLoading || languagesLoading}
+          />
+        ) : (
+          <span className="wizard-field-hint">No languages available</span>
+        )}
       </div>
 
       <div className="wizard-field-group">

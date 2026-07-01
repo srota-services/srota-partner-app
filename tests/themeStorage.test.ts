@@ -13,7 +13,7 @@ describe('themeStorage route rules', () => {
 
   it('allows dark mode on authenticated app routes', () => {
     expect(isLightOnlyRoute('/dashboard')).toBe(false);
-    expect(isLightOnlyRoute('/audiobooks')).toBe(false);
+    expect(isLightOnlyRoute('/library')).toBe(false);
   });
 
   it('forces light theme on public routes even when preference is dark', () => {

@@ -15,6 +15,7 @@ import {
   type AudiobookFilter,
 } from '../../store/slices/audiobooksSlice';
 import { fetchGenres } from '../../store/slices/genresSlice';
+import { fetchLanguages } from '../../store/slices/languagesSlice';
 import type { AudiobookApiResponse } from '../../types/audiobook';
 import AudiobookTable from './components/AudiobookTable';
 import SummaryCards from './components/SummaryCards';
@@ -44,6 +45,9 @@ const Audiobooks: React.FC = () => {
   const { audiobooks, pagination, loading, filter, searchQuery, currentPage } =
     useAppSelector(state => state.audiobooks);
   const { genres } = useAppSelector(state => state.genres);
+  const { languages, loading: languagesLoading } = useAppSelector(
+    state => state.languages
+  );
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deletingAudiobook, setDeletingAudiobook] =
@@ -51,6 +55,7 @@ const Audiobooks: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [localSearch, setLocalSearch] = useState('');
   const [genreFilter, setGenreFilter] = useState('all');
+  const [languageFilter, setLanguageFilter] = useState('all');
 
   useEffect(() => {
     dispatch(fetchAudiobooks({ page: currentPage, filter }));
@@ -60,7 +65,10 @@ const Audiobooks: React.FC = () => {
     if (genres.length === 0) {
       dispatch(fetchGenres());
     }
-  }, [dispatch, genres.length]);
+    if (languages.length === 0) {
+      dispatch(fetchLanguages());
+    }
+  }, [dispatch, genres.length, languages.length]);
 
   const filteredAudiobooks = useMemo(() => {
     let result = audiobooks;
@@ -85,8 +93,12 @@ const Audiobooks: React.FC = () => {
       });
     }
 
+    if (languageFilter !== 'all') {
+      result = result.filter(ab => ab.language === languageFilter);
+    }
+
     return result;
-  }, [audiobooks, searchQuery, localSearch, genreFilter]);
+  }, [audiobooks, searchQuery, localSearch, genreFilter, languageFilter]);
 
   const genreOptions = useMemo(
     () => [...genres].sort((a, b) => a.name.localeCompare(b.name)),
@@ -98,7 +110,7 @@ const Audiobooks: React.FC = () => {
   };
 
   const handleEdit = (audiobook: AudiobookApiResponse) => {
-    navigate(`/audiobooks/${audiobook.id}/edit`, { state: { audiobook } });
+    navigate(`/library/${audiobook.id}/edit`, { state: { audiobook } });
   };
 
   const handleDelete = (audiobook: AudiobookApiResponse) => {
@@ -160,7 +172,7 @@ const Audiobooks: React.FC = () => {
                 <Upload size={16} className="btn-icon-left" />
                 Import Catalog
               </Button>
-              <Button onClick={() => navigate('/audiobooks/create')}>
+              <Button onClick={() => navigate('/library/create')}>
                 <Plus size={16} className="btn-icon-left" />
                 Create Audiobook
               </Button>
@@ -207,9 +219,16 @@ const Audiobooks: React.FC = () => {
               fieldSize="sm"
               wrapperClassName="audiobooks-filter-select"
               placeholder={false}
-              defaultValue="all"
+              value={languageFilter}
+              onChange={e => setLanguageFilter(e.target.value)}
+              disabled={languagesLoading && languages.length === 0}
             >
               <option value="all">Language</option>
+              {languages.map(language => (
+                <option key={language.id} value={language.name}>
+                  {language.name}
+                </option>
+              ))}
             </Select>
             <Select
               fieldSize="sm"
@@ -242,7 +261,7 @@ const Audiobooks: React.FC = () => {
               <AudiobookTable
                 audiobooks={filteredAudiobooks}
                 filter={filter}
-                onRowClick={ab => navigate(`/audiobooks/${ab.id}/chapters`)}
+                onRowClick={ab => navigate(`/library/${ab.id}/chapters`)}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
               />

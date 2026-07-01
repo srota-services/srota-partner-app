@@ -6,20 +6,11 @@ import type {
   SubscriptionGatingMode,
   UpdateAudiobookRequest,
 } from '../types/audiobook';
-import type { GenreItem, TagItem } from './audiobookApi';
+import type { GenreItem, LanguageItem, TagItem } from './audiobookApi';
 import { normalizeMinSubscriptionTier } from './subscriptionPlans';
+import { resolveAudiobookLanguageName } from './languages';
 
 export const DEFAULT_AUDIOBOOK_LANGUAGE = 'English';
-
-export const AUDIOBOOK_LANGUAGE_OPTIONS = [
-  'English',
-  'Hindi',
-  'Spanish',
-  'French',
-  'German',
-  'Japanese',
-  'Mandarin',
-] as const;
 
 export type AudiobookWizardStep = 1 | 2 | 3 | 4 | 5;
 export type WizardMode = 'create' | 'edit';
@@ -83,7 +74,8 @@ export function filterAudiobookMeta(
 export function hydrateAudiobookWizardData(
   initialData: AudiobookApiResponse,
   genres: GenreItem[],
-  tags: TagItem[]
+  tags: TagItem[],
+  languages: LanguageItem[] = []
 ): AudiobookWizardData {
   const genreIds: string[] = [];
   if (initialData.genres && initialData.genres.length > 0) {
@@ -127,7 +119,11 @@ export function hydrateAudiobookWizardData(
       initialData.audiobookTags
         ?.map(tag => tags.find(t => t.name === tag.name)?.id || '')
         .filter(id => id) || [],
-    language: initialData.language || DEFAULT_AUDIOBOOK_LANGUAGE,
+    language: resolveAudiobookLanguageName(
+      initialData.language,
+      languages,
+      DEFAULT_AUDIOBOOK_LANGUAGE
+    ),
     coverImage: null,
     scheduledAt: undefined,
     meta: initialData.meta || {},

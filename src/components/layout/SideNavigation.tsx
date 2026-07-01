@@ -23,7 +23,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-  { label: 'Audiobooks', path: '/audiobooks', icon: BookOpen },
+  { label: 'Library', path: '/library', icon: BookOpen },
   { label: 'Analytics', path: '/analytics', icon: BarChart3 },
   { label: 'Manage', path: '/management', icon: Upload, orgStaffOnly: true },
   { label: 'Team', path: '/team', icon: Users },
@@ -31,10 +31,6 @@ const navItems: NavItem[] = [
 ];
 
 function isNavActive(item: NavItem, pathname: string): boolean {
-  if (item.label === 'Audiobooks') {
-    return pathname === '/audiobooks' || pathname.startsWith('/audiobooks/');
-  }
-
   return pathname === item.path || pathname.startsWith(`${item.path}/`);
 }
 

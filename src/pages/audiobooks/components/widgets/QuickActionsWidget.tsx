@@ -15,12 +15,12 @@ function QuickActionsWidget() {
     {
       label: 'Upload Audio',
       icon: Upload,
-      onClick: () => navigate('/audiobooks/create'),
+      onClick: () => navigate('/library/create'),
     },
     {
       label: 'Add Chapter',
       icon: Plus,
-      onClick: () => navigate('/audiobooks/create'),
+      onClick: () => navigate('/library/create'),
     },
     { label: 'View Analytics', icon: BarChart3, onClick: () => navigate('/analytics') },
     { label: 'Manage Authors', icon: FileText, onClick: () => navigate('/management') },

@@ -6,6 +6,7 @@ import authReducer from './slices/authSlice';
 import audiobooksReducer from './slices/audiobooksSlice';
 import chaptersReducer from './slices/chaptersSlice';
 import genresReducer from './slices/genresSlice';
+import languagesReducer from './slices/languagesSlice';
 import tagsReducer from './slices/tagsSlice';
 import authorsReducer from './slices/authorsSlice';
 import organizationAuthorsReducer from './slices/organizationAuthorsSlice';
@@ -21,6 +22,7 @@ export const store = configureStore({
     chapters: chaptersReducer,
     transcoding: transcodingReducer,
     genres: genresReducer,
+    languages: languagesReducer,
     tags: tagsReducer,
     authors: authorsReducer,
     organizationAuthors: organizationAuthorsReducer,

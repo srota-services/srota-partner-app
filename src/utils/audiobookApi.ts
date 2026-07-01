@@ -41,6 +41,17 @@ export interface TagItem {
 }
 
 /**
+ * Language item from API response
+ */
+export interface LanguageItem {
+  id: string;
+  name: string;
+  code: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
  * API response structure for genres
  */
 export interface GenresResponse {
@@ -58,6 +69,18 @@ export interface GenresResponse {
 export interface TagsResponse {
   success: boolean;
   data: TagItem[];
+  message: string;
+  statusCode: number;
+  timestamp: string;
+  path: string;
+}
+
+/**
+ * API response structure for languages
+ */
+export interface LanguagesResponse {
+  success: boolean;
+  data: LanguageItem[];
   message: string;
   statusCode: number;
   timestamp: string;
@@ -279,6 +302,37 @@ export async function getTags(): Promise<TagItem[]> {
 
     const tagsResponse = data as TagsResponse;
     return tagsResponse.data;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Fetches languages from the API
+ * @returns Promise resolving to languages response or throwing an error
+ */
+export async function getLanguages(): Promise<LanguageItem[]> {
+  try {
+    const headers = getAuthHeaders();
+
+    const response = await fetch(`${getContentApiBaseUrl()}/api/v1/languages`, {
+      method: 'GET',
+      headers,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to fetch languages',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    const languagesResponse = data as LanguagesResponse;
+    return languagesResponse.data;
   } catch (error) {
     throw handleApiError(error);
   }

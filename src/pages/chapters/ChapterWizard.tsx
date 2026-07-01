@@ -232,7 +232,7 @@ function ChapterWizard() {
         fetchChapters({ audiobookId, page: currentPage })
       );
       localStorage.removeItem(`${DRAFT_STORAGE_PREFIX}${audiobookId}`);
-      navigate(`/audiobooks/${audiobookId}/chapters`);
+      navigate(`/library/${audiobookId}/chapters`);
     } catch (error) {
       showApiError(error);
     }
@@ -263,8 +263,8 @@ function ChapterWizard() {
       }
       onCancel={() =>
         audiobookId
-          ? navigate(`/audiobooks/${audiobookId}/chapters`)
-          : navigate('/audiobooks')
+          ? navigate(`/library/${audiobookId}/chapters`)
+          : navigate('/library')
       }
       onSaveDraft={mode === 'create' ? handleSaveDraft : undefined}
       onBack={step > 1 ? handleBack : undefined}

@@ -66,7 +66,7 @@ const Chapters: React.FC = () => {
   };
 
   const handleEdit = (chapter: ChapterApiResponse) => {
-    navigate(`/audiobooks/${id}/chapters/${chapter.id}/edit`, {
+    navigate(`/library/${id}/chapters/${chapter.id}/edit`, {
       state: { chapter },
     });
   };
@@ -113,8 +113,8 @@ const Chapters: React.FC = () => {
       <div className="chapters-page">
         <div className="error-state">
           <p>Invalid audiobook ID</p>
-          <Button onClick={() => navigate('/audiobooks')}>
-            Back to Audiobooks
+          <Button onClick={() => navigate('/library')}>
+            Back to Library
           </Button>
         </div>
       </div>
@@ -124,12 +124,12 @@ const Chapters: React.FC = () => {
   return (
     <div className="chapters-page">
       <div className="chapters-header">
-        <Button variant="outline" onClick={() => navigate('/audiobooks')}>
-          ← Back to Audiobooks
+        <Button variant="outline" onClick={() => navigate('/library')}>
+          ← Back to Library
         </Button>
         <div className="chapters-header-right">
           <h2>Chapters</h2>
-          <Button onClick={() => navigate(`/audiobooks/${id}/chapters/create`)}>
+          <Button onClick={() => navigate(`/library/${id}/chapters/create`)}>
             <Plus size={16} className="btn-icon-left" />
             Create Chapter
           </Button>
