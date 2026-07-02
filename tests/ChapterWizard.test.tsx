@@ -5,6 +5,8 @@ import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { store } from '../src/store/store';
 import ChapterWizard from '../src/pages/chapters/ChapterWizard';
+import { fetchChapters } from '../src/store/slices/chaptersSlice';
+import { getChapters } from '../src/utils/audiobookApi';
 import { mockChapter, testAudioFile, testCoverFile } from './wizardTestHelpers';
 
 const { createChapterMock, updateChapterMock } = vi.hoisted(() => ({
@@ -48,8 +50,51 @@ vi.mock('../src/utils/audiobookApi', async importOriginal => {
   };
 });
 
+const mockExistingChapterOne = {
+  ...mockChapter,
+  id: 'ch-1',
+  title: 'First Chapter',
+  chapterNumber: 1,
+  minSubscriptionTier: 2,
+};
+
+function mockChaptersResponse(chapters: typeof mockExistingChapterOne[]) {
+  vi.mocked(getChapters).mockResolvedValue({
+    success: true,
+    data: chapters,
+    message: 'ok',
+    statusCode: 200,
+    timestamp: '2024-01-01T00:00:00.000Z',
+    path: '/chapters',
+    pagination: {
+      currentPage: 1,
+      totalPages: 1,
+      totalItems: chapters.length,
+      itemsPerPage: 10,
+    },
+  });
+}
+
+function getSubscriptionPlanSelect() {
+  const select = document.getElementById(
+    'chapter-subscription-plan'
+  ) as HTMLSelectElement | null;
+  if (!select) {
+    throw new Error('Subscription plan select not found');
+  }
+  return select;
+}
+
+function querySubscriptionPlanSelect() {
+  return document.getElementById(
+    'chapter-subscription-plan'
+  ) as HTMLSelectElement | null;
+}
+
 async function fillBasicsStep(user: ReturnType<typeof userEvent.setup>) {
-  await user.type(screen.getByLabelText(/^title/i), 'Chapter One');
+  const titleInput = await screen.findByLabelText(/^title/i);
+  await waitFor(() => expect(titleInput).not.toBeDisabled());
+  await user.type(titleInput, 'Chapter One');
   await user.type(
     screen.getByLabelText(/^description/i),
     'Opening chapter description.'
@@ -146,7 +191,7 @@ function renderEditWizard() {
 }
 
 describe('ChapterWizard', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     createChapterMock.mockReset();
     updateChapterMock.mockReset();
     createChapterMock.mockResolvedValue({ id: 'ch-new', title: 'Chapter One' });
@@ -154,6 +199,8 @@ describe('ChapterWizard', () => {
       id: 'ch-edit-1',
       title: 'Existing Chapter',
     });
+    mockChaptersResponse([]);
+    await store.dispatch(fetchChapters({ audiobookId: 'ab-1', page: 1 }));
     mockAudioMetadata();
     localStorage.clear();
   });
@@ -177,24 +224,88 @@ describe('ChapterWizard', () => {
     expect(screen.getByText(/description is required/i)).toBeInTheDocument();
   });
 
-  it('shows subscription plan dropdown when paid switch is on', async () => {
-    const user = userEvent.setup();
+  it('disables paid switch for the first chapter with an info hint', async () => {
     renderCreateWizard();
     await screen.findByLabelText(/^title/i);
 
-    expect(screen.queryByLabelText(/subscription plan/i)).not.toBeInTheDocument();
+    expect(screen.getByRole('switch', { name: /^paid$/i })).toBeDisabled();
+    expect(
+      screen.getByLabelText(/the first chapter of this audiobook must be free/i)
+    ).toBeInTheDocument();
+  });
+
+  it('shows subscription plan dropdown when paid switch is on', async () => {
+    const user = userEvent.setup();
+    mockChaptersResponse([mockExistingChapterOne]);
+    await store.dispatch(fetchChapters({ audiobookId: 'ab-1', page: 1 }));
+    renderCreateWizard();
+    await screen.findByLabelText(/^title/i);
+    await waitFor(() => {
+      expect(screen.getByLabelText(/chapter number/i)).toHaveValue(2);
+    });
+
+    expect(querySubscriptionPlanSelect()).toBeNull();
 
     await user.click(screen.getByRole('switch', { name: /^paid$/i }));
 
     expect(
-      screen.getByLabelText(/subscription plan/i).closest('.wizard-paid-plan-content')
+      getSubscriptionPlanSelect().closest('.wizard-paid-plan-content')
     ).toBeInTheDocument();
+  });
+
+  it('shows a red info hint when selected plan is lower than previous chapter', async () => {
+    const user = userEvent.setup();
+    mockChaptersResponse([mockExistingChapterOne]);
+    await store.dispatch(fetchChapters({ audiobookId: 'ab-1', page: 1 }));
+    renderCreateWizard();
+    await fillBasicsStep(user);
+    await waitFor(() => {
+      expect(screen.getByLabelText(/chapter number/i)).toHaveValue(2);
+    });
+
+    await user.click(screen.getByRole('switch', { name: /^paid$/i }));
+    await user.selectOptions(getSubscriptionPlanSelect(), 'Base Plan');
+
+    expect(
+      screen.getByLabelText(
+        /the subscription plan for this chapter must be same or higher than the previous chapter/i
+      )
+    ).toHaveClass('info-hint--error');
+  });
+
+  it('blocks continue when selected plan is lower than previous chapter', async () => {
+    const user = userEvent.setup();
+    mockChaptersResponse([mockExistingChapterOne]);
+    await store.dispatch(fetchChapters({ audiobookId: 'ab-1', page: 1 }));
+    renderCreateWizard();
+    await fillBasicsStep(user);
+    await waitFor(() => {
+      expect(screen.getByLabelText(/chapter number/i)).toHaveValue(2);
+    });
+
+    await user.click(screen.getByRole('switch', { name: /^paid$/i }));
+    await user.selectOptions(getSubscriptionPlanSelect(), 'Base Plan');
+    await user.click(screen.getByRole('button', { name: /continue/i }));
+
+    await waitFor(() => {
+      const error = document.querySelector(
+        '.wizard-paid-plan-dropdown .wizard-field-error'
+      );
+      expect(error).toHaveTextContent(
+        /the subscription plan for this chapter must be same or higher than the previous chapter/i
+      );
+    });
   });
 
   it('requires a subscription plan when paid switch is on', async () => {
     const user = userEvent.setup();
+    mockChaptersResponse([mockExistingChapterOne]);
+    await store.dispatch(fetchChapters({ audiobookId: 'ab-1', page: 1 }));
     renderCreateWizard();
     await fillBasicsStep(user);
+    await waitFor(() => {
+      expect(screen.getByLabelText(/chapter number/i)).toHaveValue(2);
+    });
     await user.click(screen.getByRole('switch', { name: /^paid$/i }));
     await user.click(screen.getByRole('button', { name: /continue/i }));
 
@@ -205,13 +316,15 @@ describe('ChapterWizard', () => {
 
   it('updates live preview with subscription plan when selected', async () => {
     const user = userEvent.setup();
+    mockChaptersResponse([mockExistingChapterOne]);
+    await store.dispatch(fetchChapters({ audiobookId: 'ab-1', page: 1 }));
     renderCreateWizard();
     await fillBasicsStep(user);
+    await waitFor(() => {
+      expect(screen.getByLabelText(/chapter number/i)).toHaveValue(2);
+    });
     await user.click(screen.getByRole('switch', { name: /^paid$/i }));
-    await user.selectOptions(
-      screen.getByLabelText(/subscription plan/i),
-      'Standard Plan'
-    );
+    await user.selectOptions(getSubscriptionPlanSelect(), 'Standard Plan');
 
     expect(
       screen.getByText(/subscription plan: standard plan/i)
@@ -220,13 +333,15 @@ describe('ChapterWizard', () => {
 
   it('publishes a paid chapter with subscription tier', async () => {
     const user = userEvent.setup();
+    mockChaptersResponse([mockExistingChapterOne]);
+    await store.dispatch(fetchChapters({ audiobookId: 'ab-1', page: 1 }));
     renderCreateWizard();
     await fillBasicsStep(user);
+    await waitFor(() => {
+      expect(screen.getByLabelText(/chapter number/i)).toHaveValue(2);
+    });
     await user.click(screen.getByRole('switch', { name: /^paid$/i }));
-    await user.selectOptions(
-      screen.getByLabelText(/subscription plan/i),
-      'Standard Plan'
-    );
+    await user.selectOptions(getSubscriptionPlanSelect(), 'Standard Plan');
     await user.click(screen.getByRole('button', { name: /continue/i }));
 
     const audioInput = await screen.findByLabelText(/audio file/i);
@@ -319,7 +434,7 @@ describe('ChapterWizard', () => {
       expect(screen.getByDisplayValue('Existing Chapter')).toBeInTheDocument();
     });
 
-    expect(screen.getByLabelText(/subscription plan/i)).toHaveValue('2');
+    expect(getSubscriptionPlanSelect()).toHaveValue('2');
 
     await user.click(screen.getByRole('button', { name: /continue/i }));
 

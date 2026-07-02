@@ -31,6 +31,7 @@ import {
   validateChapterForPublish,
   validateChapterForSchedule,
   validateChapterStep,
+  type ChapterSubscriptionContext,
   type ChapterWizardStep,
 } from '../../utils/chapterWizard';
 import ChapterLivePreview from './components/wizard/ChapterLivePreview';
@@ -79,6 +80,7 @@ function ChapterWizard() {
   );
   const lastChapter = sortedChapters.at(-1);
   const nextChapterNumber = lastChapter ? lastChapter.chapterNumber + 1 : 1;
+  const isFirstChapter = mode === 'create' && nextChapterNumber === 1;
 
   const [step, setStep] = useState<ChapterWizardStep>(1);
   const [data, setData] = useState<ChapterWizardData>(
@@ -94,6 +96,23 @@ function ChapterWizard() {
   >([]);
   const [subscriptionPlansLoading, setSubscriptionPlansLoading] =
     useState(false);
+
+  const previousChapter =
+    mode === 'create'
+      ? sortedChapters.find(
+          chapter => chapter.chapterNumber === data.chapterNumber - 1
+        ) ?? null
+      : null;
+  const subscriptionContext: ChapterSubscriptionContext = {
+    isFirstChapter,
+    previousChapterMinTier: previousChapter?.minSubscriptionTier ?? null,
+  };
+
+  useEffect(() => {
+    if (audiobookId) {
+      void dispatch(fetchChapters({ audiobookId, page: 1 }));
+    }
+  }, [audiobookId, dispatch]);
 
   useEffect(() => {
     const fetchSubscriptionPlans = async () => {
@@ -113,9 +132,20 @@ function ChapterWizard() {
   }, []);
 
   useEffect(() => {
-    if (mode === 'create') {
-      setData(createEmptyChapterWizardData(nextChapterNumber));
+    if (mode !== 'create') {
+      return;
     }
+
+    setData(prev => {
+      if (prev.chapterNumber === nextChapterNumber) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        chapterNumber: nextChapterNumber,
+      };
+    });
   }, [mode, nextChapterNumber]);
 
   useEffect(() => {
@@ -123,6 +153,20 @@ function ChapterWizard() {
       setData(hydrateChapterWizardData(editingChapter));
     }
   }, [mode, editingChapter]);
+
+  useEffect(() => {
+    if (!isFirstChapter || mode !== 'create') {
+      return;
+    }
+
+    if (data.isPaid || data.minSubscriptionTier != null) {
+      setData(prev => ({
+        ...prev,
+        isPaid: false,
+        minSubscriptionTier: null,
+      }));
+    }
+  }, [isFirstChapter, mode, data.chapterNumber, data.isPaid, data.minSubscriptionTier]);
 
   const coverPreviewUrl = useFilePreviewUrl(
     data.coverImage,
@@ -158,7 +202,12 @@ function ChapterWizard() {
   };
 
   const validateCurrentStep = (): boolean => {
-    const stepErrors = validateChapterStep(step, data, mode);
+    const stepErrors = validateChapterStep(
+      step,
+      data,
+      mode,
+      subscriptionContext
+    );
     setErrors(stepErrors);
     return Object.keys(stepErrors).length === 0;
   };
@@ -200,8 +249,8 @@ function ChapterWizard() {
       scheduledAt: scheduled ? data.scheduledAt : undefined,
     };
     const validationErrors = scheduled
-      ? validateChapterForSchedule(submissionData, mode)
-      : validateChapterForPublish(submissionData, mode);
+      ? validateChapterForSchedule(submissionData, mode, subscriptionContext)
+      : validateChapterForPublish(submissionData, mode, subscriptionContext);
 
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -287,6 +336,8 @@ function ChapterWizard() {
           errors={errors}
           subscriptionPlans={subscriptionPlans}
           subscriptionPlansLoading={subscriptionPlansLoading}
+          isFirstChapter={isFirstChapter}
+          previousChapterMinTier={previousChapter?.minSubscriptionTier ?? null}
           isLoading={loading}
           onChange={updateData}
         />

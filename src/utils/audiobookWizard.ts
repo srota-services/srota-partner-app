@@ -34,6 +34,9 @@ export function getSubscriptionGatingModeLabel(
   return SUBSCRIPTION_GATING_MODE_LABELS[mode];
 }
 
+export const CHAPTER_GATING_FIRST_CHAPTER_FREE_MESSAGE =
+  'The first chapter of this audiobook must be a free chapter.';
+
 export function createEmptyAudiobookWizardData(): AudiobookWizardData {
   return {
     title: '',

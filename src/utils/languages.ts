@@ -5,6 +5,51 @@ export interface LanguageSelectOption {
   label: string;
 }
 
+function extractAudiobookLanguageRaw(
+  audiobookLanguage: unknown
+): string | undefined {
+  if (typeof audiobookLanguage === 'string' && audiobookLanguage.trim()) {
+    return audiobookLanguage.trim();
+  }
+
+  if (audiobookLanguage && typeof audiobookLanguage === 'object') {
+    const value = audiobookLanguage as { name?: unknown; code?: unknown };
+
+    if (typeof value.name === 'string' && value.name.trim()) {
+      return value.name.trim();
+    }
+
+    if (typeof value.code === 'string' && value.code.trim()) {
+      return value.code.trim();
+    }
+  }
+
+  return undefined;
+}
+
+function resolveLanguageNameFromRaw(
+  raw: string,
+  languages: LanguageItem[]
+): string {
+  const normalized = raw.toLowerCase();
+
+  const byName = languages.find(
+    language => language.name.toLowerCase() === normalized
+  );
+  if (byName) {
+    return byName.name;
+  }
+
+  const byCode = languages.find(
+    language => language.code.toLowerCase() === normalized
+  );
+  if (byCode) {
+    return byCode.name;
+  }
+
+  return raw;
+}
+
 export function buildLanguageSelectOptions(
   languages: LanguageItem[]
 ): LanguageSelectOption[] {
@@ -36,18 +81,24 @@ export function resolveAudiobookLanguageName(
   languages: LanguageItem[],
   fallback = 'English'
 ): string {
-  if (typeof audiobookLanguage === 'string' && audiobookLanguage.trim()) {
-    return audiobookLanguage.trim();
+  const raw = extractAudiobookLanguageRaw(audiobookLanguage);
+  if (!raw) {
+    return resolveDefaultLanguageName(languages, fallback);
   }
 
-  if (
-    audiobookLanguage &&
-    typeof audiobookLanguage === 'object' &&
-    'name' in audiobookLanguage &&
-    typeof (audiobookLanguage as { name?: unknown }).name === 'string'
-  ) {
-    return (audiobookLanguage as { name: string }).name;
+  return resolveLanguageNameFromRaw(raw, languages);
+}
+
+export function audiobookMatchesLanguageFilter(
+  audiobookLanguage: unknown,
+  languageFilter: string,
+  languages: LanguageItem[]
+): boolean {
+  if (languageFilter === 'all') {
+    return true;
   }
 
-  return resolveDefaultLanguageName(languages, fallback);
+  return (
+    resolveAudiobookLanguageName(audiobookLanguage, languages) === languageFilter
+  );
 }

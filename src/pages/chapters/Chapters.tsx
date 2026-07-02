@@ -8,6 +8,7 @@ import { Plus } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import {
   fetchChapters,
+  fetchChapter,
   setCurrentPage,
   setCurrentAudiobookId,
   deleteChapterThunk,
@@ -38,6 +39,9 @@ const Chapters: React.FC = () => {
   const [deletingChapter, setDeletingChapter] =
     useState<ChapterApiResponse | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [refreshingChapterId, setRefreshingChapterId] = useState<string | null>(
+    null
+  );
 
   const sortedChapters = useMemo(
     () =>
@@ -74,6 +78,17 @@ const Chapters: React.FC = () => {
   const handleDelete = (chapter: ChapterApiResponse) => {
     setDeletingChapter(chapter);
     setIsDeleteModalOpen(true);
+  };
+
+  const handleRefresh = async (chapterId: string) => {
+    setRefreshingChapterId(chapterId);
+    try {
+      await dispatch(fetchChapter(chapterId)).unwrap();
+    } catch (error) {
+      showApiError(error);
+    } finally {
+      setRefreshingChapterId(null);
+    }
   };
 
   const handleDeleteConfirm = async () => {
@@ -155,6 +170,8 @@ const Chapters: React.FC = () => {
             statusByChapter={statusByChapter}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            onRefresh={chapterId => void handleRefresh(chapterId)}
+            refreshingChapterId={refreshingChapterId}
           />
 
           {pagination && pagination.totalPages > 1 && (

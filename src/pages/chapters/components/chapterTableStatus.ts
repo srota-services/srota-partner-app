@@ -7,14 +7,14 @@ export function getChapterStatus(chapter: ChapterApiResponse): {
   if (chapter.sourceUploadStatus === 'failed') {
     return { label: 'Upload failed', variant: 'upload-failed' };
   }
+
   if (chapter.isActive === true) {
     return { label: 'Live', variant: 'live' };
   }
-  if (chapter.sourceUploadStatus === 'pending') {
-    return { label: 'Pending', variant: 'pending' };
-  }
-  if (chapter.isActive === false) {
+
+  if (chapter.scheduledAt) {
     return { label: 'Scheduled', variant: 'scheduled' };
   }
-  return { label: 'Draft', variant: 'pending' };
+
+  return { label: 'Pending', variant: 'pending' };
 }

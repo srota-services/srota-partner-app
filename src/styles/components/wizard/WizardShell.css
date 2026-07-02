@@ -337,6 +337,63 @@
   flex-shrink: 0;
 }
 
+.wizard-paid-switch-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wizard-subscription-plan-label-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wizard-chapter-gating-notice {
+  overflow: hidden;
+  animation: wizardChapterGatingNoticeDropDown 0.35s cubic-bezier(0.4, 0, 0.2, 1)
+    forwards;
+}
+
+.wizard-chapter-gating-notice-panel {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(14, 165, 233, 0.22);
+  background: var(--color-info-light);
+  color: var(--color-text-primary);
+}
+
+.wizard-chapter-gating-notice-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--color-info);
+}
+
+.wizard-chapter-gating-notice-text {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+@keyframes wizardChapterGatingNoticeDropDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    max-height: 120px;
+    transform: translateY(0);
+  }
+}
+
 .wizard-paid-plan-content {
   display: flex;
   flex-direction: column;

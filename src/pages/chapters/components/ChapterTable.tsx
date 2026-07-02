@@ -11,6 +11,8 @@ interface ChapterTableProps {
   statusByChapter: Record<string, ChapterTranscodingStatus>;
   onEdit: (chapter: ChapterApiResponse) => void;
   onDelete: (chapter: ChapterApiResponse) => void;
+  onRefresh: (chapterId: string) => void;
+  refreshingChapterId: string | null;
 }
 
 function ChapterTable({
@@ -18,6 +20,8 @@ function ChapterTable({
   statusByChapter,
   onEdit,
   onDelete,
+  onRefresh,
+  refreshingChapterId,
 }: ChapterTableProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
@@ -65,6 +69,8 @@ function ChapterTable({
                 onMenuClose={() => setOpenMenuId(null)}
                 onEdit={onEdit}
                 onDelete={onDelete}
+                onRefresh={onRefresh}
+                refreshingChapterId={refreshingChapterId}
               />
             ))}
           </tbody>

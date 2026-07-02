@@ -80,10 +80,48 @@ describe('chapterWizard subscription fields', () => {
     const data = createEmptyChapterWizardData();
     data.title = 'Chapter One';
     data.description = 'Description';
+    data.chapterNumber = 2;
     data.isPaid = true;
 
-    const errors = validateChapterStep(1, data, 'create');
+    const errors = validateChapterStep(1, data, 'create', {
+      isFirstChapter: false,
+      previousChapterMinTier: 0,
+    });
 
     expect(errors.minSubscriptionTier).toBe('Please select a subscription plan');
+  });
+
+  it('requires the first chapter to remain free', () => {
+    const data = createEmptyChapterWizardData();
+    data.title = 'Chapter One';
+    data.description = 'Description';
+    data.isPaid = true;
+    data.minSubscriptionTier = 1;
+
+    const errors = validateChapterStep(1, data, 'create', {
+      isFirstChapter: true,
+    });
+
+    expect(errors.minSubscriptionTier).toBe(
+      'The first chapter of this audiobook must be free.'
+    );
+  });
+
+  it('requires subscription tier to be same or higher than previous chapter', () => {
+    const data = createEmptyChapterWizardData();
+    data.title = 'Chapter Two';
+    data.description = 'Description';
+    data.chapterNumber = 2;
+    data.isPaid = true;
+    data.minSubscriptionTier = 1;
+
+    const errors = validateChapterStep(1, data, 'create', {
+      isFirstChapter: false,
+      previousChapterMinTier: 2,
+    });
+
+    expect(errors.minSubscriptionTier).toBe(
+      'The subscription plan for this chapter must be same or higher than the previous chapter.'
+    );
   });
 });

@@ -1,4 +1,4 @@
-import { Crown, Wallet } from 'lucide-react';
+import { Crown, Info, Wallet } from 'lucide-react';
 import InfoHint from '../../../../../components/common/InfoHint';
 import Select from '../../../../../components/common/Select';
 import PillSwitch from '../../../../../components/common/PillSwitch';
@@ -8,7 +8,10 @@ import type {
   AudiobookWizardData,
   SubscriptionGatingMode,
 } from '../../../../../types/audiobook';
-import { SUBSCRIPTION_GATING_MODE_OPTIONS } from '../../../../../utils/audiobookWizard';
+import {
+  CHAPTER_GATING_FIRST_CHAPTER_FREE_MESSAGE,
+  SUBSCRIPTION_GATING_MODE_OPTIONS,
+} from '../../../../../utils/audiobookWizard';
 import { buildSubscriptionPlanSelectOptions } from '../../../../../utils/subscriptionPlans';
 import type { SubscriptionPlanItem } from '../../../../../utils/audiobookApi';
 
@@ -63,6 +66,24 @@ function SubscriptionTiersStep({
           onChange={handleSubscriptionLevelChange}
           disabled={isLoading}
         />
+        {data.subscriptionGatingMode === 'CHAPTER' && (
+          <div
+            key="chapter-gating-notice"
+            className="wizard-chapter-gating-notice"
+            role="status"
+          >
+            <div className="wizard-chapter-gating-notice-panel">
+              <Info
+                size={16}
+                className="wizard-chapter-gating-notice-icon"
+                aria-hidden="true"
+              />
+              <p className="wizard-chapter-gating-notice-text">
+                {CHAPTER_GATING_FIRST_CHAPTER_FREE_MESSAGE}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {data.subscriptionGatingMode === 'AUDIOBOOK' && (

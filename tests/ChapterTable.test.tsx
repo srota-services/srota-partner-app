@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { ReactElement } from 'react';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import ChapterTable from '../src/pages/chapters/components/ChapterTable';
@@ -37,6 +38,8 @@ describe('ChapterTable subscription column', () => {
         statusByChapter={{}}
         onEdit={() => undefined}
         onDelete={() => undefined}
+        onRefresh={() => undefined}
+        refreshingChapterId={null}
       />
     );
 
@@ -54,10 +57,32 @@ describe('ChapterTable subscription column', () => {
         statusByChapter={{}}
         onEdit={() => undefined}
         onDelete={() => undefined}
+        onRefresh={() => undefined}
+        refreshingChapterId={null}
       />
     );
 
     expect(screen.getByText('Base')).toBeInTheDocument();
     expect(screen.getByText('Premium')).toBeInTheDocument();
+  });
+
+  it('calls onRefresh with chapter id when refresh icon is clicked', async () => {
+    const user = userEvent.setup();
+    const onRefresh = vi.fn();
+
+    renderWithStore(
+      <ChapterTable
+        chapters={[baseChapter]}
+        statusByChapter={{}}
+        onEdit={() => undefined}
+        onDelete={() => undefined}
+        onRefresh={onRefresh}
+        refreshingChapterId={null}
+      />
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Refresh chapter' }));
+
+    expect(onRefresh).toHaveBeenCalledWith('ch-1');
   });
 });

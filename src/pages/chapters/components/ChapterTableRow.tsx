@@ -1,5 +1,5 @@
-import { MoreVertical } from 'lucide-react';
-import { useRef } from 'react';
+import { MoreVertical, RefreshCw } from 'lucide-react';
+import { useRef, useState } from 'react';
 import TableActionsMenu from '../../../components/common/TableActionsMenu';
 import type { ChapterApiResponse } from '../../../types/audiobook';
 import type { ChapterTranscodingStatus } from '../../../types/streaming';
@@ -18,6 +18,8 @@ interface ChapterTableRowProps {
   onMenuClose: () => void;
   onEdit: (chapter: ChapterApiResponse) => void;
   onDelete: (chapter: ChapterApiResponse) => void;
+  onRefresh: (chapterId: string) => void;
+  refreshingChapterId: string | null;
 }
 
 function truncateDescription(text: string, maxLength = 120): string {
@@ -35,11 +37,24 @@ function ChapterTableRow({
   onMenuClose,
   onEdit,
   onDelete,
+  onRefresh,
+  refreshingChapterId,
 }: ChapterTableRowProps) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const isMenuOpen = openMenuId === chapter.id;
+  const isRefreshing = refreshingChapterId === chapter.id;
+  const [isRefreshAnimating, setIsRefreshAnimating] = useState(false);
   const status = getChapterStatus(chapter);
   const streamBadge = computeStreamBadge(transcodingStatus);
+
+  const handleRefreshClick = () => {
+    if (isRefreshing) {
+      return;
+    }
+
+    setIsRefreshAnimating(true);
+    onRefresh(chapter.id);
+  };
 
   return (
     <tr className="chapter-table-row">
@@ -96,6 +111,23 @@ function ChapterTableRow({
           className="audiobook-table-actions"
           onClick={e => e.stopPropagation()}
         >
+          <button
+            type="button"
+            className="audiobook-table-menu-btn chapter-table-refresh-btn"
+            aria-label="Refresh chapter"
+            disabled={isRefreshing}
+            onClick={handleRefreshClick}
+          >
+            <RefreshCw
+              size={18}
+              className={
+                isRefreshAnimating
+                  ? 'chapter-table-refresh-icon--spinning'
+                  : undefined
+              }
+              onAnimationEnd={() => setIsRefreshAnimating(false)}
+            />
+          </button>
           <button
             ref={triggerRef}
             type="button"

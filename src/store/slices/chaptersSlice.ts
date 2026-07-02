@@ -5,6 +5,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import {
   getChapters,
+  getChapter,
   createChapter,
   updateChapter,
   deleteChapter,
@@ -44,6 +45,17 @@ export const fetchChapters = createAsyncThunk(
     try {
       const response = await getChapters(audiobookId, page);
       return { response, audiobookId };
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const fetchChapter = createAsyncThunk(
+  'chapters/fetchChapter',
+  async (chapterId: string, { rejectWithValue }) => {
+    try {
+      return await getChapter(chapterId);
     } catch (error) {
       return rejectWithValue(error);
     }
@@ -133,6 +145,17 @@ const chaptersSlice = createSlice({
           ? String(action.payload)
           : 'Failed to fetch chapters';
       })
+      .addCase(
+        fetchChapter.fulfilled,
+        (state, action: PayloadAction<ChapterApiResponse>) => {
+          const index = state.chapters.findIndex(
+            chapter => chapter.id === action.payload.id
+          );
+          if (index !== -1) {
+            state.chapters[index] = action.payload;
+          }
+        }
+      )
       .addCase(createChapterThunk.pending, state => {
         state.loading = true;
         state.error = null;

@@ -39,7 +39,7 @@ export interface AudiobookApiResponse {
   chapterCount?: number;
   fileSize?: number;
   coverImage?: string;
-  language?: string;
+  language?: string | { name?: string; code?: string };
   publisher?: string;
   publishDate?: string;
   isbn?: string;

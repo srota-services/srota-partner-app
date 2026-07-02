@@ -76,3 +76,29 @@
   color: var(--color-text-secondary);
   font-variant-numeric: tabular-nums;
 }
+
+.chapter-table-refresh-btn,
+.chapter-table-refresh-btn svg {
+  cursor: pointer;
+}
+
+.chapter-table-refresh-btn:disabled,
+.chapter-table-refresh-btn:disabled svg {
+  cursor: not-allowed;
+}
+
+.chapter-table-refresh-icon--spinning {
+  animation: chapter-table-refresh-spin 0.35s linear 1;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+@keyframes chapter-table-refresh-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(180deg);
+  }
+}

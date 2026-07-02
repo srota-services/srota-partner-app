@@ -424,6 +424,22 @@ describe('AudiobookWizard', () => {
     ).toBeInTheDocument();
   });
 
+  it('shows first-chapter free notice when chapter gating is selected', async () => {
+    const user = userEvent.setup();
+    renderCreateWizard();
+    await waitForCatalogOptions();
+    await advanceToSubscriptionTiersStep(user);
+
+    await user.click(screen.getByRole('radio', { name: /^chapter$/i }));
+
+    expect(
+      screen.getByText(/the first chapter of this audiobook must be a free chapter/i)
+    ).toBeInTheDocument();
+    expect(
+      document.querySelector('.wizard-chapter-gating-notice')
+    ).toBeInTheDocument();
+  });
+
   it('requires a subscription plan when paid switch is on', async () => {
     const user = userEvent.setup();
     renderCreateWizard();

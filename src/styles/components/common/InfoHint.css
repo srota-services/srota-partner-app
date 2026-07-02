@@ -22,6 +22,11 @@
   line-height: 1;
 }
 
+.info-hint--error .info-hint-icon {
+  background: var(--color-danger-light);
+  color: var(--color-danger);
+}
+
 .info-hint-tooltip {
   position: absolute;
   left: 50%;
