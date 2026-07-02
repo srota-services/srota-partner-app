@@ -14,6 +14,7 @@ import authorInboxReducer from './slices/authorInboxSlice';
 import partnerRegistrationReducer from './slices/partnerRegistrationSlice';
 import transcodingReducer from './slices/transcodingSlice';
 import themeReducer from './slices/themeSlice';
+import { partnerRegistrationPersistenceMiddleware } from './partnerRegistrationPersistenceMiddleware';
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -32,9 +33,12 @@ export const store = configureStore({
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredPaths: ['partnerRegistration.organizationProfile.image'],
+        ignoredPaths: [
+          'partnerRegistration.organizationProfile.image',
+          'partnerRegistration.individualDetails.image',
+        ],
       },
-    }),
+    }).concat(partnerRegistrationPersistenceMiddleware),
 });
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

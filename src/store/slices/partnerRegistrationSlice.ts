@@ -89,6 +89,9 @@ const initialState: PartnerRegistrationState = {
   isRegistering: false,
 };
 
+export { initialState as partnerRegistrationInitialState };
+export type { PartnerRegistrationState };
+
 const partnerRegistrationSlice = createSlice({
   name: 'partnerRegistration',
   initialState,
@@ -135,6 +138,13 @@ const partnerRegistrationSlice = createSlice({
     setIsRegistering: (state, action: PayloadAction<boolean>) => {
       state.isRegistering = action.payload;
     },
+    hydratePartnerRegistration: (
+      _state,
+      action: PayloadAction<PartnerRegistrationState>
+    ) => ({
+      ...action.payload,
+      isRegistering: false,
+    }),
     resetPartnerRegistration: () => initialState,
   },
 });
@@ -150,6 +160,7 @@ export const {
   setUserProfileId,
   setIsOtpVerified,
   setIsRegistering,
+  hydratePartnerRegistration,
   resetPartnerRegistration,
 } = partnerRegistrationSlice.actions;
 

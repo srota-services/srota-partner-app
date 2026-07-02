@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createAudiobook,
+  getChapter,
   getLanguages,
   getMoods,
   getSubscriptionPlans,
@@ -393,5 +394,36 @@ describe('audiobook API paid and mood payloads', () => {
     expect(formData.get('owner')).toBe(
       JSON.stringify({ type: 'ORGANIZATION', id: 'org-123' })
     );
+  });
+});
+
+describe('getChapter', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('fetches a single chapter by id', async () => {
+    const chapter = {
+      id: 'ch-1',
+      title: 'Chapter One',
+      description: 'Description',
+      chapterNumber: 1,
+      audiobookId: 'ab-1',
+    };
+
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        data: chapter,
+      }),
+    } as Response);
+
+    const result = await getChapter('ch-1');
+
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      'https://api.example.com/api/v1/chapters/ch-1'
+    );
+    expect(result).toEqual(chapter);
   });
 });

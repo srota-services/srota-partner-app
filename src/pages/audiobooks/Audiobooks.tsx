@@ -29,6 +29,7 @@ import Pagination from '../../components/common/Pagination';
 import SearchBar from '../../components/common/SearchBar';
 import Select from '../../components/common/Select';
 import { showApiError } from '../../utils/toast';
+import { audiobookMatchesLanguageFilter } from '../../utils/languages';
 import '../../styles/pages/audiobooks/Audiobooks.css';
 
 const TABS: { id: AudiobookFilter; label: string }[] = [
@@ -94,11 +95,13 @@ const Audiobooks: React.FC = () => {
     }
 
     if (languageFilter !== 'all') {
-      result = result.filter(ab => ab.language === languageFilter);
+      result = result.filter(ab =>
+        audiobookMatchesLanguageFilter(ab.language, languageFilter, languages)
+      );
     }
 
     return result;
-  }, [audiobooks, searchQuery, localSearch, genreFilter, languageFilter]);
+  }, [audiobooks, searchQuery, localSearch, genreFilter, languageFilter, languages]);
 
   const genreOptions = useMemo(
     () => [...genres].sort((a, b) => a.name.localeCompare(b.name)),

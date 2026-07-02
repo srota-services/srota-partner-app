@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  audiobookMatchesLanguageFilter,
   buildLanguageSelectOptions,
   resolveAudiobookLanguageName,
   resolveDefaultLanguageName,
@@ -49,5 +50,31 @@ describe('language utils', () => {
     expect(
       resolveAudiobookLanguageName({ name: 'Hindi' }, mockLanguages)
     ).toBe('Hindi');
+  });
+
+  it('resolves audiobook language from a language code', () => {
+    expect(resolveAudiobookLanguageName('hi', mockLanguages)).toBe('Hindi');
+    expect(resolveAudiobookLanguageName('en', mockLanguages)).toBe('English');
+  });
+
+  it('resolves audiobook language from a nested language code object', () => {
+    expect(
+      resolveAudiobookLanguageName({ code: 'hi' }, mockLanguages)
+    ).toBe('Hindi');
+  });
+
+  it('matches audiobooks to the selected language filter by name or code', () => {
+    expect(
+      audiobookMatchesLanguageFilter('hi', 'Hindi', mockLanguages)
+    ).toBe(true);
+    expect(
+      audiobookMatchesLanguageFilter({ code: 'en' }, 'English', mockLanguages)
+    ).toBe(true);
+    expect(
+      audiobookMatchesLanguageFilter('Hindi', 'English', mockLanguages)
+    ).toBe(false);
+    expect(audiobookMatchesLanguageFilter('hi', 'all', mockLanguages)).toBe(
+      true
+    );
   });
 });

@@ -1453,6 +1453,45 @@ export async function createChapter(
 }
 
 /**
+ * Fetches a single chapter by ID
+ * @param chapterId - The ID of the chapter
+ * @returns Promise resolving to chapter data or throwing an error
+ */
+export async function getChapter(
+  chapterId: string
+): Promise<ChapterApiResponse> {
+  try {
+    const headers = getAuthHeaders();
+
+    const response = await fetch(
+      `${getContentApiBaseUrl()}/api/v1/chapters/${chapterId}`,
+      {
+        method: 'GET',
+        headers,
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to fetch chapter',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    if (data.success && data.data) {
+      return data.data as ChapterApiResponse;
+    }
+    return data as ChapterApiResponse;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
  * Fetches chapters for a specific audiobook
  * @param audiobookId - The ID of the audiobook
  * @param page - Optional page number for pagination

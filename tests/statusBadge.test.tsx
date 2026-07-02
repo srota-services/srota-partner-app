@@ -41,11 +41,15 @@ function renderChapterRow(chapter: ChapterApiResponse) {
       <tbody>
         <ChapterTableRow
           chapter={chapter}
+          isSelected={false}
           openMenuId={null}
           onMenuToggle={() => undefined}
           onMenuClose={() => undefined}
+          onRowSelect={() => undefined}
           onEdit={() => undefined}
           onDelete={() => undefined}
+          onRefresh={() => undefined}
+          refreshingChapterId={null}
         />
       </tbody>
     </table>
@@ -53,19 +57,21 @@ function renderChapterRow(chapter: ChapterApiResponse) {
 }
 
 describe('getChapterStatus', () => {
-  it('returns live variant for active chapters', () => {
-    expect(getChapterStatus({ ...baseChapter, isActive: true })).toEqual({
+  it('returns live when scheduledAt is null and isActive is true', () => {
+    expect(
+      getChapterStatus({ ...baseChapter, isActive: true, scheduledAt: undefined })
+    ).toEqual({
       label: 'Live',
       variant: 'live',
     });
   });
 
-  it('returns pending variant when upload is pending', () => {
+  it('returns pending when scheduledAt is null and isActive is false', () => {
     expect(
       getChapterStatus({
         ...baseChapter,
         isActive: false,
-        sourceUploadStatus: 'pending',
+        scheduledAt: undefined,
       })
     ).toEqual({
       label: 'Pending',
@@ -73,16 +79,30 @@ describe('getChapterStatus', () => {
     });
   });
 
-  it('returns scheduled variant for inactive chapters', () => {
+  it('returns scheduled when scheduledAt is present and isActive is false', () => {
     expect(
       getChapterStatus({
         ...baseChapter,
         isActive: false,
-        sourceUploadStatus: 'ready',
+        scheduledAt: '2026-05-08T12:00:00.000Z',
       })
     ).toEqual({
       label: 'Scheduled',
       variant: 'scheduled',
+    });
+  });
+
+  it('returns upload failed when source upload failed', () => {
+    expect(
+      getChapterStatus({
+        ...baseChapter,
+        sourceUploadStatus: 'failed',
+        isActive: false,
+        scheduledAt: '2026-05-08T12:00:00.000Z',
+      })
+    ).toEqual({
+      label: 'Upload failed',
+      variant: 'upload-failed',
     });
   });
 });
@@ -143,7 +163,7 @@ describe('status badge classes', () => {
     const { container } = renderChapterRow({
       ...baseChapter,
       isActive: false,
-      sourceUploadStatus: 'pending',
+      scheduledAt: undefined,
     });
     const badge = container.querySelector('.audiobook-status-badge--pending');
     expect(badge).toBeTruthy();
@@ -154,7 +174,7 @@ describe('status badge classes', () => {
     const { container } = renderChapterRow({
       ...baseChapter,
       isActive: false,
-      sourceUploadStatus: 'ready',
+      scheduledAt: '2026-05-08T12:00:00.000Z',
     });
     const badge = container.querySelector('.audiobook-status-badge--scheduled');
     expect(badge).toBeTruthy();

@@ -141,3 +141,23 @@ export function getAudiobookSubscriptionTierLabel(
 
   return `${minSubscriptionTier}`;
 }
+
+/** Effective tier for comparison: free chapters are tier 0. */
+export function getEffectiveChapterSubscriptionTier(
+  minSubscriptionTier: number | null | undefined
+): number {
+  return normalizeMinSubscriptionTier(minSubscriptionTier) ?? 0;
+}
+
+export function isChapterSubscriptionTierBelowPrevious(
+  isPaid: boolean,
+  minSubscriptionTier: number | null | undefined,
+  previousChapterMinTier: number | null | undefined
+): boolean {
+  const currentTier =
+    isPaid && minSubscriptionTier != null ? minSubscriptionTier : 0;
+  const previousTier = getEffectiveChapterSubscriptionTier(
+    previousChapterMinTier
+  );
+  return currentTier < previousTier;
+}
