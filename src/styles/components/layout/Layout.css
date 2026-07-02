@@ -20,6 +20,14 @@
   min-height: calc(100vh - 64px);
 }
 
+.layout-page-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 60vh;
+}
+
 @media (max-width: 768px) {
   .layout-main {
     padding: 16px;

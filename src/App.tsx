@@ -1,26 +1,27 @@
-import { lazy, Suspense } from 'react';
+import { Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAppSelector } from './hooks/redux';
 import LoadingSpinner from './components/common/LoadingSpinner';
 import ThemeRouteSync from './components/common/ThemeRouteSync';
+import {
+  Landing,
+  Login,
+  ForgotPassword,
+  PartnerRegister,
+  Layout,
+  Audiobooks,
+  AudiobookWizard,
+  Chapters,
+  ChapterWizard,
+  Dashboard,
+  Analytics,
+  Management,
+  Team,
+  Inbox,
+  Settings,
+} from './routes/lazyPages';
 
-const Landing = lazy(() => import('./pages/landing/Landing'));
-const Login = lazy(() => import('./pages/login/Login'));
-const ForgotPassword = lazy(() => import('./pages/forgot-password/ForgotPassword'));
-const PartnerRegister = lazy(() => import('./pages/partner/PartnerRegister'));
-const Layout = lazy(() => import('./components/layout/Layout'));
-const Audiobooks = lazy(() => import('./pages/audiobooks/Audiobooks'));
-const AudiobookWizard = lazy(() => import('./pages/audiobooks/AudiobookWizard'));
-const Chapters = lazy(() => import('./pages/chapters/Chapters'));
-const ChapterWizard = lazy(() => import('./pages/chapters/ChapterWizard'));
-const Dashboard = lazy(() => import('./pages/dashboard/Dashboard'));
-const Analytics = lazy(() => import('./pages/analytics/Analytics'));
-const Management = lazy(() => import('./pages/management/Management'));
-const Team = lazy(() => import('./pages/team/Team'));
-const Inbox = lazy(() => import('./pages/inbox/Inbox'));
-const Settings = lazy(() => import('./pages/settings/Settings'));
-
-const AuthLoadingScreen = () => (
+const CenteredSpinner = () => (
   <div
     style={{
       display: 'flex',
@@ -32,6 +33,8 @@ const AuthLoadingScreen = () => (
     <LoadingSpinner />
   </div>
 );
+
+const AuthLoadingScreen = CenteredSpinner;
 
 /**
  * Guest-only route — redirects authenticated users away from public pages
@@ -75,86 +78,78 @@ function App() {
   return (
     <BrowserRouter>
       <ThemeRouteSync />
-      <Suspense
-        fallback={
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              minHeight: '100vh',
-            }}
-          >
-            <LoadingSpinner />
-          </div>
-        }
-      >
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <GuestRoute>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <GuestRoute>
+              <Suspense fallback={<CenteredSpinner />}>
                 <Landing />
-              </GuestRoute>
-            }
-          />
-          <Route
-            path="/login"
-            element={
-              <GuestRoute>
+              </Suspense>
+            </GuestRoute>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <GuestRoute>
+              <Suspense fallback={<CenteredSpinner />}>
                 <Login />
-              </GuestRoute>
-            }
-          />
-          <Route
-            path="/forgot-password"
-            element={
-              <GuestRoute>
+              </Suspense>
+            </GuestRoute>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <GuestRoute>
+              <Suspense fallback={<CenteredSpinner />}>
                 <ForgotPassword />
-              </GuestRoute>
-            }
-          />
-          <Route
-            path="/partner/register"
-            element={
-              <GuestRoute>
+              </Suspense>
+            </GuestRoute>
+          }
+        />
+        <Route
+          path="/partner/register"
+          element={
+            <GuestRoute>
+              <Suspense fallback={<CenteredSpinner />}>
                 <PartnerRegister />
-              </GuestRoute>
-            }
+              </Suspense>
+            </GuestRoute>
+          }
+        />
+        <Route
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<CenteredSpinner />}>
+                <Layout />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        >
+          <Route path="/home" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/library/create" element={<AudiobookWizard />} />
+          <Route path="/library/:id/edit" element={<AudiobookWizard />} />
+          <Route
+            path="/library/:id/chapters/create"
+            element={<ChapterWizard />}
           />
           <Route
-            element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
-            <Route
-              path="/home"
-              element={<Navigate to="/dashboard" replace />}
-            />
-            <Route path="/library/create" element={<AudiobookWizard />} />
-            <Route path="/library/:id/edit" element={<AudiobookWizard />} />
-            <Route
-              path="/library/:id/chapters/create"
-              element={<ChapterWizard />}
-            />
-            <Route
-              path="/library/:id/chapters/:chapterId/edit"
-              element={<ChapterWizard />}
-            />
-            <Route path="/library/:id/chapters" element={<Chapters />} />
-            <Route path="/library" element={<Audiobooks />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/management" element={<Management />} />
-            <Route path="/team" element={<Team />} />
-            <Route path="/inbox" element={<Inbox />} />
-            <Route path="/settings" element={<Settings />} />
-          </Route>
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
-      </Suspense>
+            path="/library/:id/chapters/:chapterId/edit"
+            element={<ChapterWizard />}
+          />
+          <Route path="/library/:id/chapters" element={<Chapters />} />
+          <Route path="/library" element={<Audiobooks />} />
+          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/management" element={<Management />} />
+          <Route path="/team" element={<Team />} />
+          <Route path="/inbox" element={<Inbox />} />
+          <Route path="/settings" element={<Settings />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
     </BrowserRouter>
   );
 }

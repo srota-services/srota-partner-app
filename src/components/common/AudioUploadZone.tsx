@@ -1,5 +1,6 @@
 import { ChangeEvent, DragEvent, useId, useRef, useState } from 'react';
-import { Headphones, X } from 'lucide-react';
+import { Headphones } from 'lucide-react';
+import CloseButton from './CloseButton';
 import '../../styles/components/common/FileUploadZone.css';
 
 const ACCEPTED_TYPES = [
@@ -125,18 +126,16 @@ function AudioUploadZone({
       {value && (
         <div className="audio-upload-selected">
           <span className="audio-upload-selected-name">{value.name}</span>
-          <button
-            type="button"
+          <CloseButton
+            size="sm"
             className="audio-upload-selected-remove"
+            label="Remove audio file"
             onClick={event => {
               event.stopPropagation();
               clearFile();
             }}
             disabled={isDisabled}
-            aria-label="Remove audio file"
-          >
-            <X size={14} />
-          </button>
+          />
         </div>
       )}
 

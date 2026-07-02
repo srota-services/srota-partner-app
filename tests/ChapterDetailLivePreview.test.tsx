@@ -25,6 +25,7 @@ describe('ChapterDetailLivePreview', () => {
 
     expect(screen.getByText('Live Preview')).toBeInTheDocument();
     expect(screen.getByText('Chapter 3')).toBeInTheDocument();
+    expect(screen.getByText('Live')).toBeInTheDocument();
     expect(screen.getByText('Chapter One')).toBeInTheDocument();
     expect(screen.getByText('A detailed chapter description')).toBeInTheDocument();
     expect(screen.getByText('Base')).toBeInTheDocument();

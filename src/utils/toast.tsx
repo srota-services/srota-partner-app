@@ -1,6 +1,14 @@
 import React from 'react';
 import toast from 'react-hot-toast';
+import CloseButton from '../components/common/CloseButton';
 import type { ApiError } from '../types/auth';
+
+/** Absolute positioning for the toast close button. */
+const TOAST_CLOSE_STYLE: React.CSSProperties = {
+  position: 'absolute',
+  top: '-6px',
+  right: '-6px',
+};
 
 /**
  * Extracts error message from API error or unknown error
@@ -36,32 +44,11 @@ export function showApiError(
     (t): React.ReactElement => (
       <div style={{ position: 'relative', paddingRight: '24px' }}>
         <span>{message}</span>
-        <button
+        <CloseButton
+          size="sm"
+          style={TOAST_CLOSE_STYLE}
           onClick={() => toast.dismiss(t.id)}
-          style={{
-            position: 'absolute',
-            top: '-8px',
-            right: '-8px',
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--toast-error-text)',
-            cursor: 'pointer',
-            padding: '4px 8px',
-            fontSize: '18px',
-            lineHeight: '1',
-            opacity: 0.8,
-            transition: 'opacity 0.2s',
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.opacity = '1';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.opacity = '0.8';
-          }}
-          aria-label="Close"
-        >
-          ×
-        </button>
+        />
       </div>
     ),
     {
@@ -91,32 +78,11 @@ export function showSuccess(message: string, duration: number = 3000): void {
     (t): React.ReactElement => (
       <div style={{ position: 'relative', paddingRight: '24px' }}>
         <span>{message}</span>
-        <button
+        <CloseButton
+          size="sm"
+          style={TOAST_CLOSE_STYLE}
           onClick={() => toast.dismiss(t.id)}
-          style={{
-            position: 'absolute',
-            top: '-8px',
-            right: '-8px',
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--toast-success-text)',
-            cursor: 'pointer',
-            padding: '4px 8px',
-            fontSize: '18px',
-            lineHeight: '1',
-            opacity: 0.8,
-            transition: 'opacity 0.2s',
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.opacity = '1';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.opacity = '0.8';
-          }}
-          aria-label="Close"
-        >
-          ×
-        </button>
+        />
       </div>
     ),
     {

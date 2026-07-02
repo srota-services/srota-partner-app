@@ -1,6 +1,7 @@
 import { ChangeEvent, DragEvent, useId, useRef, useState } from 'react';
-import { CloudUpload, X } from 'lucide-react';
+import { CloudUpload } from 'lucide-react';
 import { useFilePreviewUrl } from '../../hooks/useFilePreviewUrl';
+import CloseButton from './CloseButton';
 import '../../styles/components/common/FileUploadZone.css';
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -154,36 +155,32 @@ function ImageUploadZone({
       {objectPreview && (
         <div className="image-upload-preview">
           <img src={objectPreview} alt="Uploaded image preview" />
-          <button
-            type="button"
+          <CloseButton
+            size="sm"
             className="image-upload-remove"
+            label="Remove image"
             onClick={event => {
               event.stopPropagation();
               clearFile();
             }}
             disabled={disabled}
-            aria-label="Remove image"
-          >
-            <X size={14} />
-          </button>
+          />
         </div>
       )}
 
       {!showPreview && value && (
         <div className="image-upload-selected">
           <span className="image-upload-selected-name">{value.name}</span>
-          <button
-            type="button"
+          <CloseButton
+            size="sm"
             className="image-upload-selected-remove"
+            label="Remove image"
             onClick={event => {
               event.stopPropagation();
               clearFile();
             }}
             disabled={disabled}
-            aria-label="Remove image"
-          >
-            <X size={14} />
-          </button>
+          />
         </div>
       )}
 
