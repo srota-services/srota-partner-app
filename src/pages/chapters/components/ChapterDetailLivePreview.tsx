@@ -51,14 +51,16 @@ function ChapterDetailLivePreview({
             <span className="chapter-card-number">
               Chapter {chapter.chapterNumber}
             </span>
+          </div>
+
+          <div className="chapter-detail-title-row">
+            <h3 className="chapter-card-title">{chapter.title}</h3>
             <span
               className={`audiobook-status-badge audiobook-status-badge--${status.variant === 'upload-failed' ? 'draft' : status.variant}`}
             >
               {status.label}
             </span>
           </div>
-
-          <h3 className="chapter-card-title">{chapter.title}</h3>
 
           {chapter.description && (
             <p className="chapter-card-description chapter-card-description--full">

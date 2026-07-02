@@ -1,6 +1,6 @@
-import { X } from 'lucide-react';
 import type { ChapterApiResponse } from '../../../types/audiobook';
 import type { ChapterTranscodingStatus } from '../../../types/streaming';
+import CloseButton from '../../../components/common/CloseButton';
 import ChapterDetailLivePreview from './ChapterDetailLivePreview';
 import '../../../styles/pages/chapters/components/ChapterLivePreviewPanel.css';
 
@@ -23,14 +23,11 @@ function ChapterLivePreviewPanel({
       aria-hidden={!isOpen}
     >
       <div className="chapter-live-preview-panel-inner marketing-card">
-        <button
-          type="button"
+        <CloseButton
           className="chapter-live-preview-panel-close"
-          aria-label="Close preview"
+          label="Close preview"
           onClick={onClose}
-        >
-          <X size={18} />
-        </button>
+        />
 
         {chapter && (
           <ChapterDetailLivePreview

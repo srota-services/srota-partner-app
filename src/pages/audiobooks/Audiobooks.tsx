@@ -28,6 +28,7 @@ import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Pagination from '../../components/common/Pagination';
 import SearchBar from '../../components/common/SearchBar';
 import Select from '../../components/common/Select';
+import TabPanel from '../../components/common/TabPanel';
 import { showApiError } from '../../utils/toast';
 import { audiobookMatchesLanguageFilter } from '../../utils/languages';
 import '../../styles/pages/audiobooks/Audiobooks.css';
@@ -243,58 +244,60 @@ const Audiobooks: React.FC = () => {
             </Select>
           </div>
 
-          {loading && (
-            <div className="loading-state">
-              <p>Loading audiobooks...</p>
-            </div>
-          )}
-
-          {!loading && filteredAudiobooks.length === 0 && (
-            <div className="empty-state marketing-card">
-              <p>
-                {filter === 'drafts' || filter === 'archived'
-                  ? `No ${filter} audiobooks yet.`
-                  : 'No audiobooks found. Create one to get started.'}
-              </p>
-            </div>
-          )}
-
-          {!loading && filteredAudiobooks.length > 0 && (
-            <>
-              <AudiobookTable
-                audiobooks={filteredAudiobooks}
-                filter={filter}
-                onRowClick={ab => navigate(`/library/${ab.id}/chapters`)}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-
-              <div className="audiobooks-pagination-bar">
-                {pagination && (
-                  <p className="audiobooks-showing">
-                    Showing {showingFrom}–{showingTo} of{' '}
-                    {pagination.totalItems} audiobooks
-                  </p>
-                )}
-                {pagination && pagination.totalPages > 1 && (
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={pagination.totalPages}
-                    onPageChange={handlePageChange}
-                  />
-                )}
-                <Select
-                  fieldSize="sm"
-                  wrapperClassName="audiobooks-filter-select"
-                  placeholder={false}
-                  defaultValue="10"
-                >
-                  <option value="10">10 / page</option>
-                  <option value="25">25 / page</option>
-                </Select>
+          <TabPanel activeKey={filter}>
+            {loading && (
+              <div className="loading-state">
+                <p>Loading audiobooks...</p>
               </div>
-            </>
-          )}
+            )}
+
+            {!loading && filteredAudiobooks.length === 0 && (
+              <div className="empty-state marketing-card">
+                <p>
+                  {filter === 'drafts' || filter === 'archived'
+                    ? `No ${filter} audiobooks yet.`
+                    : 'No audiobooks found. Create one to get started.'}
+                </p>
+              </div>
+            )}
+
+            {!loading && filteredAudiobooks.length > 0 && (
+              <>
+                <AudiobookTable
+                  audiobooks={filteredAudiobooks}
+                  filter={filter}
+                  onRowClick={ab => navigate(`/library/${ab.id}/chapters`)}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+
+                <div className="audiobooks-pagination-bar">
+                  {pagination && (
+                    <p className="audiobooks-showing">
+                      Showing {showingFrom}–{showingTo} of{' '}
+                      {pagination.totalItems} audiobooks
+                    </p>
+                  )}
+                  {pagination && pagination.totalPages > 1 && (
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={pagination.totalPages}
+                      onPageChange={handlePageChange}
+                    />
+                  )}
+                  <Select
+                    fieldSize="sm"
+                    wrapperClassName="audiobooks-filter-select"
+                    placeholder={false}
+                    defaultValue="10"
+                  >
+                    <option value="10">10 / page</option>
+                    <option value="25">25 / page</option>
+                  </Select>
+                </div>
+              </>
+            )}
+          </TabPanel>
         </div>
 
         <aside className="audiobooks-sidebar">

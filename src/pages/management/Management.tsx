@@ -14,6 +14,7 @@ import InviteAuthorModal from './components/InviteAuthorModal';
 import Button from '../../components/common/Button';
 import SearchBar from '../../components/common/SearchBar';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import TabPanel from '../../components/common/TabPanel';
 import { getInvitationAuthorName } from '../../utils/authorInvitationDisplay';
 import { showApiError } from '../../utils/toast';
 import '../../styles/pages/management/Management.css';
@@ -138,39 +139,41 @@ const Management: React.FC = () => {
         />
       </div>
 
-      {loading ? (
-        <div className="loading-container">
-          <LoadingSpinner />
-        </div>
-      ) : isEmpty ? (
-        <div className="empty-state">
-          <div className="empty-state-icon">✍️</div>
-          <h3 className="empty-state-title">
-            {searchQuery
-              ? 'No results found'
-              : activeTab === 'linked'
-                ? 'No linked authors yet'
-                : 'No invitations yet'}
-          </h3>
-          <p className="empty-state-message">
-            {searchQuery
-              ? 'Try adjusting your search query'
-              : activeTab === 'linked'
-                ? 'Authors who accept your invitation will appear here.'
-                : 'Send an invitation to connect with an author.'}
-          </p>
-          {!searchQuery && activeTab === 'invitations' && (
-            <Button onClick={() => setIsInviteModalOpen(true)}>
-              <Plus size={16} className="btn-icon-left" />
-              Invite Author
-            </Button>
-          )}
-        </div>
-      ) : activeTab === 'linked' ? (
-        <LinkedAuthorsTable authors={filteredLinkedAuthors} />
-      ) : (
-        <AuthorInvitationsTable invitations={filteredInvitations} />
-      )}
+      <TabPanel activeKey={loading ? 'loading' : activeTab}>
+        {loading ? (
+          <div className="loading-container">
+            <LoadingSpinner />
+          </div>
+        ) : isEmpty ? (
+          <div className="empty-state">
+            <div className="empty-state-icon">✍️</div>
+            <h3 className="empty-state-title">
+              {searchQuery
+                ? 'No results found'
+                : activeTab === 'linked'
+                  ? 'No linked authors yet'
+                  : 'No invitations yet'}
+            </h3>
+            <p className="empty-state-message">
+              {searchQuery
+                ? 'Try adjusting your search query'
+                : activeTab === 'linked'
+                  ? 'Authors who accept your invitation will appear here.'
+                  : 'Send an invitation to connect with an author.'}
+            </p>
+            {!searchQuery && activeTab === 'invitations' && (
+              <Button onClick={() => setIsInviteModalOpen(true)}>
+                <Plus size={16} className="btn-icon-left" />
+                Invite Author
+              </Button>
+            )}
+          </div>
+        ) : activeTab === 'linked' ? (
+          <LinkedAuthorsTable authors={filteredLinkedAuthors} />
+        ) : (
+          <AuthorInvitationsTable invitations={filteredInvitations} />
+        )}
+      </TabPanel>
 
       <InviteAuthorModal
         isOpen={isInviteModalOpen}

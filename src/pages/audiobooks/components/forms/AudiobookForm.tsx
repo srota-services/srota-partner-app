@@ -22,6 +22,7 @@ import { resolveAudiobookOwner } from '../../../../utils/resolveAudiobookOwner';
 import Button from '../../../../components/common/Button';
 import { showApiError } from '../../../../utils/toast';
 import { DEFAULT_AUDIOBOOK_LANGUAGE, createEmptyAudiobookFormData } from '../../../../utils/audiobookWizard';
+import { resolveAudiobookLanguageName } from '../../../../utils/languages';
 import '../../../../styles/pages/audiobooks/components/forms/AudiobookForm.css';
 
 interface AudiobookFormProps {
@@ -89,7 +90,11 @@ const AudiobookForm: React.FC<AudiobookFormProps> = ({
         coverImage: null,
         scheduledAt: undefined, // Note: scheduledAt may not be in API response
         meta: initialData.meta || {},
-        language: initialData.language || DEFAULT_AUDIOBOOK_LANGUAGE,
+        language: resolveAudiobookLanguageName(
+          initialData.language,
+          [],
+          DEFAULT_AUDIOBOOK_LANGUAGE
+        ),
         isPaid: false,
         minSubscriptionTier: initialData.minSubscriptionTier ?? null,
         moodId: null,
@@ -191,7 +196,11 @@ const AudiobookForm: React.FC<AudiobookFormProps> = ({
         coverImage: null,
         scheduledAt: undefined,
         meta: initialData.meta || {},
-        language: initialData.language || DEFAULT_AUDIOBOOK_LANGUAGE,
+        language: resolveAudiobookLanguageName(
+          initialData.language,
+          [],
+          DEFAULT_AUDIOBOOK_LANGUAGE
+        ),
         isPaid: false,
         minSubscriptionTier: initialData.minSubscriptionTier ?? null,
         moodId: null,
