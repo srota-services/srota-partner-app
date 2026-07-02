@@ -36,6 +36,8 @@ describe('ChapterTable subscription column', () => {
           { ...baseChapter, id: 'ch-2', title: 'Chapter Two', minSubscriptionTier: null },
         ]}
         statusByChapter={{}}
+        selectedChapterId={null}
+        onRowSelect={() => undefined}
         onEdit={() => undefined}
         onDelete={() => undefined}
         onRefresh={() => undefined}
@@ -55,6 +57,8 @@ describe('ChapterTable subscription column', () => {
           { ...baseChapter, id: 'ch-2', title: 'Chapter Two', minSubscriptionTier: 3 },
         ]}
         statusByChapter={{}}
+        selectedChapterId={null}
+        onRowSelect={() => undefined}
         onEdit={() => undefined}
         onDelete={() => undefined}
         onRefresh={() => undefined}
@@ -74,6 +78,8 @@ describe('ChapterTable subscription column', () => {
       <ChapterTable
         chapters={[baseChapter]}
         statusByChapter={{}}
+        selectedChapterId={null}
+        onRowSelect={() => undefined}
         onEdit={() => undefined}
         onDelete={() => undefined}
         onRefresh={onRefresh}
@@ -84,5 +90,27 @@ describe('ChapterTable subscription column', () => {
     await user.click(screen.getByRole('button', { name: 'Refresh chapter' }));
 
     expect(onRefresh).toHaveBeenCalledWith('ch-1');
+  });
+
+  it('calls onRowSelect when a chapter row is clicked', async () => {
+    const user = userEvent.setup();
+    const onRowSelect = vi.fn();
+
+    renderWithStore(
+      <ChapterTable
+        chapters={[baseChapter]}
+        statusByChapter={{}}
+        selectedChapterId={null}
+        onRowSelect={onRowSelect}
+        onEdit={() => undefined}
+        onDelete={() => undefined}
+        onRefresh={() => undefined}
+        refreshingChapterId={null}
+      />
+    );
+
+    await user.click(screen.getByText('Chapter One'));
+
+    expect(onRowSelect).toHaveBeenCalledWith(baseChapter);
   });
 });

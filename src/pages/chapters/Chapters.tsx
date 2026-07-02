@@ -15,6 +15,7 @@ import {
 } from '../../store/slices/chaptersSlice';
 import type { ChapterApiResponse } from '../../types/audiobook';
 import ChapterTable from './components/ChapterTable';
+import ChapterLivePreviewPanel from './components/ChapterLivePreviewPanel';
 import Button from '../../components/common/Button';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Pagination from '../../components/common/Pagination';
@@ -25,6 +26,7 @@ import {
   clearTranscodingForChapter,
 } from '../../store/slices/transcodingSlice';
 import '../../styles/pages/chapters/Chapters.css';
+import '../../styles/pages/chapters/components/ChapterLivePreviewPanel.css';
 
 const Chapters: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -42,6 +44,9 @@ const Chapters: React.FC = () => {
   const [refreshingChapterId, setRefreshingChapterId] = useState<string | null>(
     null
   );
+  const [selectedChapterId, setSelectedChapterId] = useState<string | null>(
+    null
+  );
 
   const sortedChapters = useMemo(
     () =>
@@ -53,6 +58,20 @@ const Chapters: React.FC = () => {
     () => sortedChapters.map(chapter => chapter.id),
     [sortedChapters]
   );
+  const selectedChapter = useMemo(
+    () => sortedChapters.find(chapter => chapter.id === selectedChapterId) ?? null,
+    [sortedChapters, selectedChapterId]
+  );
+
+  useEffect(() => {
+    if (
+      selectedChapterId &&
+      !sortedChapters.some(chapter => chapter.id === selectedChapterId)
+    ) {
+      setSelectedChapterId(null);
+    }
+  }, [selectedChapterId, sortedChapters]);
+
   useChapterTranscodingEvents(chapterIds);
 
   useEffect(() => {
@@ -78,6 +97,12 @@ const Chapters: React.FC = () => {
   const handleDelete = (chapter: ChapterApiResponse) => {
     setDeletingChapter(chapter);
     setIsDeleteModalOpen(true);
+  };
+
+  const handleRowSelect = (chapter: ChapterApiResponse) => {
+    setSelectedChapterId(current =>
+      current === chapter.id ? null : chapter.id
+    );
   };
 
   const handleRefresh = async (chapterId: string) => {
@@ -164,24 +189,38 @@ const Chapters: React.FC = () => {
       )}
 
       {!loading && chapters.length > 0 && (
-        <>
-          <ChapterTable
-            chapters={sortedChapters}
-            statusByChapter={statusByChapter}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onRefresh={chapterId => void handleRefresh(chapterId)}
-            refreshingChapterId={refreshingChapterId}
-          />
-
-          {pagination && pagination.totalPages > 1 && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={pagination.totalPages}
-              onPageChange={handlePageChange}
+        <div className="chapters-body">
+          <div className="chapters-table-section">
+            <ChapterTable
+              chapters={sortedChapters}
+              statusByChapter={statusByChapter}
+              selectedChapterId={selectedChapterId}
+              onRowSelect={handleRowSelect}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onRefresh={chapterId => void handleRefresh(chapterId)}
+              refreshingChapterId={refreshingChapterId}
             />
-          )}
-        </>
+
+            {pagination && pagination.totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={pagination.totalPages}
+                onPageChange={handlePageChange}
+              />
+            )}
+          </div>
+
+          <ChapterLivePreviewPanel
+            chapter={selectedChapter}
+            transcodingStatus={
+              selectedChapter
+                ? statusByChapter[selectedChapter.id]
+                : undefined
+            }
+            onClose={() => setSelectedChapterId(null)}
+          />
+        </div>
       )}
 
       <ConfirmDialog

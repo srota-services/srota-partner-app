@@ -41,9 +41,11 @@ function renderChapterRow(chapter: ChapterApiResponse) {
       <tbody>
         <ChapterTableRow
           chapter={chapter}
+          isSelected={false}
           openMenuId={null}
           onMenuToggle={() => undefined}
           onMenuClose={() => undefined}
+          onRowSelect={() => undefined}
           onEdit={() => undefined}
           onDelete={() => undefined}
           onRefresh={() => undefined}

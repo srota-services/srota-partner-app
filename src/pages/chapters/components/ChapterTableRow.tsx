@@ -13,9 +13,11 @@ import '../../../styles/components/common/TableActionsMenu.css';
 interface ChapterTableRowProps {
   chapter: ChapterApiResponse;
   transcodingStatus?: ChapterTranscodingStatus;
+  isSelected: boolean;
   openMenuId: string | null;
   onMenuToggle: (chapterId: string) => void;
   onMenuClose: () => void;
+  onRowSelect: (chapter: ChapterApiResponse) => void;
   onEdit: (chapter: ChapterApiResponse) => void;
   onDelete: (chapter: ChapterApiResponse) => void;
   onRefresh: (chapterId: string) => void;
@@ -32,9 +34,11 @@ function truncateDescription(text: string, maxLength = 120): string {
 function ChapterTableRow({
   chapter,
   transcodingStatus,
+  isSelected,
   openMenuId,
   onMenuToggle,
   onMenuClose,
+  onRowSelect,
   onEdit,
   onDelete,
   onRefresh,
@@ -57,7 +61,10 @@ function ChapterTableRow({
   };
 
   return (
-    <tr className="chapter-table-row">
+    <tr
+      className={`chapter-table-row${isSelected ? ' chapter-table-row--selected' : ''}`}
+      onClick={() => onRowSelect(chapter)}
+    >
       <td>
         <div className="chapter-table-title-cell">
           {chapter.coverImage ? (

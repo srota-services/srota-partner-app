@@ -2,6 +2,11 @@
   overflow: visible;
 }
 
+.audiobook-table-wrapper.marketing-card,
+.chapter-table-wrapper.marketing-card {
+  overflow: hidden;
+}
+
 .audiobook-table-scroll {
   overflow-x: auto;
   overflow-y: visible;
@@ -130,6 +135,22 @@
   right: 0;
   z-index: 3;
   background: var(--color-bg-primary);
+  border-top-right-radius: var(--radius-lg);
+}
+
+.audiobook-table thead th:first-child,
+.chapter-table thead th:first-child {
+  border-top-left-radius: var(--radius-lg);
+}
+
+.audiobook-table tbody tr:last-child td:first-child,
+.chapter-table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: var(--radius-lg);
+}
+
+.audiobook-table tbody tr:last-child td:last-child,
+.chapter-table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: var(--radius-lg);
 }
 
 .audiobook-table-menu-btn {
