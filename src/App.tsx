@@ -76,6 +76,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
   return children;
 };
 
+const AuthorRoute = ({ children }: { children: React.ReactElement }) => {
+  const { appType } = useAppSelector(state => state.auth);
+
+  if (appType !== 'author') {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return children;
+};
+
 function App() {
   return (
     <BrowserRouter>
@@ -150,7 +160,14 @@ function App() {
           <Route path="/team" element={<Team />} />
           <Route path="/inbox" element={<Inbox />} />
           <Route path="/settings" element={<Settings />} />
-          <Route path="/editor/*" element={<Editor />} />
+          <Route
+            path="/editor/*"
+            element={
+              <AuthorRoute>
+                <Editor />
+              </AuthorRoute>
+            }
+          />
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>

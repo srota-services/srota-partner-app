@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   BarChart3,
@@ -13,6 +13,7 @@ import {
   Users,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { useAppSelector } from '../../hooks/redux';
 import SolidIcon from '../common/SolidIcon';
 import '../../styles/components/layout/SideNavigation.css';
 
@@ -48,6 +49,13 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const appType = useAppSelector(state => state.auth.appType);
+
+  const visibleNavItems = useMemo(
+    () =>
+      navItems.filter(item => (item.path === '/editor' ? appType === 'author' : true)),
+    [appType]
+  );
 
   return (
     <nav
@@ -55,7 +63,7 @@ const SideNavigation: React.FC<SideNavigationProps> = ({
       aria-label="Main navigation"
     >
       <ul className="side-nav-list">
-        {navItems.map(item => {
+        {visibleNavItems.map(item => {
           const isActive = isNavActive(item, location.pathname);
           const Icon = item.icon;
 
