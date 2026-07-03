@@ -1,6 +1,7 @@
 import { MoreVertical } from 'lucide-react';
 import { useRef, useState } from 'react';
 import TableActionsMenu from '../../../components/common/TableActionsMenu';
+import AppImage from '../../../components/common/AppImage';
 import type { AudiobookApiResponse } from '../../../types/audiobook';
 import type { AudiobookFilter } from '../../../store/slices/audiobooksSlice';
 import { getAudiobookSubscriptionTierLabel } from '../../../utils/subscriptionPlans';
@@ -65,15 +66,12 @@ function AudiobookTableRow({
     <tr onClick={() => onRowClick(audiobook)} className="audiobook-table-row">
       <td>
         <div className="audiobook-table-title-cell">
-          {audiobook.coverImage ? (
-            <img
-              src={audiobook.coverImage}
-              alt=""
-              className="audiobook-table-thumb"
-            />
-          ) : (
-            <div className="audiobook-table-thumb audiobook-table-thumb--placeholder" />
-          )}
+          <AppImage
+            src={audiobook.coverImage}
+            alt=""
+            variant="thumbnail"
+            className="audiobook-table-thumb"
+          />
           <div>
             <p className="audiobook-table-title">{audiobook.title}</p>
             <p className="audiobook-table-genre">{genre}</p>

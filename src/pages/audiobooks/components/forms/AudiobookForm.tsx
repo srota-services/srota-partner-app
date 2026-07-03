@@ -20,6 +20,7 @@ import type {
 } from '../../../../types/audiobook';
 import { resolveAudiobookOwner } from '../../../../utils/resolveAudiobookOwner';
 import Button from '../../../../components/common/Button';
+import AppImage from '../../../../components/common/AppImage';
 import { showApiError } from '../../../../utils/toast';
 import { DEFAULT_AUDIOBOOK_LANGUAGE, createEmptyAudiobookFormData } from '../../../../utils/audiobookWizard';
 import { resolveAudiobookLanguageName } from '../../../../utils/languages';
@@ -782,14 +783,11 @@ const AudiobookForm: React.FC<AudiobookFormProps> = ({
         </label>
         {isEditMode && initialData?.coverImage && !formData.coverImage && (
           <div className="current-image-preview">
-            <img
+            <AppImage
               src={initialData.coverImage}
               alt="Current cover"
-              style={{
-                maxWidth: '200px',
-                maxHeight: '200px',
-                marginBottom: '8px',
-              }}
+              variant="cover"
+              className="current-image-preview-image"
             />
             <p className="current-image-text">Current cover image</p>
           </div>

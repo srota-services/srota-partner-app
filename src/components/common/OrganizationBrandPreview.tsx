@@ -1,3 +1,5 @@
+import AppImage from './AppImage';
+
 interface OrganizationBrandPreviewProps {
   organizationName: string;
   logoPreviewUrl: string | null;
@@ -18,11 +20,12 @@ function OrganizationBrandPreview({
       <p className="org-brand-preview-label">Brand preview</p>
       <div className="org-brand-preview-card">
         <div className="org-brand-preview-header">
-          {logoPreviewUrl ? (
-            <img src={logoPreviewUrl} alt="" className="org-brand-preview-logo" />
-          ) : (
-            <div className="org-brand-preview-logo org-brand-preview-logo--placeholder" />
-          )}
+          <AppImage
+            src={logoPreviewUrl}
+            alt=""
+            variant="organization"
+            className="org-brand-preview-logo"
+          />
           <div>
             <p className="org-brand-preview-name">{displayName}</p>
             <span className="org-brand-preview-badge">Partner</span>
