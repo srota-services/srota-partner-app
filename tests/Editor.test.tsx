@@ -85,8 +85,7 @@ describe('Editor', () => {
     expect(screen.getByText('New Audiobook 4')).toBeInTheDocument();
   });
 
-  it('shows delete controls beside add controls in the directory tree', async () => {
-    const user = userEvent.setup();
+  it('shows delete controls beside add controls in the directory tree', () => {
     renderEditor();
 
     const tree = screen.getByRole('tree', { name: 'Audiobook directory' });

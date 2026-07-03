@@ -78,14 +78,18 @@ const Editor: React.FC = () => {
     maxWidth: 520,
   });
 
+  const selectionAudiobookId = selection?.audiobookId;
+  const selectionChapterId = selection?.chapterId;
+  const selectionPageId = selection?.pageId;
+
   useEffect(() => {
-    if (!selection) {
+    if (!selectionAudiobookId || !selectionChapterId) {
       return;
     }
 
-    setExpandedAudiobooks(prev => new Set(prev).add(selection.audiobookId));
-    setExpandedChapters(prev => new Set(prev).add(selection.chapterId));
-  }, [selection?.audiobookId, selection?.chapterId, selection?.pageId]);
+    setExpandedAudiobooks(prev => new Set(prev).add(selectionAudiobookId));
+    setExpandedChapters(prev => new Set(prev).add(selectionChapterId));
+  }, [selectionAudiobookId, selectionChapterId, selectionPageId]);
 
   const breadcrumb = useMemo(
     () => (selection ? getEditorBreadcrumb(audiobooks, selection) : null),
