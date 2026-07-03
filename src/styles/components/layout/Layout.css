@@ -20,6 +20,19 @@
   min-height: calc(100vh - 64px);
 }
 
+.layout-main--editor {
+  padding: 0;
+  overflow: hidden;
+}
+
+.layout-main--editor-collapsed {
+  margin-left: 56px;
+}
+
+.layout-main--editor-expanded {
+  margin-left: 240px;
+}
+
 .layout-page-fallback {
   display: flex;
   align-items: center;

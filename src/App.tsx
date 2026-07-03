@@ -20,6 +20,7 @@ import {
   Team,
   Inbox,
   Settings,
+  Editor,
 } from './routes/lazyPages';
 
 const CenteredSpinner = () => (
@@ -70,6 +71,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactElement }) => {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  return children;
+};
+
+const AuthorRoute = ({ children }: { children: React.ReactElement }) => {
+  const { appType } = useAppSelector(state => state.auth);
+
+  if (appType !== 'author') {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;
@@ -149,6 +160,14 @@ function App() {
           <Route path="/team" element={<Team />} />
           <Route path="/inbox" element={<Inbox />} />
           <Route path="/settings" element={<Settings />} />
+          <Route
+            path="/editor/*"
+            element={
+              <AuthorRoute>
+                <Editor />
+              </AuthorRoute>
+            }
+          />
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>

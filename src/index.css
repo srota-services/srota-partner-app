@@ -89,6 +89,13 @@
   --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-base: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Editor highlight + note marks */
+  --editor-text-highlight-bg: #fde047;
+  --editor-text-highlight-text: #422006;
+  --editor-note-mark-bg: rgba(254, 243, 199, 0.5);
+  --editor-note-mark-border: #eab308;
+  --editor-note-tag-bg: #eab308;
+  --editor-note-tag-text: #422006;
 }
 
 [data-theme='dark'] {
@@ -137,6 +144,12 @@
   --toast-success-bg: var(--color-success-light);
   --toast-success-text: #86efac;
   --toast-success-border: var(--color-success);
+  --editor-text-highlight-bg: #ca8a04;
+  --editor-text-highlight-text: #fef9c3;
+  --editor-note-mark-bg: rgba(113, 63, 18, 0.4);
+  --editor-note-mark-border: #facc15;
+  --editor-note-tag-bg: #facc15;
+  --editor-note-tag-text: #422006;
 }
 
 * {

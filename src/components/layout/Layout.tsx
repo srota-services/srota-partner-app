@@ -9,6 +9,7 @@ import { useUserProfile } from '../../hooks/useUserProfile';
 import { setSearchQuery } from '../../store/slices/audiobooksSlice';
 import { PRELOADABLE_PAGES } from '../../routes/lazyPages';
 import { preloadDuringIdle } from '../../utils/lazyWithPreload';
+import { getPageTransitionKey } from '../../utils/pageTransitionKey';
 import TopNavigation from './TopNavigation';
 import SideNavigation from './SideNavigation';
 import PageTransition from './PageTransition';
@@ -26,6 +27,8 @@ const Layout: React.FC = () => {
   const [searchValue, setSearchValue] = useState('');
   const dispatch = useAppDispatch();
   const location = useLocation();
+  const isEditorRoute = location.pathname.startsWith('/editor');
+  const [isSideNavCollapsed, setIsSideNavCollapsed] = useState(isEditorRoute);
   useUserProfile();
 
   // Warm the protected page chunks during idle time so navigation transitions
@@ -34,12 +37,27 @@ const Layout: React.FC = () => {
     preloadDuringIdle(PRELOADABLE_PAGES);
   }, []);
 
+  useEffect(() => {
+    if (isEditorRoute) {
+      setIsSideNavCollapsed(true);
+    }
+  }, [isEditorRoute]);
+
   // Update Redux search query when search value changes and we're on audiobooks page
   useEffect(() => {
     if (location.pathname.startsWith('/library')) {
       dispatch(setSearchQuery(searchValue));
     }
   }, [searchValue, location.pathname, dispatch]);
+
+  const mainClassName = [
+    'layout-main',
+    isEditorRoute ? 'layout-main--editor' : '',
+    isEditorRoute && isSideNavCollapsed ? 'layout-main--editor-collapsed' : '',
+    isEditorRoute && !isSideNavCollapsed ? 'layout-main--editor-expanded' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className="layout">
@@ -48,10 +66,17 @@ const Layout: React.FC = () => {
         onSearchChange={setSearchValue}
       />
       <div className="layout-content">
-        <SideNavigation />
-        <main className="layout-main">
+        <SideNavigation
+          collapsed={isEditorRoute && isSideNavCollapsed}
+          onToggleCollapse={
+            isEditorRoute
+              ? () => setIsSideNavCollapsed(prev => !prev)
+              : undefined
+          }
+        />
+        <main className={mainClassName}>
           <AnimatePresence mode="wait" initial={false}>
-            <PageTransition key={location.pathname}>
+            <PageTransition key={getPageTransitionKey(location.pathname)}>
               <Suspense fallback={<PageFallback />}>
                 <Outlet />
               </Suspense>
