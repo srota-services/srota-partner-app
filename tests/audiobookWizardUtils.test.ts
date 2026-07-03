@@ -94,6 +94,46 @@ describe('audiobook wizard request builder', () => {
     expect(data.subscriptionGatingMode).toBe('CHAPTER');
   });
 
+  it('hydrates moodId from nested mood in API response', () => {
+    const data = hydrateAudiobookWizardData(
+      {
+        id: 'ab-4',
+        title: 'Mood Book',
+        author: 'Author',
+        description: 'Description',
+        mood: {
+          id: 'mood-calm',
+          name: 'Calm',
+          hexcode: '#38BDF8',
+        },
+      },
+      [],
+      []
+    );
+
+    expect(data.moodId).toBe('mood-calm');
+  });
+
+  it('hydrates moodId from moodId field in API response', () => {
+    const data = hydrateAudiobookWizardData(
+      {
+        id: 'ab-5',
+        title: 'Mood Book',
+        author: 'Author',
+        description: 'Description',
+        moodId: 'mood-energetic',
+        mood: {
+          id: 'mood-energetic',
+          name: 'Energetic',
+        },
+      },
+      [],
+      []
+    );
+
+    expect(data.moodId).toBe('mood-energetic');
+  });
+
   it('includes moodId when a mood is selected', () => {
     const data = createEmptyAudiobookWizardData();
     data.title = 'Test Title';

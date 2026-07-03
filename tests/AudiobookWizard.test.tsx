@@ -517,6 +517,7 @@ describe('AudiobookWizard', () => {
 
     expect(screen.getByDisplayValue('Hindi')).toBeInTheDocument();
     expect(screen.getByText(/language: hindi/i)).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /^calm$/i })).toBeChecked();
 
     await user.selectOptions(screen.getByLabelText(/^language$/i), 'Spanish');
     await user.click(screen.getByRole('button', { name: /continue/i }));

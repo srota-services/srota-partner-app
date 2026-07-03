@@ -34,6 +34,13 @@ export const mockAudiobook: AudiobookApiResponse = {
   subscriptionGatingMode: 'AUDIOBOOK',
   isPublic: false,
   minSubscriptionTier: 2,
+  moodId: 'mood-1',
+  mood: {
+    id: 'mood-1',
+    name: 'Calm',
+    hexcode: '#38BDF8',
+    color: '#38BDF8',
+  },
 };
 
 export const mockChapter: ChapterApiResponse = {

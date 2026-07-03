@@ -189,10 +189,18 @@ const audiobooksSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(updateAudiobookThunk.fulfilled, state => {
-        state.loading = false;
-        // Don't update audiobook here - let fetchAudiobooks handle it to ensure consistency
-      })
+      .addCase(
+        updateAudiobookThunk.fulfilled,
+        (state, action: PayloadAction<AudiobookApiResponse>) => {
+          state.loading = false;
+          const index = state.audiobooks.findIndex(
+            audiobook => audiobook.id === action.payload.id
+          );
+          if (index !== -1) {
+            state.audiobooks[index] = action.payload;
+          }
+        }
+      )
       .addCase(updateAudiobookThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload
