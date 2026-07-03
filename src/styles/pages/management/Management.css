@@ -110,6 +110,31 @@
   color: var(--color-text-secondary);
 }
 
+.manage-assets-section {
+  padding: 24px;
+}
+
+.manage-assets-heading {
+  margin: 0 0 16px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.manage-assets-empty {
+  padding: 32px 16px;
+  text-align: center;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-secondary);
+}
+
+.manage-assets-empty-message {
+  margin: 0;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
 @media (max-width: 768px) {
   .management-header {
     margin-bottom: 24px;

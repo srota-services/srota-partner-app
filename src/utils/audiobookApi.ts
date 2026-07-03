@@ -209,6 +209,34 @@ export interface OrganizationsAuthResponse {
   organizations: UserOrganizationMembership[];
 }
 
+/** Organization entry from the public catalog listing */
+export interface CatalogOrganizationItem {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  image?: string | null;
+  preferredGenre?: string | null;
+  websiteUrl?: string | null;
+  teamSize?: string | null;
+  memberCount?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface OrganizationsPagination {
+  page: number;
+  limit: number;
+  totalCount: number;
+  totalPages: number;
+}
+
+export interface AllOrganizationsResponse {
+  message: string;
+  organizations: CatalogOrganizationItem[];
+  pagination?: OrganizationsPagination;
+}
+
 /**
  * Fetches genres from the API
  * @returns Promise resolving to genres response or throwing an error
@@ -271,6 +299,48 @@ export async function getOrganizations(): Promise<
 
     const organizationsResponse = data as OrganizationsAuthResponse;
     return organizationsResponse.organizations ?? [];
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Fetches all organizations from the catalog (for author marketplace discovery).
+ */
+export async function getAllOrganizations(
+  page = 1,
+  limit = 100
+): Promise<{
+  organizations: CatalogOrganizationItem[];
+  pagination?: OrganizationsPagination;
+}> {
+  try {
+    const headers = getAuthHeaders();
+
+    const response = await fetch(
+      `${getAuthApiBaseUrl()}/auth/organizations/all?page=${page}&limit=${limit}`,
+      {
+        method: 'GET',
+        headers,
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to fetch organizations',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    const catalogResponse = data as AllOrganizationsResponse;
+    return {
+      organizations: catalogResponse.organizations ?? [],
+      pagination: catalogResponse.pagination,
+    };
   } catch (error) {
     throw handleApiError(error);
   }

@@ -98,7 +98,8 @@
   border: 1px solid var(--color-border);
 }
 
-.image-upload-preview img {
+.image-upload-preview img,
+.image-upload-preview .app-image {
   width: 100%;
   height: 100%;
   object-fit: cover;

@@ -42,6 +42,9 @@ export const Dashboard = lazyWithPreload(
 export const Analytics = lazyWithPreload(
   () => import('../pages/analytics/Analytics')
 );
+export const Marketplace = lazyWithPreload(
+  () => import('../pages/marketplace/Marketplace')
+);
 export const Management = lazyWithPreload(
   () => import('../pages/management/Management')
 );
@@ -62,6 +65,7 @@ export const PRELOADABLE_PAGES = [
   Chapters,
   ChapterWizard,
   Analytics,
+  Marketplace,
   Management,
   Team,
   Inbox,

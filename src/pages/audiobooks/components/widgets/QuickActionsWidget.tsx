@@ -1,15 +1,40 @@
 import {
   BarChart3,
-  FileText,
   Plus,
+  Store,
   Upload,
 } from 'lucide-react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAppSelector } from '../../../../hooks/redux';
 import SolidIcon from '../../../../components/common/SolidIcon';
+import {
+  isAuthorMarketplaceContext,
+  isOrgMarketplaceContext,
+} from '../../../../utils/marketplaceContext';
 import '../../../../styles/pages/audiobooks/components/widgets/Widgets.css';
 
 function QuickActionsWidget() {
   const navigate = useNavigate();
+  const { role, appType } = useAppSelector(state => state.auth);
+
+  const marketplaceAction = useMemo(() => {
+    if (isOrgMarketplaceContext(appType, role)) {
+      return {
+        label: 'Browse Marketplace',
+        icon: Store,
+        onClick: () => navigate('/marketplace'),
+      };
+    }
+    if (isAuthorMarketplaceContext(appType, role)) {
+      return {
+        label: 'Find Organizations',
+        icon: Store,
+        onClick: () => navigate('/marketplace'),
+      };
+    }
+    return null;
+  }, [appType, role, navigate]);
 
   const actions = [
     {
@@ -23,7 +48,7 @@ function QuickActionsWidget() {
       onClick: () => navigate('/library/create'),
     },
     { label: 'View Analytics', icon: BarChart3, onClick: () => navigate('/analytics') },
-    { label: 'Manage Authors', icon: FileText, onClick: () => navigate('/management') },
+    ...(marketplaceAction ? [marketplaceAction] : []),
   ];
 
   return (

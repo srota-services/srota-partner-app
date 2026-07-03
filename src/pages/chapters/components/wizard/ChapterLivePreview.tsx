@@ -1,4 +1,5 @@
 import WizardLivePreviewHeader from '../../../../components/wizard/WizardLivePreviewHeader';
+import AppImage from '../../../../components/common/AppImage';
 import { formatDurationDetailed } from '../../../../utils/formatting';
 import type { ChapterWizardData } from '../../../../types/audiobook';
 import type { SubscriptionPlanItem } from '../../../../utils/audiobookApi';
@@ -35,13 +36,11 @@ function ChapterLivePreview({
 
       <div className="chapter-card chapter-card--preview">
         <div className="chapter-card-cover">
-          {coverPreviewUrl ? (
-            <img src={coverPreviewUrl} alt={data.title || 'Chapter cover'} />
-          ) : (
-            <div className="chapter-card-placeholder">
-              <span>📖</span>
-            </div>
-          )}
+          <AppImage
+            src={coverPreviewUrl}
+            alt={data.title || 'Chapter cover'}
+            variant="cover"
+          />
         </div>
         <div className="chapter-card-content">
           <div className="chapter-card-header">

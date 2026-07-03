@@ -1,6 +1,7 @@
 import { MoreVertical, RefreshCw } from 'lucide-react';
 import { useRef, useState } from 'react';
 import TableActionsMenu from '../../../components/common/TableActionsMenu';
+import AppImage from '../../../components/common/AppImage';
 import type { ChapterApiResponse } from '../../../types/audiobook';
 import type { ChapterTranscodingStatus } from '../../../types/streaming';
 import { formatDuration } from '../../../utils/formatting';
@@ -67,15 +68,12 @@ function ChapterTableRow({
     >
       <td>
         <div className="chapter-table-title-cell">
-          {chapter.coverImage ? (
-            <img
-              src={chapter.coverImage}
-              alt=""
-              className="chapter-table-thumb"
-            />
-          ) : (
-            <div className="chapter-table-thumb chapter-table-thumb--placeholder" />
-          )}
+          <AppImage
+            src={chapter.coverImage}
+            alt=""
+            variant="thumbnail"
+            className="chapter-table-thumb"
+          />
           <div>
             <p className="chapter-table-title">{chapter.title}</p>
             {chapter.description && (

@@ -17,6 +17,7 @@ import type {
   UpdateChapterRequest,
 } from '../../../../types/audiobook';
 import Button from '../../../../components/common/Button';
+import AppImage from '../../../../components/common/AppImage';
 import { showApiError } from '../../../../utils/toast';
 import {
   chapterResponseToFormData,
@@ -393,14 +394,11 @@ const ChapterForm: React.FC<ChapterFormProps> = ({
         </label>
         {isEditMode && initialData?.coverImage && !formData.coverImage && (
           <div className="current-image-preview">
-            <img
+            <AppImage
               src={initialData.coverImage}
               alt="Current cover"
-              style={{
-                maxWidth: '200px',
-                maxHeight: '200px',
-                marginBottom: '8px',
-              }}
+              variant="cover"
+              className="current-image-preview-image"
             />
             <p className="current-image-text">Current cover image</p>
           </div>

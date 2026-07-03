@@ -1,15 +1,15 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   BarChart3,
   BookOpen,
   Inbox,
   LayoutDashboard,
+  Store,
   Upload,
   Users,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { useAppSelector } from '../../hooks/redux';
 import SolidIcon from '../common/SolidIcon';
 import '../../styles/components/layout/SideNavigation.css';
 
@@ -17,15 +17,14 @@ interface NavItem {
   label: string;
   path: string;
   icon: LucideIcon;
-  /** When true, item is hidden for users with AUTHOR role */
-  orgStaffOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
   { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
   { label: 'Library', path: '/library', icon: BookOpen },
   { label: 'Analytics', path: '/analytics', icon: BarChart3 },
-  { label: 'Manage', path: '/management', icon: Upload, orgStaffOnly: true },
+  { label: 'Marketplace', path: '/marketplace', icon: Store },
+  { label: 'Manage', path: '/management', icon: Upload },
   { label: 'Team', path: '/team', icon: Users },
   { label: 'Inbox', path: '/inbox', icon: Inbox },
 ];
@@ -37,18 +36,11 @@ function isNavActive(item: NavItem, pathname: string): boolean {
 const SideNavigation: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { role } = useAppSelector(state => state.auth);
-
-  const visibleNavItems = useMemo(
-    () =>
-      navItems.filter(item => !(item.orgStaffOnly && role === 'AUTHOR')),
-    [role]
-  );
 
   return (
     <nav className="side-navigation">
       <ul className="side-nav-list">
-        {visibleNavItems.map(item => {
+        {navItems.map(item => {
           const isActive = isNavActive(item, location.pathname);
           const Icon = item.icon;
 

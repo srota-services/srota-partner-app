@@ -1,10 +1,11 @@
-import React, { useState, useRef, useMemo, useEffect } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { Bell, CircleHelp } from 'lucide-react';
 import { useAppSelector } from '../../hooks/redux';
 import type { AuthUser } from '../../store/slices/authSlice';
 import Logo from '../common/Logo';
 import SearchBar from '../common/SearchBar';
 import ProfileDropdown from '../common/ProfileDropdown';
+import AppImage from '../common/AppImage';
 import '../../styles/components/layout/TopNavigation.css';
 
 interface TopNavigationProps {
@@ -36,14 +37,8 @@ const TopNavigation: React.FC<TopNavigationProps> = ({
 }) => {
   const user = useAppSelector(state => state.auth.user);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const [avatarLoadFailed, setAvatarLoadFailed] = useState(false);
   const profileButtonRef = useRef<HTMLButtonElement>(null);
   const initials = useMemo(() => getInitials(user), [user]);
-  const showAvatarImage = Boolean(user?.avatarUrl) && !avatarLoadFailed;
-
-  useEffect(() => {
-    setAvatarLoadFailed(false);
-  }, [user?.avatarUrl]);
 
   return (
     <nav className="top-navigation">
@@ -74,16 +69,13 @@ const TopNavigation: React.FC<TopNavigationProps> = ({
             onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
             aria-expanded={isProfileDropdownOpen}
           >
-            {showAvatarImage ? (
-              <img
-                src={user?.avatarUrl}
-                alt=""
-                className="top-nav-avatar-image"
-                onError={() => setAvatarLoadFailed(true)}
-              />
-            ) : (
-              initials
-            )}
+            <AppImage
+              src={user?.avatarUrl}
+              alt=""
+              variant="author"
+              className="top-nav-avatar-image"
+              fallback={initials}
+            />
           </button>
           <ProfileDropdown
             isOpen={isProfileDropdownOpen}

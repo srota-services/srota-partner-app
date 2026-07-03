@@ -1,5 +1,6 @@
 import { Building2, CheckCircle2, Mail, Shield, User } from 'lucide-react';
 import type { PartnerType } from '../../types/partner';
+import AppImage from './AppImage';
 
 interface RegistrationSummaryProps {
   partnerType: PartnerType;
@@ -44,15 +45,12 @@ function RegistrationSummary({
         </div>
         {partnerType === 'organization' && organizationName && (
           <div className="registration-summary-item">
-            {logoPreviewUrl ? (
-              <img
-                src={logoPreviewUrl}
-                alt=""
-                className="registration-summary-logo"
-              />
-            ) : (
-              <Building2 size={16} />
-            )}
+            <AppImage
+              src={logoPreviewUrl}
+              alt=""
+              variant="organization"
+              className="registration-summary-logo"
+            />
             <div>
               <p className="registration-summary-label">Organization</p>
               <p className="registration-summary-value">{organizationName}</p>
@@ -61,15 +59,12 @@ function RegistrationSummary({
         )}
         {isIndividual && fullName && (
           <div className="registration-summary-item">
-            {photoPreviewUrl ? (
-              <img
-                src={photoPreviewUrl}
-                alt=""
-                className="registration-summary-avatar"
-              />
-            ) : (
-              <User size={16} />
-            )}
+            <AppImage
+              src={photoPreviewUrl}
+              alt=""
+              variant="author"
+              className="registration-summary-avatar"
+            />
             <div>
               <p className="registration-summary-label">Name</p>
               <p className="registration-summary-value">{fullName}</p>

@@ -2,6 +2,7 @@ import { ChangeEvent, DragEvent, useId, useRef, useState } from 'react';
 import { CloudUpload } from 'lucide-react';
 import { useFilePreviewUrl } from '../../hooks/useFilePreviewUrl';
 import CloseButton from './CloseButton';
+import AppImage from './AppImage';
 import '../../styles/components/common/FileUploadZone.css';
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -154,7 +155,12 @@ function ImageUploadZone({
 
       {objectPreview && (
         <div className="image-upload-preview">
-          <img src={objectPreview} alt="Uploaded image preview" />
+          <AppImage
+            src={objectPreview}
+            alt="Uploaded image preview"
+            variant="cover"
+            className="image-upload-preview-image"
+          />
           <CloseButton
             size="sm"
             className="image-upload-remove"

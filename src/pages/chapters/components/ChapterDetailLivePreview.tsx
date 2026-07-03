@@ -1,5 +1,6 @@
 import { Play } from 'lucide-react';
 import WizardLivePreviewHeader from '../../../components/wizard/WizardLivePreviewHeader';
+import AppImage from '../../../components/common/AppImage';
 import type { ChapterApiResponse } from '../../../types/audiobook';
 import type { ChapterTranscodingStatus } from '../../../types/streaming';
 import { formatDurationDetailed } from '../../../utils/formatting';
@@ -29,13 +30,11 @@ function ChapterDetailLivePreview({
       <div className="chapter-card chapter-card--detail-preview">
         <div className="chapter-card-cover-wrap">
           <div className="chapter-card-cover">
-            {chapter.coverImage ? (
-              <img src={chapter.coverImage} alt={chapter.title} />
-            ) : (
-              <div className="chapter-card-placeholder">
-                <span>📖</span>
-              </div>
-            )}
+            <AppImage
+              src={chapter.coverImage}
+              alt={chapter.title}
+              variant="cover"
+            />
           </div>
           <button
             type="button"

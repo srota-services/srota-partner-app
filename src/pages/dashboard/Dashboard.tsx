@@ -2,12 +2,19 @@
  * Dashboard page
  */
 import React from 'react';
+import { Link } from 'react-router-dom';
+import { useAppSelector } from '../../hooks/redux';
 import { useCurrentOrganization } from '../../hooks/useCurrentOrganization';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
+import AppImage from '../../components/common/AppImage';
+import { isAuthorMarketplaceContext } from '../../utils/marketplaceContext';
 import '../../styles/pages/dashboard/Dashboard.css';
 
 const Dashboard: React.FC = () => {
+  const { role, appType, user } = useAppSelector(state => state.auth);
   const { organization, loading } = useCurrentOrganization();
+  const isAuthorContext = isAuthorMarketplaceContext(appType, role);
+  const displayName = user?.name?.trim() || 'Author';
 
   return (
     <div className="dashboard-page">
@@ -19,26 +26,34 @@ const Dashboard: React.FC = () => {
           </div>
         ) : organization ? (
           <div className="dashboard-org-brand">
-            {organization.image ? (
-              <img
-                src={organization.image}
-                alt=""
-                className="dashboard-org-brand-logo"
-              />
-            ) : (
-              <div
-                className="dashboard-org-brand-logo dashboard-org-brand-logo--placeholder"
-                aria-hidden="true"
-              />
-            )}
+            <AppImage
+              src={organization.image}
+              alt=""
+              variant="organization"
+              className="dashboard-org-brand-logo"
+            />
             <span className="dashboard-org-brand-name">{organization.name}</span>
           </div>
         ) : null}
       </header>
 
-      <div className="placeholder-content">
-        <p>Analytics dashboard coming soon...</p>
-      </div>
+      {isAuthorContext ? (
+        <div className="dashboard-welcome marketing-card">
+          <h3 className="dashboard-welcome-title">Welcome, {displayName}!</h3>
+          <p className="dashboard-welcome-text">
+            Your author workspace is ready. Analytics and insights are coming
+            soon. In the meantime, visit the{' '}
+            <Link to="/marketplace" className="dashboard-welcome-link">
+              Marketplace
+            </Link>{' '}
+            to discover organizations you can connect with.
+          </p>
+        </div>
+      ) : (
+        <div className="placeholder-content">
+          <p>Analytics dashboard coming soon...</p>
+        </div>
+      )}
     </div>
   );
 };

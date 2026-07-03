@@ -15,6 +15,7 @@ import {
   ChapterWizard,
   Dashboard,
   Analytics,
+  Marketplace,
   Management,
   Team,
   Inbox,
@@ -142,6 +143,7 @@ function App() {
           <Route path="/library/:id/chapters" element={<Chapters />} />
           <Route path="/library" element={<Audiobooks />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/management" element={<Management />} />
           <Route path="/team" element={<Team />} />
