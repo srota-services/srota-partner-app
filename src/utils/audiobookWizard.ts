@@ -94,6 +94,20 @@ export function filterAudiobookMeta(
     );
 }
 
+export function resolveAudiobookMoodId(
+  initialData: AudiobookApiResponse
+): string | null {
+  if (typeof initialData.moodId === 'string' && initialData.moodId.trim()) {
+    return initialData.moodId.trim();
+  }
+
+  if (initialData.mood?.id) {
+    return initialData.mood.id;
+  }
+
+  return null;
+}
+
 export function hydrateAudiobookWizardData(
   initialData: AudiobookApiResponse,
   genres: GenreItem[],
@@ -154,7 +168,7 @@ export function hydrateAudiobookWizardData(
       subscriptionGatingMode === 'AUDIOBOOK' &&
       (minSubscriptionTier != null || initialData.isPublic === false),
     minSubscriptionTier,
-    moodId: null,
+    moodId: resolveAudiobookMoodId(initialData),
     subscriptionGatingMode,
     existingCoverUrl: initialData.coverImage,
   };

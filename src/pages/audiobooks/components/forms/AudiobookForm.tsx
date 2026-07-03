@@ -22,7 +22,7 @@ import { resolveAudiobookOwner } from '../../../../utils/resolveAudiobookOwner';
 import Button from '../../../../components/common/Button';
 import AppImage from '../../../../components/common/AppImage';
 import { showApiError } from '../../../../utils/toast';
-import { DEFAULT_AUDIOBOOK_LANGUAGE, createEmptyAudiobookFormData } from '../../../../utils/audiobookWizard';
+import { DEFAULT_AUDIOBOOK_LANGUAGE, createEmptyAudiobookFormData, resolveAudiobookMoodId } from '../../../../utils/audiobookWizard';
 import { resolveAudiobookLanguageName } from '../../../../utils/languages';
 import '../../../../styles/pages/audiobooks/components/forms/AudiobookForm.css';
 
@@ -98,7 +98,7 @@ const AudiobookForm: React.FC<AudiobookFormProps> = ({
         ),
         isPaid: false,
         minSubscriptionTier: initialData.minSubscriptionTier ?? null,
-        moodId: null,
+        moodId: resolveAudiobookMoodId(initialData),
         subscriptionGatingMode: initialData.subscriptionGatingMode ?? 'NONE',
       };
     }
@@ -204,7 +204,7 @@ const AudiobookForm: React.FC<AudiobookFormProps> = ({
         ),
         isPaid: false,
         minSubscriptionTier: initialData.minSubscriptionTier ?? null,
-        moodId: null,
+        moodId: resolveAudiobookMoodId(initialData),
         subscriptionGatingMode: initialData.subscriptionGatingMode ?? 'NONE',
       });
     }

@@ -1,10 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createAudiobook,
+  getAudiobooks,
   getChapter,
   getLanguages,
   getMoods,
   getSubscriptionPlans,
+  normalizeAudiobookResponse,
   updateAudiobook,
 } from '../src/utils/audiobookApi';
 
@@ -309,6 +311,61 @@ describe('getAudiobooks ownerId query', () => {
       'https://api.example.com/api/v1/audiobooks?page=1&active=true&ownerId=org-abc',
       expect.objectContaining({ method: 'GET' })
     );
+  });
+
+  it('normalizes mood from audiobook list responses', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        data: [
+          {
+            id: 'ab-1',
+            title: 'Calm Stories',
+            author: 'Author',
+            description: 'Description',
+            moodId: 'mood-calm',
+            mood: {
+              id: 'mood-calm',
+              name: 'Calm',
+              hexcode: '#38BDF8',
+            },
+          },
+        ],
+        message: 'ok',
+        statusCode: 200,
+        timestamp: '2024-01-01T00:00:00.000Z',
+        path: '/api/v1/audiobooks',
+      }),
+    } as Response);
+
+    const response = await getAudiobooks();
+
+    expect(response.data[0].moodId).toBe('mood-calm');
+    expect(response.data[0].mood).toEqual({
+      id: 'mood-calm',
+      name: 'Calm',
+      hexcode: '#38BDF8',
+      color: '#38BDF8',
+    });
+  });
+
+  it('normalizes moodId from nested mood when moodId is missing', () => {
+    const audiobook = normalizeAudiobookResponse({
+      id: 'ab-2',
+      title: 'Focus Time',
+      author: 'Author',
+      description: 'Description',
+      mood: {
+        id: 'mood-focus',
+        name: 'Focus',
+        hexcode: '#22C55E',
+      },
+    });
+
+    expect(audiobook.moodId).toBe('mood-focus');
+    expect(audiobook.mood?.name).toBe('Focus');
+    expect(audiobook.mood?.color).toBe('#22C55E');
   });
 });
 

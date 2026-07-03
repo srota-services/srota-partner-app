@@ -26,6 +26,21 @@ export interface AudiobookGenre {
 export type SubscriptionGatingMode = 'AUDIOBOOK' | 'CHAPTER' | 'NONE';
 
 /**
+ * Mood summary nested in audiobook API responses
+ */
+export interface AudiobookMoodSummary {
+  id: string;
+  name: string;
+  description?: string | null;
+  descriptionIcon?: string;
+  hexcode?: string;
+  color?: string;
+  icon?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/**
  * Audiobook structure from API response
  */
 export interface AudiobookApiResponse {
@@ -53,6 +68,8 @@ export interface AudiobookApiResponse {
   meta?: Record<string, string>;
   minSubscriptionTier?: number | null;
   subscriptionGatingMode?: SubscriptionGatingMode;
+  moodId?: string | null;
+  mood?: AudiobookMoodSummary | null;
 }
 
 /**

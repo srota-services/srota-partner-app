@@ -4,6 +4,7 @@ import type {
   UpdateAudiobookRequest,
   AudiobooksApiResponse,
   AudiobookApiResponse,
+  AudiobookMoodSummary,
   CreateChapterRequest,
   UpdateChapterRequest,
   ChapterApiResponse,
@@ -1036,6 +1037,77 @@ export async function deleteAuthor(id: string): Promise<void> {
   }
 }
 
+function normalizeAudiobookMood(raw: unknown): AudiobookMoodSummary | null {
+  if (!raw || typeof raw !== 'object') {
+    return null;
+  }
+
+  const mood = raw as Record<string, unknown>;
+  const id = typeof mood.id === 'string' ? mood.id : undefined;
+  const name = typeof mood.name === 'string' ? mood.name : undefined;
+
+  if (!id || !name) {
+    return null;
+  }
+
+  const color =
+    normalizeHexColor(mood.hexcode) ??
+    normalizeHexColor(mood.hexCode) ??
+    normalizeHexColor(mood.color);
+
+  return {
+    id,
+    name,
+    description:
+      typeof mood.description === 'string' || mood.description === null
+        ? mood.description
+        : undefined,
+    descriptionIcon:
+      typeof mood.descriptionIcon === 'string'
+        ? mood.descriptionIcon
+        : undefined,
+    hexcode: typeof mood.hexcode === 'string' ? mood.hexcode : undefined,
+    ...(color ? { color } : {}),
+    icon: typeof mood.icon === 'string' ? mood.icon : undefined,
+    createdAt: typeof mood.createdAt === 'string' ? mood.createdAt : undefined,
+    updatedAt: typeof mood.updatedAt === 'string' ? mood.updatedAt : undefined,
+  };
+}
+
+export function normalizeAudiobookResponse(raw: unknown): AudiobookApiResponse {
+  if (!raw || typeof raw !== 'object') {
+    throw new Error('Invalid audiobook response');
+  }
+
+  const audiobook = raw as Record<string, unknown>;
+  const mood = normalizeAudiobookMood(audiobook.mood);
+  const moodId =
+    typeof audiobook.moodId === 'string' && audiobook.moodId.trim()
+      ? audiobook.moodId.trim()
+      : (mood?.id ?? null);
+
+  const rest = { ...audiobook };
+  delete rest.mood;
+  delete rest.moodId;
+
+  return {
+    ...(rest as Omit<AudiobookApiResponse, 'moodId' | 'mood'>),
+    moodId,
+    ...(mood ? { mood } : {}),
+  };
+}
+
+function normalizeAudiobooksApiResponse(data: unknown): AudiobooksApiResponse {
+  const response = data as AudiobooksApiResponse;
+
+  return {
+    ...response,
+    data: Array.isArray(response.data)
+      ? response.data.map(item => normalizeAudiobookResponse(item))
+      : [],
+  };
+}
+
 function appendAudiobookPaidAndMoodFields(
   formData: FormData,
   audiobookData: CreateAudiobookRequest | UpdateAudiobookRequest
@@ -1131,9 +1203,9 @@ export async function createAudiobook(
         throw error;
       }
       if (data.success && data.data) {
-        return data.data as AudiobookApiResponse;
+        return normalizeAudiobookResponse(data.data);
       }
-      return data as AudiobookApiResponse;
+      return normalizeAudiobookResponse(data);
     } else {
       // No file, use JSON - exclude duration and fileSize
       const headers = getAuthHeaders();
@@ -1157,9 +1229,9 @@ export async function createAudiobook(
         throw error;
       }
       if (data.success && data.data) {
-        return data.data as AudiobookApiResponse;
+        return normalizeAudiobookResponse(data.data);
       }
-      return data as AudiobookApiResponse;
+      return normalizeAudiobookResponse(data);
     }
   } catch (error) {
     throw handleApiError(error);
@@ -1207,7 +1279,7 @@ export async function getAudiobooks(
       };
       throw error;
     }
-    return data as AudiobooksApiResponse;
+    return normalizeAudiobooksApiResponse(data);
   } catch (error) {
     throw handleApiError(error);
   }
@@ -1287,9 +1359,9 @@ export async function updateAudiobook(
         throw error;
       }
       if (data.success && data.data) {
-        return data.data as AudiobookApiResponse;
+        return normalizeAudiobookResponse(data.data);
       }
-      return data as AudiobookApiResponse;
+      return normalizeAudiobookResponse(data);
     } else {
       // No file, use JSON - exclude duration and fileSize
       const headers = getAuthHeaders();
@@ -1314,9 +1386,9 @@ export async function updateAudiobook(
         throw error;
       }
       if (data.success && data.data) {
-        return data.data as AudiobookApiResponse;
+        return normalizeAudiobookResponse(data.data);
       }
-      return data as AudiobookApiResponse;
+      return normalizeAudiobookResponse(data);
     }
   } catch (error) {
     throw handleApiError(error);
