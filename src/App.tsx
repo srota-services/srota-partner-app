@@ -20,6 +20,7 @@ import {
   Team,
   Inbox,
   Settings,
+  Editor,
 } from './routes/lazyPages';
 
 const CenteredSpinner = () => (
@@ -149,6 +150,7 @@ function App() {
           <Route path="/team" element={<Team />} />
           <Route path="/inbox" element={<Inbox />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/editor/*" element={<Editor />} />
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>

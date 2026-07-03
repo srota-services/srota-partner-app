@@ -53,6 +53,7 @@ export const Inbox = lazyWithPreload(() => import('../pages/inbox/Inbox'));
 export const Settings = lazyWithPreload(
   () => import('../pages/settings/Settings')
 );
+export const Editor = lazyWithPreload(() => import('../pages/editor/Editor'));
 
 /**
  * Preloadable protected page chunks, warmed during idle time after the Layout
@@ -64,6 +65,7 @@ export const PRELOADABLE_PAGES = [
   AudiobookWizard,
   Chapters,
   ChapterWizard,
+  Editor,
   Analytics,
   Marketplace,
   Management,
