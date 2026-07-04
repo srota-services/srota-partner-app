@@ -43,7 +43,7 @@ function EditorTreeLabel({
 
   const commitRename = () => {
     const trimmed = draft.trim();
-    if (trimmed && trimmed !== value) {
+    if (trimmed) {
       onRename(trimmed);
     }
     setIsEditing(false);

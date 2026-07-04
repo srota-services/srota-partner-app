@@ -24,7 +24,7 @@ export interface TiptapEditorProps {
   onEditorReady?: (editor: Editor) => void;
   pramukhEnabled?: boolean;
   zoomLevel?: number;
-  onNoteTagClick?: (noteId: string) => void;
+  onNoteTagClick?: (noteId: string, clickTarget?: Element) => void;
 }
 
 function applyPramukhResult(
@@ -111,7 +111,7 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
 
           event.preventDefault();
           event.stopPropagation();
-          onNoteTagClickRef.current?.(noteId);
+          onNoteTagClickRef.current?.(noteId, target);
           return true;
         },
         keypress: (_view, event) => {

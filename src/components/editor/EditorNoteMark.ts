@@ -20,6 +20,20 @@ export const EditorNoteMark = Mark.create({
           'data-note-id': attributes.noteId,
         }),
       },
+      noteText: {
+        default: '',
+        parseHTML: element => element.getAttribute('data-note-text') ?? '',
+        renderHTML: attributes => ({
+          'data-note-text': attributes.noteText ?? '',
+        }),
+      },
+      quotedText: {
+        default: '',
+        parseHTML: element => element.getAttribute('data-quoted-text') ?? '',
+        renderHTML: attributes => ({
+          'data-quoted-text': attributes.quotedText ?? '',
+        }),
+      },
     };
   },
 
@@ -36,6 +50,8 @@ export const EditorNoteMark = Mark.create({
 
   renderHTML({ HTMLAttributes }) {
     const noteId = HTMLAttributes.noteId;
+    const noteText = HTMLAttributes.noteText ?? '';
+    const quotedText = HTMLAttributes.quotedText ?? '';
 
     return [
       'span',
@@ -48,6 +64,8 @@ export const EditorNoteMark = Mark.create({
           type: 'button',
           class: 'tiptap-note-tag',
           'data-note-id': noteId,
+          'data-note-text': noteText,
+          'data-quoted-text': quotedText,
           contenteditable: 'false',
           tabindex: '-1',
           'aria-label': 'View note',
@@ -56,7 +74,12 @@ export const EditorNoteMark = Mark.create({
       ],
       [
         'span',
-        { class: 'tiptap-note-mark', 'data-note-id': noteId },
+        {
+          class: 'tiptap-note-mark',
+          'data-note-id': noteId,
+          'data-note-text': noteText,
+          'data-quoted-text': quotedText,
+        },
         0,
       ],
     ];

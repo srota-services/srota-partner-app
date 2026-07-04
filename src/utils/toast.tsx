@@ -30,16 +30,7 @@ function extractErrorMessage(error: ApiError | unknown): string {
   return 'An unexpected error occurred';
 }
 
-/**
- * Shows an error toast notification for API errors
- * @param error - The API error or unknown error
- * @param duration - Optional duration in milliseconds (default: 5000)
- */
-export function showApiError(
-  error: ApiError | unknown,
-  duration: number = 5000
-): void {
-  const message = extractErrorMessage(error);
+function renderErrorToast(message: string, duration: number): void {
   toast(
     (t): React.ReactElement => (
       <div style={{ position: 'relative', paddingRight: '24px' }}>
@@ -66,6 +57,25 @@ export function showApiError(
       icon: undefined,
     }
   );
+}
+
+/**
+ * Shows a generic error toast notification
+ */
+export function showError(message: string, duration: number = 5000): void {
+  renderErrorToast(message, duration);
+}
+
+/**
+ * Shows an error toast notification for API errors
+ * @param error - The API error or unknown error
+ * @param duration - Optional duration in milliseconds (default: 5000)
+ */
+export function showApiError(
+  error: ApiError | unknown,
+  duration: number = 5000
+): void {
+  renderErrorToast(extractErrorMessage(error), duration);
 }
 
 /**

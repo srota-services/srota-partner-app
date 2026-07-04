@@ -11,6 +11,7 @@ import {
   deleteChapter,
   deletePage,
   getPageLabel,
+  removeChapterById,
   renameAudiobook,
   renamePage,
 } from '../src/utils/editorTreeMutations';
@@ -26,11 +27,11 @@ describe('editorTreeMutations', () => {
     expect(getPageLabel(page)).toBe('Page 2');
   });
 
-  it('adds an audiobook with a default chapter and page', () => {
+  it('adds an audiobook with no chapters', () => {
     const next = addAudiobook(EDITOR_MOCK_AUDIOBOOKS);
     expect(next).toHaveLength(EDITOR_MOCK_AUDIOBOOKS.length + 1);
-    expect(next[next.length - 1].chapters).toHaveLength(1);
-    expect(next[next.length - 1].chapters[0].pages).toHaveLength(1);
+    expect(next[next.length - 1].chapters).toHaveLength(0);
+    expect(next[next.length - 1].id.startsWith('local-ab')).toBe(true);
   });
 
   it('adds a chapter to an existing audiobook', () => {
@@ -52,6 +53,15 @@ describe('editorTreeMutations', () => {
       ?.chapters.find(item => item.id === chapter.id);
 
     expect(updatedChapter?.pages.length).toBe(chapter.pages.length + 1);
+  });
+
+  it('removes a chapter by id without the delete guard', () => {
+    const audiobook = EDITOR_MOCK_AUDIOBOOKS[2];
+    const chapterId = audiobook.chapters[0].id;
+    const next = removeChapterById(EDITOR_MOCK_AUDIOBOOKS, audiobook.id, chapterId);
+    const updated = next.find(item => item.id === audiobook.id);
+
+    expect(updated?.chapters).toHaveLength(0);
   });
 
   it('renames audiobooks and pages', () => {

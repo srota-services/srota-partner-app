@@ -4,7 +4,8 @@ import type { JSONContent } from '@tiptap/react';
 import type { EditorNote } from '../../../types/editor';
 import { DEFAULT_PRAMUKH_LANGUAGE_ID } from '../../../constants/pramukhLanguages';
 import { usePramukhIME } from '../../../hooks/usePramukhIME';
-import { createNoteId, removeNoteMarkFromEditor } from '../../../utils/editorNotes';
+import { createNoteId, removeNoteMarkFromEditor, findNoteByIdInRichText, findNoteFromElement } from '../../../utils/editorNotes';
+import { isEditorSaveShortcut } from '../../../utils/editorSaveShortcut';
 import EditorToolbar from './EditorToolbar';
 import EditorNoteModal from './EditorNoteModal';
 import TiptapEditor from '../../../components/editor/TiptapEditor';
@@ -21,6 +22,10 @@ interface EditorWorkspaceProps {
   notes: EditorNote[];
   onAddNote: (note: Omit<EditorNote, 'createdAt'>) => void;
   onDeleteNote: (noteId: string) => void;
+  onEditorInstanceChange?: (editor: Editor | null) => void;
+  onSave: () => void;
+  canSave: boolean;
+  isSaving: boolean;
 }
 
 function EditorWorkspace({
@@ -31,6 +36,10 @@ function EditorWorkspace({
   notes,
   onAddNote,
   onDeleteNote,
+  onEditorInstanceChange,
+  onSave,
+  canSave,
+  isSaving,
 }: EditorWorkspaceProps) {
   const [editor, setEditor] = useState<Editor | null>(null);
   const [pramukhLanguageId, setPramukhLanguageId] = useState(
@@ -48,6 +57,10 @@ function EditorWorkspace({
   useEffect(() => {
     notesRef.current = notes;
   }, [notes]);
+
+  useEffect(() => {
+    onEditorInstanceChange?.(editor);
+  }, [editor, onEditorInstanceChange]);
 
   const updateSelectionState = useCallback(() => {
     if (!editor) {
@@ -104,7 +117,16 @@ function EditorWorkspace({
     const range = noteSelectionRangeRef.current;
 
     if (range) {
-      editor.chain().focus().setTextSelection(range).setMark('editorNote', { noteId }).run();
+      editor
+        .chain()
+        .focus()
+        .setTextSelection(range)
+        .setMark('editorNote', {
+          noteId,
+          noteText,
+          quotedText: noteSelectionText.trim(),
+        })
+        .run();
       onChange(editor.getJSON());
     }
 
@@ -120,13 +142,22 @@ function EditorWorkspace({
   };
 
   const handleNoteTagClick = useCallback(
-    (noteId: string) => {
-      const note = notesRef.current.find(item => item.id === noteId);
+    (noteId: string, clickTarget?: Element) => {
+      let note = notesRef.current.find(item => item.id === noteId);
+
+      if (!note && clickTarget && pageId) {
+        note = findNoteFromElement(clickTarget, pageId) ?? undefined;
+      }
+
+      if (!note && editor && pageId) {
+        note = findNoteByIdInRichText(editor.getJSON(), pageId, noteId) ?? undefined;
+      }
+
       if (note) {
         openNoteView(note);
       }
     },
-    [openNoteView]
+    [editor, openNoteView, pageId]
   );
 
   const handleDeleteNote = useCallback(
@@ -141,6 +172,22 @@ function EditorWorkspace({
     },
     [editor, onChange, onDeleteNote]
   );
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!isEditorSaveShortcut(event) || !canSave) {
+        return;
+      }
+
+      event.preventDefault();
+      onSave();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [canSave, onSave]);
 
   return (
     <div className="editor-workspace">
@@ -158,6 +205,9 @@ function EditorWorkspace({
         onZoomOut={() => setZoomLevel(prev => Math.max(MIN_ZOOM, prev - ZOOM_STEP))}
         canAddNote={hasSelection}
         onAddNote={handleOpenNoteModal}
+        onSave={onSave}
+        canSave={canSave}
+        isSaving={isSaving}
       />
 
       <div className="editor-workspace-body">

@@ -168,7 +168,7 @@ const chaptersSlice = createSlice({
         state.loading = false;
         state.error = action.payload
           ? String(action.payload)
-          : 'Failed to create chapter';
+          : 'Failed to create Chapter. Try again later.';
       })
       .addCase(updateChapterThunk.pending, state => {
         state.loading = true;
