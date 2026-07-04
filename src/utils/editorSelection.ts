@@ -5,24 +5,24 @@ import type {
   EditorSelection,
 } from '../types/editor';
 import { getPageLabel } from './editorTreeMutations';
-import { EDITOR_MOCK_AUDIOBOOKS } from './editorMockData';
 
 export function getDefaultSelection(
-  audiobooks: EditorAudiobook[] = EDITOR_MOCK_AUDIOBOOKS
+  audiobooks: EditorAudiobook[] = []
 ): EditorSelection | null {
-  const audiobook = audiobooks[0];
-  const chapter = audiobook?.chapters[0];
-  const page = chapter?.pages[0];
-
-  if (!audiobook || !chapter || !page) {
-    return null;
+  for (const audiobook of audiobooks) {
+    for (const chapter of audiobook.chapters) {
+      const page = chapter.pages[0];
+      if (page) {
+        return {
+          audiobookId: audiobook.id,
+          chapterId: chapter.id,
+          pageId: page.id,
+        };
+      }
+    }
   }
 
-  return {
-    audiobookId: audiobook.id,
-    chapterId: chapter.id,
-    pageId: page.id,
-  };
+  return null;
 }
 
 export function findPageByIds(
@@ -57,19 +57,42 @@ export function resolveSelectionFromParams(
   chapterId?: string,
   pageId?: string
 ): EditorSelection | null {
-  if (!audiobookId || !chapterId || !pageId) {
-    return getDefaultSelection(audiobooks);
+  if (audiobookId && chapterId && pageId) {
+    const match = findPageByIds(audiobooks, {
+      audiobookId,
+      chapterId,
+      pageId,
+    });
+
+    if (match) {
+      return { audiobookId, chapterId, pageId };
+    }
   }
 
-  const match = findPageByIds(audiobooks, {
-    audiobookId,
-    chapterId,
-    pageId,
-  });
+  if (audiobookId && chapterId) {
+    const audiobook = audiobooks.find(item => item.id === audiobookId);
+    const chapter = audiobook?.chapters.find(item => item.id === chapterId);
+    const page = chapter?.pages[0];
+    if (page) {
+      return { audiobookId, chapterId, pageId: page.id };
+    }
+  }
 
-  return match
-    ? { audiobookId, chapterId, pageId }
-    : getDefaultSelection(audiobooks);
+  if (audiobookId) {
+    const audiobook = audiobooks.find(item => item.id === audiobookId);
+    for (const chapter of audiobook?.chapters ?? []) {
+      const page = chapter.pages[0];
+      if (page) {
+        return {
+          audiobookId,
+          chapterId: chapter.id,
+          pageId: page.id,
+        };
+      }
+    }
+  }
+
+  return getDefaultSelection(audiobooks);
 }
 
 export function getEditorBreadcrumb(

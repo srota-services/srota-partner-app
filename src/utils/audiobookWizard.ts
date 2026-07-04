@@ -298,6 +298,7 @@ export function buildCreateAudiobookRequest(
   return {
     title: data.title.trim(),
     author: data.author.trim(),
+    type: 'PUBLICATION',
     narrators:
       data.narrators.length > 0
         ? data.narrators.map(n => n.trim()).filter(n => n)
@@ -325,6 +326,7 @@ export function buildUpdateAudiobookRequest(
 
   return {
     audiobookId,
+    type: 'PUBLICATION',
     title: data.title.trim(),
     author: data.author.trim(),
     narrators:

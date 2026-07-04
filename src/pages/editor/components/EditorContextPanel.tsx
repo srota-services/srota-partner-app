@@ -1,13 +1,18 @@
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Loader2 } from 'lucide-react';
 import type { EditorBreadcrumb } from '../../../types/editor';
 import '../../../styles/pages/editor/Editor.css';
 
 interface EditorContextPanelProps {
   breadcrumb: EditorBreadcrumb | null;
   isDirty?: boolean;
+  isSaving?: boolean;
 }
 
-function EditorContextPanel({ breadcrumb, isDirty = false }: EditorContextPanelProps) {
+function EditorContextPanel({
+  breadcrumb,
+  isDirty = false,
+  isSaving = false,
+}: EditorContextPanelProps) {
   if (!breadcrumb) {
     return (
       <div className="editor-context-panel">
@@ -32,12 +37,17 @@ function EditorContextPanel({ breadcrumb, isDirty = false }: EditorContextPanelP
       </nav>
       <div className="editor-context-meta">
         <span className="editor-context-badge">{breadcrumb.pageLabel}</span>
-        {isDirty ? (
+        {isSaving ? (
+          <span className="editor-context-status editor-context-status--saving">
+            <Loader2 size={14} className="editor-context-saving-icon" aria-hidden="true" />
+            Saving...
+          </span>
+        ) : isDirty ? (
           <span className="editor-context-status editor-context-status--dirty">
             Unsaved changes
           </span>
         ) : (
-          <span className="editor-context-status">Saved locally</span>
+          <span className="editor-context-status">Saved</span>
         )}
       </div>
     </div>

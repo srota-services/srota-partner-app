@@ -9,6 +9,10 @@ function createId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+export function isLocalId(id: string): boolean {
+  return id.startsWith('local-');
+}
+
 function emptyPageContent(): JSONContent {
   return {
     type: 'doc',
@@ -21,24 +25,22 @@ export function getPageLabel(page: EditorPage): string {
 }
 
 export function createAudiobook(existing: EditorAudiobook[]): EditorAudiobook {
-  const chapter = createChapter([]);
   return {
-    id: createId('ab'),
+    id: createId('local-ab'),
     title: `New Audiobook ${existing.length + 1}`,
-    author: 'Author',
-    chapters: [chapter],
+    author: '',
+    chapters: [],
   };
 }
 
 export function createChapter(existingChapters: EditorChapter[]): EditorChapter {
   const nextNumber = existingChapters.length + 1;
-  const page = createPage([]);
 
   return {
-    id: createId('ch'),
+    id: createId('local-ch'),
     chapterNumber: nextNumber,
     title: `Chapter ${nextNumber}`,
-    pages: [page],
+    pages: [],
   };
 }
 
@@ -46,7 +48,7 @@ export function createPage(existingPages: EditorPage[]): EditorPage {
   const nextNumber = existingPages.length + 1;
 
   return {
-    id: createId('pg'),
+    id: createId('local-pg'),
     pageNumber: nextNumber,
     label: `Page ${nextNumber}`,
     plainText: '',
@@ -198,6 +200,24 @@ export function deleteAudiobook(
   }
 
   return audiobooks.filter(audiobook => audiobook.id !== audiobookId);
+}
+
+/** Removes a chapter without the "keep at least one" guard (e.g. discarding a failed local create). */
+export function removeChapterById(
+  audiobooks: EditorAudiobook[],
+  audiobookId: string,
+  chapterId: string
+): EditorAudiobook[] {
+  return audiobooks.map(audiobook => {
+    if (audiobook.id !== audiobookId) {
+      return audiobook;
+    }
+
+    return {
+      ...audiobook,
+      chapters: audiobook.chapters.filter(chapter => chapter.id !== chapterId),
+    };
+  });
 }
 
 export function deleteChapter(

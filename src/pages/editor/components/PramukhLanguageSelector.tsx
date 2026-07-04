@@ -19,9 +19,6 @@ function PramukhLanguageSelector({
 }: PramukhLanguageSelectorProps) {
   return (
     <div className="editor-pramukh-selector">
-      <label htmlFor="editor-pramukh-language" className="editor-pramukh-label">
-        Typing language
-      </label>
       <Select
         id="editor-pramukh-language"
         placeholder={false}

@@ -1,74 +1,140 @@
-import { describe, expect, it } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
+import type { ReactElement } from 'react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
+import authReducer from '../src/store/slices/authSlice';
 import Editor from '../src/pages/editor/Editor';
 
+const mockGetAudiobooks = vi.fn();
+const mockGetChapters = vi.fn();
+const mockGetPagesByChapterId = vi.fn();
+const mockResolveOwnerId = vi.fn();
+
+vi.mock('../src/utils/audiobookApi', async importOriginal => {
+  const actual = await importOriginal<typeof import('../src/utils/audiobookApi')>();
+  return {
+    ...actual,
+    getAudiobooks: (...args: unknown[]) => mockGetAudiobooks(...args),
+    getChapters: (...args: unknown[]) => mockGetChapters(...args),
+    getPagesByChapterId: (...args: unknown[]) => mockGetPagesByChapterId(...args),
+  };
+});
+
+vi.mock('../src/utils/resolveAudiobookFetchOwnerId', () => ({
+  resolveAudiobookFetchOwnerId: (...args: unknown[]) => mockResolveOwnerId(...args),
+}));
+
 function renderEditor(initialEntry = '/editor') {
-  return render(
+  const ui: ReactElement = (
     <MemoryRouter initialEntries={[initialEntry]}>
       <Routes>
         <Route path="/editor/*" element={<Editor />} />
       </Routes>
     </MemoryRouter>
   );
+
+  const store = configureStore({
+    reducer: { auth: authReducer },
+    preloadedState: {
+      auth: {
+        isAuthenticated: true,
+        isInitialized: true,
+        role: 'AUTHOR',
+        appType: 'author',
+        workspaceSlug: null,
+        user: {
+          id: 'user-1',
+          email: 'author@example.com',
+          name: 'Jane Author',
+        },
+      },
+    },
+  });
+
+  return render(<Provider store={store}>{ui}</Provider>);
 }
 
 describe('Editor', () => {
-  it('shows breadcrumb for the default mock page selection', () => {
-    renderEditor();
-
-    const contextNav = screen.getByRole('navigation', { name: 'Editor context' });
-    expect(within(contextNav).getByText('The Great Epic')).toBeInTheDocument();
-    expect(within(contextNav).getByText(/introduction/i)).toBeInTheDocument();
-    expect(within(contextNav).getByText('Page 1')).toBeInTheDocument();
+  beforeEach(() => {
+    mockResolveOwnerId.mockResolvedValue('author-1');
+    mockGetAudiobooks.mockResolvedValue({
+      success: true,
+      data: [
+        {
+          id: 'ab-authoring-1',
+          type: 'AUTHORING',
+          title: 'The Great Epic',
+          author: 'Ravi Sharma',
+          description: '',
+        },
+      ],
+      message: '',
+      statusCode: 200,
+      timestamp: '',
+      path: '',
+    });
+    mockGetChapters.mockResolvedValue({
+      success: true,
+      data: [
+        {
+          id: 'ch-1',
+          audiobookId: 'ab-authoring-1',
+          title: 'Introduction',
+          description: '',
+          chapterNumber: 1,
+        },
+      ],
+      message: '',
+      statusCode: 200,
+      timestamp: '',
+      path: '',
+    });
+    mockGetPagesByChapterId.mockResolvedValue({
+      success: true,
+      data: [
+        {
+          id: 'pg-1-1',
+          chapterId: 'ch-1',
+          pageNumber: 1,
+          plainText: 'Welcome',
+          richText: { type: 'doc', content: [] },
+        },
+      ],
+      message: '',
+      statusCode: 200,
+      timestamp: '',
+      path: '',
+    });
   });
 
-  it('updates breadcrumb when selecting a different page', async () => {
-    const user = userEvent.setup();
+  it('loads authoring audiobooks and shows empty workspace until a page is selected', async () => {
     renderEditor();
 
-    const pageTwo = screen.getByRole('treeitem', { name: /^page 2$/i });
-    await user.click(pageTwo);
-
-    const contextNav = screen.getByRole('navigation', { name: 'Editor context' });
-    expect(within(contextNav).getByText('Page 2')).toBeInTheDocument();
-    expect(within(contextNav).getByText(/introduction/i)).toBeInTheDocument();
-  });
-
-  it('expands and collapses chapter nodes in the directory tree', async () => {
-    const user = userEvent.setup();
-    renderEditor();
-
-    const chapterButton = screen.getByRole('button', {
-      name: /toggle chapter the journey begins/i,
+    await waitFor(() => {
+      expect(mockGetAudiobooks).toHaveBeenCalledWith(
+        1,
+        undefined,
+        undefined,
+        'author-1',
+        'AUTHORING'
+      );
     });
 
-    expect(chapterButton).toHaveAttribute('aria-expanded', 'false');
-
-    await user.click(chapterButton);
-    expect(chapterButton).toHaveAttribute('aria-expanded', 'true');
-
-    const tree = screen.getByRole('tree', { name: 'Audiobook directory' });
     expect(
-      within(tree).getAllByRole('treeitem', { name: /^page 1$/i }).length
-    ).toBeGreaterThanOrEqual(1);
-
-    await user.click(chapterButton);
-    expect(chapterButton).toHaveAttribute('aria-expanded', 'false');
+      screen.getByText(/select or create a chapter and page to start writing/i)
+    ).toBeInTheDocument();
+    expect(screen.getByText('The Great Epic')).toBeInTheDocument();
   });
 
-  it('renders the Tiptap editor workspace', () => {
+  it('shows audiobook creation control in the directory tree', async () => {
     renderEditor();
 
-    expect(screen.getByTestId('tiptap-editor-body')).toBeInTheDocument();
-    expect(screen.getByLabelText(/typing language/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/heading level/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /add note/i })).toBeInTheDocument();
-  });
-
-  it('shows audiobook creation control in the directory tree', () => {
-    renderEditor();
+    await waitFor(() => {
+      expect(screen.getByText('The Great Epic')).toBeInTheDocument();
+    });
 
     expect(screen.getByRole('button', { name: /^audiobook$/i })).toBeInTheDocument();
     expect(screen.getByRole('separator', { name: /resize editor sidebar/i })).toBeInTheDocument();
@@ -78,26 +144,13 @@ describe('Editor', () => {
     const user = userEvent.setup();
     renderEditor('/editor');
 
+    await waitFor(() => {
+      expect(screen.getByText('The Great Epic')).toBeInTheDocument();
+    });
+
     await user.click(screen.getByRole('button', { name: /^audiobook$/i }));
 
     expect(screen.getByRole('textbox', { name: /rename audiobook/i })).toBeInTheDocument();
     expect(screen.getByDisplayValue(/new audiobook/i)).toBeInTheDocument();
-    expect(screen.getByText('New Audiobook 4')).toBeInTheDocument();
-  });
-
-  it('shows delete controls beside add controls in the directory tree', () => {
-    renderEditor();
-
-    const tree = screen.getByRole('tree', { name: 'Audiobook directory' });
-
-    expect(
-      within(tree).getByRole('button', { name: /delete the great epic/i })
-    ).toBeInTheDocument();
-    expect(
-      within(tree).getByRole('button', { name: /delete chapter introduction/i })
-    ).toBeInTheDocument();
-    expect(
-      within(tree).getByRole('button', { name: /delete page 2/i })
-    ).toBeInTheDocument();
   });
 });

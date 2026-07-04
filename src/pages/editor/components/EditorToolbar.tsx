@@ -3,9 +3,11 @@ import {
   Italic,
   List,
   ListOrdered,
+  Loader2,
   Quote,
   RotateCcw,
   RotateCw,
+  Save,
   StickyNote,
   Strikethrough,
   Underline as UnderlineIcon,
@@ -18,6 +20,7 @@ import type { Editor } from '@tiptap/react';
 import SolidIcon from '../../../components/common/SolidIcon';
 import Select from '../../../components/common/Select';
 import { TEXT_HIGHLIGHT_COLOR } from '../../../constants/editorHighlight';
+import { getEditorSaveShortcutLabel } from '../../../utils/editorSaveShortcut';
 import PramukhLanguageSelector from './PramukhLanguageSelector';
 
 const HEADING_OPTIONS = [
@@ -37,6 +40,9 @@ interface EditorToolbarProps {
   onZoomOut: () => void;
   canAddNote: boolean;
   onAddNote: () => void;
+  onSave: () => void;
+  canSave: boolean;
+  isSaving: boolean;
 }
 
 function ToolbarOutlineIcon({ icon: Icon }: { icon: LucideIcon }) {
@@ -103,7 +109,12 @@ function EditorToolbar({
   onZoomOut,
   canAddNote,
   onAddNote,
+  onSave,
+  canSave,
+  isSaving,
 }: EditorToolbarProps) {
+  const saveShortcutLabel = getEditorSaveShortcutLabel();
+
   if (!editor) {
     return null;
   }
@@ -225,11 +236,29 @@ function EditorToolbar({
         </ToolbarButton>
       </div>
 
-      <PramukhLanguageSelector
-        value={pramukhLanguageId}
-        onChange={onPramukhLanguageChange}
-        isAvailable={isPramukhAvailable}
-      />
+      <div className="editor-toolbar-side">
+        <button
+          type="button"
+          className="editor-toolbar-save-btn"
+          onClick={onSave}
+          disabled={!canSave}
+          title={`Save (${saveShortcutLabel})`}
+          aria-label={`Save page (${saveShortcutLabel})`}
+        >
+          {isSaving ? (
+            <Loader2 size={16} className="editor-context-saving-icon" aria-hidden="true" />
+          ) : (
+            <SolidIcon icon={Save} size={16} />
+          )}
+          <span>Save</span>
+        </button>
+
+        <PramukhLanguageSelector
+          value={pramukhLanguageId}
+          onChange={onPramukhLanguageChange}
+          isAvailable={isPramukhAvailable}
+        />
+      </div>
     </div>
   );
 }

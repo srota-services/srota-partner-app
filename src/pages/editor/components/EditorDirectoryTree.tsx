@@ -24,7 +24,7 @@ interface EditorDirectoryTreeProps {
   expandedAudiobooks: Set<string>;
   expandedChapters: Set<string>;
   onToggleAudiobook: (audiobookId: string) => void;
-  onToggleChapter: (chapterId: string) => void;
+  onToggleChapter: (audiobookId: string, chapterId: string) => void;
   onSelectPage: (selection: EditorSelection) => void;
   onAddAudiobook: () => void;
   onAddChapter: (audiobookId: string) => void;
@@ -193,7 +193,7 @@ function EditorDirectoryTree({
                             className="editor-tree-toggle"
                             aria-expanded={isChapterExpanded}
                             aria-label={`Toggle chapter ${chapter.title}`}
-                            onClick={() => onToggleChapter(chapter.id)}
+                            onClick={() => onToggleChapter(audiobook.id, chapter.id)}
                           >
                             <SolidIcon
                               icon={isChapterExpanded ? ChevronDown : ChevronRight}

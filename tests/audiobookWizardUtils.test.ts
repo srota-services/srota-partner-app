@@ -17,6 +17,7 @@ describe('audiobook wizard request builder', () => {
 
     const request = buildCreateAudiobookRequest(data);
 
+    expect(request.type).toBe('PUBLICATION');
     expect(request.isPublic).toBe(true);
     expect(request.minSubscriptionTier).toBeUndefined();
     expect(request.moodId).toBeUndefined();

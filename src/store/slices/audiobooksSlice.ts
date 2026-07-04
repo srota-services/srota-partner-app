@@ -81,7 +81,8 @@ export const fetchAudiobooks = createAsyncThunk(
         page,
         active,
         scheduled,
-        ownerId ?? undefined
+        ownerId ?? undefined,
+        'PUBLICATION'
       );
       return response;
     } catch (error) {
@@ -183,7 +184,7 @@ const audiobooksSlice = createSlice({
         state.loading = false;
         state.error = action.payload
           ? String(action.payload)
-          : 'Failed to create audiobook';
+          : 'Failed to create Audiobook. Try again later.';
       })
       .addCase(updateAudiobookThunk.pending, state => {
         state.loading = true;
