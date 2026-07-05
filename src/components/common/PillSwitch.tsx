@@ -6,6 +6,7 @@ interface PillSwitchProps {
   label: string;
   disabled?: boolean;
   id?: string;
+  hideLabel?: boolean;
 }
 
 function PillSwitch({
@@ -14,6 +15,7 @@ function PillSwitch({
   label,
   disabled = false,
   id,
+  hideLabel = false,
 }: PillSwitchProps) {
   return (
     <button
@@ -23,11 +25,11 @@ function PillSwitch({
       aria-checked={checked}
       aria-label={label}
       disabled={disabled}
-      className={`pill-switch${checked ? ' pill-switch--checked' : ''}`}
+      className={`pill-switch${checked ? ' pill-switch--checked' : ''}${hideLabel ? ' pill-switch--compact' : ''}`}
       onClick={() => onChange(!checked)}
     >
       <span className="pill-switch-thumb" aria-hidden="true" />
-      <span className="pill-switch-text">{label}</span>
+      {!hideLabel && <span className="pill-switch-text">{label}</span>}
     </button>
   );
 }

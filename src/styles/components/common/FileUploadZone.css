@@ -105,6 +105,73 @@
   object-fit: cover;
 }
 
+.image-upload-zone--avatar {
+  position: relative;
+  align-items: flex-start;
+}
+
+.image-upload-avatar-trigger {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.image-upload-avatar-trigger--disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.image-upload-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 2px dashed var(--color-border);
+  background: var(--color-bg-secondary);
+  overflow: hidden;
+  transition:
+    border-color var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.image-upload-avatar-trigger:hover:not(.image-upload-avatar-trigger--disabled)
+  .image-upload-avatar,
+.image-upload-avatar-trigger--active .image-upload-avatar {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.image-upload-avatar-image,
+.image-upload-avatar-image.app-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.image-upload-avatar-action {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-primary);
+}
+
+.image-upload-zone--avatar .image-upload-avatar-remove {
+  position: absolute;
+  top: 4px;
+  left: calc(120px - 28px);
+  background: rgba(15, 23, 42, 0.7);
+  color: #ffffff;
+}
+
+.image-upload-zone--avatar .image-upload-avatar-remove:hover:not(:disabled) {
+  background: rgba(15, 23, 42, 0.85);
+  color: #ffffff;
+}
+
 .image-upload-zone .image-upload-remove {
   position: absolute;
   top: 4px;

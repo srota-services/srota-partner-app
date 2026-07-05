@@ -14,6 +14,16 @@ export interface UserProfile {
   username?: string;
   avatarUrl?: string;
   avatar?: string;
+  address?: string | null;
+  contact?: string | null;
+}
+
+export interface UpdateUserProfileRequest {
+  firstName?: string;
+  lastName?: string;
+  address?: string | null;
+  contact?: string | null;
+  avatar?: File;
 }
 
 export interface OrganizationItem {
@@ -25,9 +35,25 @@ export interface OrganizationItem {
   preferredGenre?: string | null;
   websiteUrl?: string | null;
   teamSize?: TeamSize | null;
+  discoverable?: boolean;
   memberCount?: number;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface UpdateOrganizationRequest {
+  name?: string;
+  description?: string;
+  image?: File;
+  preferredGenre?: string | null;
+  websiteUrl?: string | null;
+  teamSize?: TeamSize | null;
+  discoverable?: boolean;
+}
+
+export interface UpdateMyAuthorProfileRequest {
+  profileImage?: File;
+  discoverable?: boolean;
 }
 
 export interface CreateOrganizationRequest {

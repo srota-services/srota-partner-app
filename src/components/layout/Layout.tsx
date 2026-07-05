@@ -10,6 +10,7 @@ import { setSearchQuery } from '../../store/slices/audiobooksSlice';
 import { PRELOADABLE_PAGES } from '../../routes/lazyPages';
 import { preloadDuringIdle } from '../../utils/lazyWithPreload';
 import { getPageTransitionKey } from '../../utils/pageTransitionKey';
+import { trackSettingsReturnPath } from '../../utils/settingsReturnPath';
 import TopNavigation from './TopNavigation';
 import SideNavigation from './SideNavigation';
 import PageTransition from './PageTransition';
@@ -28,6 +29,7 @@ const Layout: React.FC = () => {
   const dispatch = useAppDispatch();
   const location = useLocation();
   const isEditorRoute = location.pathname.startsWith('/editor');
+  const isSettingsRoute = location.pathname.startsWith('/settings');
   const [isSideNavCollapsed, setIsSideNavCollapsed] = useState(isEditorRoute);
   useUserProfile();
 
@@ -43,6 +45,10 @@ const Layout: React.FC = () => {
     }
   }, [isEditorRoute]);
 
+  useEffect(() => {
+    trackSettingsReturnPath(location.pathname, location.search);
+  }, [location.pathname, location.search]);
+
   // Update Redux search query when search value changes and we're on audiobooks page
   useEffect(() => {
     if (location.pathname.startsWith('/library')) {
@@ -55,6 +61,7 @@ const Layout: React.FC = () => {
     isEditorRoute ? 'layout-main--editor' : '',
     isEditorRoute && isSideNavCollapsed ? 'layout-main--editor-collapsed' : '',
     isEditorRoute && !isSideNavCollapsed ? 'layout-main--editor-expanded' : '',
+    isSettingsRoute ? 'layout-main--settings' : '',
   ]
     .filter(Boolean)
     .join(' ');
@@ -66,14 +73,16 @@ const Layout: React.FC = () => {
         onSearchChange={setSearchValue}
       />
       <div className="layout-content">
-        <SideNavigation
-          collapsed={isEditorRoute && isSideNavCollapsed}
-          onToggleCollapse={
-            isEditorRoute
-              ? () => setIsSideNavCollapsed(prev => !prev)
-              : undefined
-          }
-        />
+        {!isSettingsRoute && (
+          <SideNavigation
+            collapsed={isEditorRoute && isSideNavCollapsed}
+            onToggleCollapse={
+              isEditorRoute
+                ? () => setIsSideNavCollapsed(prev => !prev)
+                : undefined
+            }
+          />
+        )}
         <main className={mainClassName}>
           <AnimatePresence mode="wait" initial={false}>
             <PageTransition key={getPageTransitionKey(location.pathname)}>
