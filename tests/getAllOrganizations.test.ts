@@ -1,5 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { getAllOrganizations } from '../src/utils/audiobookApi';
+import {
+  getAllOrganizations,
+  getDiscoverableOrganizations,
+} from '../src/utils/audiobookApi';
 
 vi.mock('../src/utils/config', () => ({
   getAuthHeaders: vi.fn(() => ({
@@ -51,5 +54,48 @@ describe('getAllOrganizations', () => {
     expect(result.organizations).toHaveLength(1);
     expect(result.organizations[0]?.name).toBe('Acme Publishing');
     expect(result.pagination?.totalCount).toBe(1);
+  });
+});
+
+describe('getDiscoverableOrganizations', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('fetches discoverable organizations from the catalog endpoint', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        message: 'Discoverable organizations retrieved successfully',
+        organizations: [
+          {
+            id: 'org-1',
+            name: 'Acme Publishing',
+            slug: 'acme-publishing',
+            description: 'Independent publisher',
+            discoverable: true,
+          },
+        ],
+        pagination: {
+          page: 1,
+          limit: 100,
+          totalCount: 1,
+          totalPages: 1,
+        },
+      }),
+    } as Response);
+
+    const result = await getDiscoverableOrganizations(1, 100);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://auth.example.com/auth/catalog/organizations/discoverable?page=1&limit=100',
+      expect.objectContaining({ method: 'GET' })
+    );
+    expect(result.organizations).toHaveLength(1);
+    expect(result.organizations[0]?.discoverable).toBe(true);
   });
 });

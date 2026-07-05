@@ -4,7 +4,8 @@
 
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import {
-  getAuthors,
+  getDiscoverableAuthors,
+  toAuthorPickerItem,
   createAuthor,
   updateAuthor,
   deleteAuthor,
@@ -29,8 +30,8 @@ export const fetchAuthors = createAsyncThunk(
   'authors/fetchAuthors',
   async (_, { rejectWithValue }) => {
     try {
-      const authors = await getAuthors();
-      return authors;
+      const result = await getDiscoverableAuthors(1, 100);
+      return result.authors.map(toAuthorPickerItem);
     } catch (error) {
       return rejectWithValue(error);
     }

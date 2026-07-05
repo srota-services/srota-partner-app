@@ -5,7 +5,11 @@ import {
   fetchOrgInvitations,
   inviteAuthor,
 } from '../../../store/slices/organizationAuthorsSlice';
-import { getAuthors, type AuthorItem } from '../../../utils/audiobookApi';
+import {
+  getDiscoverableAuthors,
+  toAuthorPickerItem,
+  type AuthorItem,
+} from '../../../utils/audiobookApi';
 import { getAuthorDiscoveryInvitationBadge } from '../../../utils/discoveryInvitationDisplay';
 import SearchBar from '../../../components/common/SearchBar';
 import Button from '../../../components/common/Button';
@@ -39,10 +43,10 @@ const AuthorSearchPanel: React.FC = () => {
     let cancelled = false;
     setLoading(true);
 
-    getAuthors()
-      .then(data => {
+    getDiscoverableAuthors(1, 100)
+      .then(result => {
         if (!cancelled) {
-          setAuthors(data);
+          setAuthors(result.authors.map(toAuthorPickerItem));
         }
       })
       .catch(error => {

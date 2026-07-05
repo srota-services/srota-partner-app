@@ -2,6 +2,7 @@ import { Plus } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
+import { useDiscoverableCatalogIds } from '../../../hooks/useDiscoverableCatalogIds';
 import {
   abortCollaborationRequest,
   counterCollaboration,
@@ -15,6 +16,7 @@ import CollaborationsTable from './CollaborationsTable';
 import CounterBudgetModal from './CounterBudgetModal';
 import CollaborationDetailModal from './CollaborationDetailModal';
 import { showApiError, showSuccess } from '../../../utils/toast';
+import { isDiscoverableOrg } from '../../../utils/discoverableCatalogFilter';
 import '../../../styles/pages/audiobooks/Audiobooks.css';
 import '../../../styles/pages/management/components/AuthorsTable.css';
 
@@ -29,6 +31,7 @@ const AuthorCollaborationsPanel: React.FC = () => {
     useState<AuthorCollaboration | null>(null);
   const [counterTarget, setCounterTarget] =
     useState<AuthorCollaboration | null>(null);
+  const { orgIds, loading: catalogLoading } = useDiscoverableCatalogIds();
 
   useEffect(() => {
     dispatch(fetchCollaborations()).catch(showApiError);
@@ -36,10 +39,14 @@ const AuthorCollaborationsPanel: React.FC = () => {
 
   const authorCollaborations = useMemo(
     () =>
-      collaborations.filter(
-        (item): item is AuthorCollaboration => 'organization' in item
-      ),
-    [collaborations]
+      collaborations
+        .filter(
+          (item): item is AuthorCollaboration => 'organization' in item
+        )
+        .filter(collaboration =>
+          isDiscoverableOrg(collaboration.organization.id, orgIds)
+        ),
+    [collaborations, orgIds]
   );
 
   const filteredCollaborations = useMemo(() => {
@@ -104,7 +111,7 @@ const AuthorCollaborationsPanel: React.FC = () => {
         </Button>
       </div>
 
-      {loading ? (
+      {loading || catalogLoading ? (
         <div className="loading-container">
           <LoadingSpinner />
         </div>

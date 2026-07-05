@@ -1,10 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
+import { useDiscoverableCatalogIds } from '../../../hooks/useDiscoverableCatalogIds';
 import {
   fetchLinkedAuthors,
   fetchOrgInvitations,
 } from '../../../store/slices/organizationAuthorsSlice';
 import { getInvitationAuthorName } from '../../../utils/authorInvitationDisplay';
+import { isDiscoverableAuthor } from '../../../utils/discoverableCatalogFilter';
 import { isOrgStaffRole } from '../../../utils/authRole';
 import SearchBar from '../../../components/common/SearchBar';
 import LoadingSpinner from '../../../components/common/LoadingSpinner';
@@ -21,18 +23,35 @@ const OrgInvitationsPanel: React.FC = () => {
     state => state.organizationAuthors
   );
   const [searchQuery, setSearchQuery] = useState('');
+  const { authorIds, loading: catalogLoading } = useDiscoverableCatalogIds();
 
   useEffect(() => {
     dispatch(fetchLinkedAuthors()).catch(showApiError);
     dispatch(fetchOrgInvitations()).catch(showApiError);
   }, [dispatch]);
 
+  const discoverableLinkedAuthors = useMemo(
+    () =>
+      linkedAuthors.filter(author =>
+        isDiscoverableAuthor(author.id, authorIds)
+      ),
+    [linkedAuthors, authorIds]
+  );
+
+  const discoverableInvitations = useMemo(
+    () =>
+      invitations.filter(invitation =>
+        isDiscoverableAuthor(invitation.author.id, authorIds)
+      ),
+    [invitations, authorIds]
+  );
+
   const filteredLinkedAuthors = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     if (!query) {
-      return linkedAuthors;
+      return discoverableLinkedAuthors;
     }
-    return linkedAuthors.filter(author => {
+    return discoverableLinkedAuthors.filter(author => {
       const searchable = [
         getInvitationAuthorName(author),
         author.email ?? '',
@@ -42,14 +61,14 @@ const OrgInvitationsPanel: React.FC = () => {
         .toLowerCase();
       return searchable.includes(query);
     });
-  }, [linkedAuthors, searchQuery]);
+  }, [discoverableLinkedAuthors, searchQuery]);
 
   const filteredInvitations = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     if (!query) {
-      return invitations;
+      return discoverableInvitations;
     }
-    return invitations.filter(invitation => {
+    return discoverableInvitations.filter(invitation => {
       const searchable = [
         getInvitationAuthorName(invitation.author),
         invitation.author.email ?? '',
@@ -59,7 +78,7 @@ const OrgInvitationsPanel: React.FC = () => {
         .toLowerCase();
       return searchable.includes(query);
     });
-  }, [invitations, searchQuery]);
+  }, [discoverableInvitations, searchQuery]);
 
   if (!isOrgStaffRole(role)) {
     return (
@@ -85,7 +104,7 @@ const OrgInvitationsPanel: React.FC = () => {
         />
       </div>
 
-      {loading ? (
+      {loading || catalogLoading ? (
         <div className="loading-container">
           <LoadingSpinner />
         </div>

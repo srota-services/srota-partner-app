@@ -227,6 +227,7 @@ export interface CatalogOrganizationItem {
   websiteUrl?: string | null;
   teamSize?: string | null;
   memberCount?: number;
+  discoverable?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -326,6 +327,48 @@ export async function getAllOrganizations(
 
     const response = await fetch(
       `${getAuthApiBaseUrl()}/auth/organizations/all?page=${page}&limit=${limit}`,
+      {
+        method: 'GET',
+        headers,
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to fetch organizations',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    const catalogResponse = data as AllOrganizationsResponse;
+    return {
+      organizations: catalogResponse.organizations ?? [],
+      pagination: catalogResponse.pagination,
+    };
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Fetches discoverable organizations from the auth catalog (marketplace discovery).
+ */
+export async function getDiscoverableOrganizations(
+  page = 1,
+  limit = 100
+): Promise<{
+  organizations: CatalogOrganizationItem[];
+  pagination?: OrganizationsPagination;
+}> {
+  try {
+    const headers = getAuthHeaders();
+
+    const response = await fetch(
+      `${getAuthApiBaseUrl()}/auth/catalog/organizations/discoverable?page=${page}&limit=${limit}`,
       {
         method: 'GET',
         headers,
@@ -849,9 +892,39 @@ export interface AuthorItem {
   lastName?: string | null;
   address?: string | null;
   contact?: string | null;
+  avatar?: string | null;
+  discoverable?: boolean;
   organizations?: Array<{ id: string; name: string; slug: string }>;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface DiscoverableAuthorItem {
+  authorId: string;
+  slug: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  avatar?: string | null;
+  discoverable: boolean;
+  imageAssets?: Record<string, string>;
+}
+
+interface DiscoverableAuthorsResponse {
+  message: string;
+  authors: DiscoverableAuthorItem[];
+  pagination?: OrganizationsPagination;
+}
+
+export function toAuthorPickerItem(item: DiscoverableAuthorItem): AuthorItem {
+  return {
+    id: item.authorId,
+    userId: '',
+    slug: item.slug,
+    firstName: item.firstName,
+    lastName: item.lastName,
+    avatar: item.avatar,
+    discoverable: item.discoverable,
+  };
 }
 
 interface AuthorsAuthResponse {
@@ -893,6 +966,48 @@ function getAuthorDisplayName(author: AuthorItem): string {
 }
 
 export { getAuthorDisplayName };
+
+/**
+ * Fetches discoverable authors from the auth catalog (marketplace discovery).
+ */
+export async function getDiscoverableAuthors(
+  page = 1,
+  limit = 100
+): Promise<{
+  authors: DiscoverableAuthorItem[];
+  pagination?: OrganizationsPagination;
+}> {
+  try {
+    const headers = getAuthHeaders();
+
+    const response = await fetch(
+      `${getAuthApiBaseUrl()}/auth/catalog/authors/discoverable?page=${page}&limit=${limit}`,
+      {
+        method: 'GET',
+        headers,
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to fetch authors',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    const authorsResponse = data as DiscoverableAuthorsResponse;
+    return {
+      authors: authorsResponse.authors ?? [],
+      pagination: authorsResponse.pagination,
+    };
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
 
 /**
  * Fetches authors from auth-service

@@ -15,7 +15,7 @@ import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { createCollaboration } from '../../store/slices/collaborationsSlice';
 import { COLLABORATION_CURRENCY } from '../../types/authorCollaboration';
 import {
-  getAllOrganizations,
+  getDiscoverableOrganizations,
   type CatalogOrganizationItem,
 } from '../../utils/audiobookApi';
 import { showApiError, showSuccess } from '../../utils/toast';
@@ -51,7 +51,7 @@ function CollaborationCreate() {
     let cancelled = false;
     setLoadingOrgs(true);
 
-    getAllOrganizations(1, 100)
+    getDiscoverableOrganizations(1, 100)
       .then(response => {
         if (!cancelled) {
           setOrganizations(response.organizations);
