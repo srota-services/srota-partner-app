@@ -22,7 +22,7 @@ const Discovery: React.FC = () => {
           {showAuthorPanel
             ? 'Discover and invite authors to your organization.'
             : showOrganizationPanel
-              ? 'Discover organizations and request to connect.'
+              ? 'Discover organizations on the platform.'
               : 'Discover partners on the platform.'}
         </p>
       </div>

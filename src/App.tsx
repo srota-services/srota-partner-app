@@ -18,6 +18,7 @@ import {
   Discovery,
   Management,
   CollaborationCreate,
+  InvitationRespondWizard,
   Inbox,
   Settings,
   Editor,
@@ -166,6 +167,14 @@ function App() {
             element={
               <AuthorRoute>
                 <CollaborationCreate />
+              </AuthorRoute>
+            }
+          />
+          <Route
+            path="/management/invitations/respond"
+            element={
+              <AuthorRoute>
+                <InvitationRespondWizard />
               </AuthorRoute>
             }
           />

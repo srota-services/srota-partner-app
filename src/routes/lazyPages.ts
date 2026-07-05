@@ -51,6 +51,9 @@ export const Management = lazyWithPreload(
 export const CollaborationCreate = lazyWithPreload(
   () => import('../pages/management/CollaborationCreate')
 );
+export const InvitationRespondWizard = lazyWithPreload(
+  () => import('../pages/management/InvitationRespondWizard')
+);
 export const Inbox = lazyWithPreload(() => import('../pages/inbox/Inbox'));
 export const Settings = lazyWithPreload(
   () => import('../pages/settings/Settings')

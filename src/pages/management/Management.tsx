@@ -6,14 +6,16 @@ import { useSearchParams } from 'react-router-dom';
 import { useAppSelector } from '../../hooks/redux';
 import { isOrgMarketplaceContext } from '../../utils/marketplaceContext';
 import TeamTab from './components/TeamTab';
+import InvitationsTab from './components/InvitationsTab';
 import CollaborationsTab from './components/CollaborationsTab';
 import '../../styles/pages/management/Management.css';
 import '../../styles/pages/audiobooks/Audiobooks.css';
 
-type ManageTabId = 'team' | 'collaborations' | 'assets';
+type ManageTabId = 'team' | 'invitations' | 'collaborations' | 'assets';
 
 const ALL_TABS: { id: ManageTabId; label: string }[] = [
   { id: 'team', label: 'Team' },
+  { id: 'invitations', label: 'Invitations' },
   { id: 'collaborations', label: 'Collaborations' },
   { id: 'assets', label: 'Assets' },
 ];
@@ -34,7 +36,7 @@ const Management: React.FC = () => {
     if (requested && visibleTabs.some(tab => tab.id === requested)) {
       return requested;
     }
-    return showTeamTab ? 'team' : 'collaborations';
+    return showTeamTab ? 'team' : 'invitations';
   }, [searchParams, showTeamTab, visibleTabs]);
 
   useEffect(() => {
@@ -54,7 +56,7 @@ const Management: React.FC = () => {
       <div className="management-header">
         <h1 className="page-title">Manage</h1>
         <p className="page-subtitle">
-          Manage your team, collaborations, and publishing assets.
+          Manage your team, invitations, collaborations, and publishing assets.
         </p>
       </div>
 
@@ -72,6 +74,7 @@ const Management: React.FC = () => {
       </div>
 
       {activeTab === 'team' && <TeamTab />}
+      {activeTab === 'invitations' && <InvitationsTab />}
       {activeTab === 'collaborations' && <CollaborationsTab />}
       {activeTab === 'assets' && (
         <section className="manage-assets-section marketing-card">

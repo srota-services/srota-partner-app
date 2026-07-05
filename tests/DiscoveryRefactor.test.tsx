@@ -9,10 +9,13 @@ import authReducer from '../src/store/slices/authSlice';
 import organizationAuthorsReducer from '../src/store/slices/organizationAuthorsSlice';
 import organizationMembersReducer from '../src/store/slices/organizationMembersSlice';
 import collaborationsReducer from '../src/store/slices/collaborationsSlice';
+import authorInboxReducer from '../src/store/slices/authorInboxSlice';
 import type { LoginAppType, UserRole } from '../src/types/auth';
+import type { AuthorInvitationForAuthor } from '../src/types/authorInvitation';
 import Discovery from '../src/pages/marketplace/Marketplace';
 import Management from '../src/pages/management/Management';
 import OrganizationSearchPanel from '../src/pages/marketplace/components/OrganizationSearchPanel';
+import InvitationRespondWizard from '../src/pages/management/InvitationRespondWizard';
 
 const navigateMock = vi.fn();
 
@@ -46,10 +49,16 @@ vi.mock('../src/utils/audiobookApi', async importOriginal => {
   };
 });
 
+const getMyOrganizationInvitationsMock = vi.fn().mockResolvedValue([]);
+
 vi.mock('../src/utils/authorInvitationApi', () => ({
-  getMyOrganizationInvitations: vi.fn().mockResolvedValue([]),
+  getMyOrganizationInvitations: (...args: unknown[]) =>
+    getMyOrganizationInvitationsMock(...args),
   getOrganizationAuthors: vi.fn().mockResolvedValue([]),
   getOrganizationInvitations: vi.fn().mockResolvedValue([]),
+  revealContact: vi.fn(),
+  confirmOrgContact: vi.fn(),
+  decideJoin: vi.fn(),
 }));
 
 vi.mock('../src/utils/partnerApi', () => ({
@@ -89,12 +98,32 @@ vi.mock('../src/utils/authorCollaborationApi', () => ({
   }),
 }));
 
+const pendingInvitation: AuthorInvitationForAuthor = {
+  id: 'inv-1',
+  status: 'PENDING_CONTACT_CONSENT',
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
+  contactRevealedAt: null,
+  orgContactConfirmedAt: null,
+  respondedAt: null,
+  organization: {
+    id: 'org-1',
+    name: 'Acme Publishing',
+    slug: 'acme',
+  },
+};
+
 function renderWithAuth(
   ui: ReactElement,
   options: {
     role?: UserRole | null;
     appType?: LoginAppType | null;
     initialEntries?: string[];
+    authorInbox?: {
+      invitations?: AuthorInvitationForAuthor[];
+      loading?: boolean;
+      actionLoadingId?: string | null;
+    };
   } = {}
 ) {
   const store = configureStore({
@@ -103,6 +132,7 @@ function renderWithAuth(
       organizationAuthors: organizationAuthorsReducer,
       organizationMembers: organizationMembersReducer,
       collaborations: collaborationsReducer,
+      authorInbox: authorInboxReducer,
     },
     preloadedState: {
       auth: {
@@ -136,6 +166,12 @@ function renderWithAuth(
         actionLoadingId: null,
         error: null,
       },
+      authorInbox: {
+        invitations: options.authorInbox?.invitations ?? [],
+        loading: options.authorInbox?.loading ?? false,
+        actionLoadingId: options.authorInbox?.actionLoadingId ?? null,
+        error: null,
+      },
     },
   });
 
@@ -152,6 +188,7 @@ describe('Discovery', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     navigateMock.mockReset();
+    getMyOrganizationInvitationsMock.mockResolvedValue([]);
   });
 
   it('renders AuthorSearchPanel for organization context', () => {
@@ -174,34 +211,54 @@ describe('Discovery', () => {
     });
 
     expect(
-      screen.getByText(/discover organizations and request to connect/i)
+      screen.getByText(/discover organizations on the platform/i)
     ).toBeInTheDocument();
   });
 });
 
 describe('OrganizationSearchPanel', () => {
-  it('navigates to collaboration create from Request to join', async () => {
-    const user = userEvent.setup();
+  beforeEach(() => {
+    vi.clearAllMocks();
+    navigateMock.mockReset();
+    getMyOrganizationInvitationsMock.mockResolvedValue([]);
+  });
+
+  it('does not render Request to join', async () => {
+    renderWithAuth(<OrganizationSearchPanel />, {
+      role: 'AUTHOR',
+      appType: 'author',
+    });
+
+    await screen.findByText('Acme Publishing');
+    expect(
+      screen.queryByRole('button', { name: /request to join/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it('shows Invited badge when author has active invitation', async () => {
+    getMyOrganizationInvitationsMock.mockResolvedValue([
+      {
+        ...pendingInvitation,
+        status: 'AWAITING_ORG_CONTACT',
+      },
+    ]);
 
     renderWithAuth(<OrganizationSearchPanel />, {
       role: 'AUTHOR',
       appType: 'author',
     });
 
-    const button = await screen.findByRole('button', {
-      name: /request to join acme publishing/i,
-    });
-    expect(button).toBeEnabled();
-
-    await user.click(button);
-    expect(navigateMock).toHaveBeenCalledWith(
-      '/management/collaborations/create?organizationId=org-1&organizationName=Acme+Publishing'
-    );
+    expect(await screen.findByText('Invited')).toBeInTheDocument();
   });
 });
 
 describe('Management', () => {
-  it('renders Team and Collaborations tabs for org context', async () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    navigateMock.mockReset();
+  });
+
+  it('renders Team, Invitations, and Collaborations tabs for org context', async () => {
     renderWithAuth(<Management />, {
       role: 'ORG_ADMIN',
       appType: 'organization',
@@ -210,6 +267,7 @@ describe('Management', () => {
 
     expect(screen.getByRole('heading', { name: /^manage$/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Team' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Invitations' })).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Collaborations' })
     ).toBeInTheDocument();
@@ -220,16 +278,40 @@ describe('Management', () => {
     });
   });
 
-  it('hides Team tab for author context', () => {
+  it('shows Invitations tab for author context', async () => {
+    getMyOrganizationInvitationsMock.mockResolvedValue([]);
+
     renderWithAuth(<Management />, {
       role: 'AUTHOR',
       appType: 'author',
-      initialEntries: ['/management?tab=collaborations'],
+      initialEntries: ['/management?tab=invitations'],
     });
 
     expect(screen.queryByRole('button', { name: 'Team' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Invitations' })).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Collaborations' })
+    ).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText(/no invitations yet/i)).toBeInTheDocument();
+    });
+  });
+
+  it('renders pending actions card for author with pending invitations', async () => {
+    getMyOrganizationInvitationsMock.mockResolvedValue([pendingInvitation]);
+
+    renderWithAuth(<Management />, {
+      role: 'AUTHOR',
+      appType: 'author',
+      initialEntries: ['/management?tab=invitations'],
+    });
+
+    expect(
+      await screen.findByTestId('pending-invitation-actions-card')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/1 invitation needs your response/i)
     ).toBeInTheDocument();
   });
 
@@ -247,5 +329,49 @@ describe('Management', () => {
     expect(
       screen.getByText(/no assets yet\. asset management will be available here/i)
     ).toBeInTheDocument();
+  });
+});
+
+describe('InvitationRespondWizard', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    navigateMock.mockReset();
+    getMyOrganizationInvitationsMock.mockResolvedValue([pendingInvitation]);
+  });
+
+  it('renders contact consent step for pending invitation', async () => {
+    renderWithAuth(<InvitationRespondWizard />, {
+      role: 'AUTHOR',
+      appType: 'author',
+      initialEntries: ['/management/invitations/respond?invitationId=inv-1'],
+      authorInbox: {
+        invitations: [pendingInvitation],
+      },
+    });
+
+    expect(
+      await screen.findByText(/share your email and contact information/i)
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /share contact info/i })).toBeInTheDocument();
+  });
+
+  it('navigates to invitations tab from pending actions card', async () => {
+    const user = userEvent.setup();
+
+    renderWithAuth(<Management />, {
+      role: 'AUTHOR',
+      appType: 'author',
+      initialEntries: ['/management?tab=invitations'],
+      authorInbox: {
+        invitations: [pendingInvitation],
+      },
+    });
+
+    const card = await screen.findByTestId('pending-invitation-actions-card');
+    await user.click(card);
+
+    expect(navigateMock).toHaveBeenCalledWith(
+      '/management/invitations/respond?invitationId=inv-1'
+    );
   });
 });
