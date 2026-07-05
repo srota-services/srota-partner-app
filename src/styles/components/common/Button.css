@@ -19,12 +19,22 @@
   left: 0;
   right: 0;
   bottom: 0;
+  border-radius: inherit;
   opacity: 0;
   transition: opacity var(--transition-base);
   background: rgba(255, 255, 255, 0.1);
+  pointer-events: none;
 }
 .btn:hover::before:not(:disabled) {
   opacity: 1;
+}
+/* Variants that swap in a full background on hover should not stack the shine overlay */
+.btn-primary:hover::before,
+.btn-outline:hover::before,
+.btn-danger:hover::before,
+.btn-warning:hover::before,
+.btn-edit:hover::before {
+  opacity: 0;
 }
 .btn:active:not(:disabled) {
   transform: translateY(1px) scale(0.98);
