@@ -1,12 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
+import { useMemberUserProfiles } from '../../../hooks/useMemberUserProfiles';
 import {
   addMember,
   fetchOrganizationMembers,
   removeMember,
-  updateMemberRole,
 } from '../../../store/slices/organizationMembersSlice';
 import { isOrgStaffRole } from '../../../utils/authRole';
+import {
+  formatMemberContact,
+  formatMemberEmail,
+  formatMemberName,
+} from '../../../utils/organizationMemberDisplay';
 import SearchBar from '../../../components/common/SearchBar';
 import LoadingSpinner from '../../../components/common/LoadingSpinner';
 import Button from '../../../components/common/Button';
@@ -33,14 +38,29 @@ const TeamTab: React.FC = () => {
     dispatch(fetchOrganizationMembers()).catch(showApiError);
   }, [dispatch]);
 
+  const memberUserIds = useMemo(
+    () => members.map(member => member.userId),
+    [members]
+  );
+  const avatarsByUserId = useMemberUserProfiles(memberUserIds);
+
   const filteredMembers = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     if (!query) {
       return members;
     }
-    return members.filter(member =>
-      member.userId.toLowerCase().includes(query)
-    );
+    return members.filter(member => {
+      const searchable = [
+        member.userId,
+        formatMemberName(member),
+        formatMemberEmail(member),
+        formatMemberContact(member),
+      ]
+        .join(' ')
+        .toLowerCase();
+
+      return searchable.includes(query);
+    });
   }, [members, searchQuery]);
 
   const handleAddMember = useCallback(
@@ -49,18 +69,6 @@ const TeamTab: React.FC = () => {
         await dispatch(addMember(input)).unwrap();
         showSuccess('Team member added');
         setIsAddModalOpen(false);
-      } catch (error) {
-        showApiError(error);
-      }
-    },
-    [dispatch]
-  );
-
-  const handleChangeRole = useCallback(
-    async (userId: string, nextRole: OrganizationMemberRole) => {
-      try {
-        await dispatch(updateMemberRole({ userId, role: nextRole })).unwrap();
-        showSuccess('Member role updated');
       } catch (error) {
         showApiError(error);
       }
@@ -95,7 +103,7 @@ const TeamTab: React.FC = () => {
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Search by user ID..."
+          placeholder="Search by name, email, or contact..."
           className="authors-search"
         />
         {canManage && (
@@ -123,9 +131,9 @@ const TeamTab: React.FC = () => {
       ) : (
         <OrganizationMembersTable
           members={filteredMembers}
+          avatarsByUserId={avatarsByUserId}
           canManage={canManage}
           saving={saving}
-          onChangeRole={handleChangeRole}
           onRemove={setMemberToRemove}
         />
       )}

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   fetchUserProfileWithRetry,
   getUserProfile,
+  getUserProfileByUserId,
 } from '../src/utils/partnerApi';
 
 vi.mock('../src/utils/config', () => ({
@@ -38,6 +39,40 @@ describe('user profile API', () => {
       'https://api.example.com/api/v1/user/profile',
       expect.objectContaining({ method: 'GET' })
     );
+  });
+
+  it('fetches user profile by user id', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        data: {
+          id: 'profile-3',
+          userId: 'user-99',
+          avatar: 'https://cdn.example.com/avatar.jpg',
+        },
+      }),
+    } as Response);
+
+    const profile = await getUserProfileByUserId('user-99');
+
+    expect(profile?.userId).toBe('user-99');
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      'https://api.example.com/api/v1/users/user-99/profile',
+      expect.objectContaining({ method: 'GET' })
+    );
+  });
+
+  it('returns null when profile by user id is not found', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 404,
+      json: async () => ({ message: 'Not found', statusCode: 404 }),
+    } as Response);
+
+    const profile = await getUserProfileByUserId('missing-user');
+
+    expect(profile).toBeNull();
   });
 
   it('retries up to 3 times on 404 then succeeds', async () => {

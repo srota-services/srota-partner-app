@@ -432,6 +432,41 @@ export async function getUserProfile(): Promise<UserProfile> {
 }
 
 /**
+ * Fetches an app profile for a specific user (avatar, username).
+ */
+export async function getUserProfileByUserId(
+  userId: string
+): Promise<UserProfile | null> {
+  try {
+    const headers = getAuthHeaders();
+    const response = await fetch(
+      `${getContentApiBaseUrl()}/api/v1/users/${encodeURIComponent(userId)}/profile`,
+      {
+        method: 'GET',
+        headers,
+      }
+    );
+    const data = await response.json();
+    if (response.status === 404) {
+      return null;
+    }
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to fetch user profile',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    const profileResponse = data as UserProfileResponse;
+    return profileResponse.data;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
  * Fetches user profile, retrying on 404 up to maxAttempts times
  */
 export async function fetchUserProfileWithRetry(

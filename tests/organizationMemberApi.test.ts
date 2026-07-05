@@ -32,6 +32,12 @@ describe('organizationMemberApi', () => {
             joinedAt: '2026-01-01T00:00:00.000Z',
             createdAt: '2026-01-01T00:00:00.000Z',
             updatedAt: '2026-01-01T00:00:00.000Z',
+            user: {
+              email: 'admin@example.com',
+              firstName: 'Admin',
+              lastName: 'User',
+              contact: '+15551234567',
+            },
           },
         ],
       }),
