@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  getAllOrganizations,
+  getDiscoverableOrganizations,
   type CatalogOrganizationItem,
 } from '../../../utils/audiobookApi';
 import { getMyOrganizationInvitations } from '../../../utils/authorInvitationApi';
@@ -29,7 +29,7 @@ const OrganizationSearchPanel: React.FC = () => {
     setLoading(true);
 
     Promise.all([
-      getAllOrganizations(1, 100),
+      getDiscoverableOrganizations(1, 100),
       getMyOrganizationInvitations(),
       getMyAuthorProfile(),
     ])

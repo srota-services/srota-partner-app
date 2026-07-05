@@ -6,6 +6,7 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import WizardStepIndicator from '../../components/wizard/WizardStepIndicator';
 import WizardStepper from '../../components/wizard/WizardStepper';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
+import { useDiscoverableCatalogIds } from '../../hooks/useDiscoverableCatalogIds';
 import {
   confirmContactThunk,
   decideJoinThunk,
@@ -13,6 +14,7 @@ import {
   revealContactThunk,
 } from '../../store/slices/authorInboxSlice';
 import { getOrganizationDisplayName } from '../../utils/authorInvitationDisplay';
+import { isDiscoverableOrg } from '../../utils/discoverableCatalogFilter';
 import {
   getInvitationWizardStep,
   getPendingAuthorInvitations,
@@ -39,6 +41,7 @@ function InvitationRespondWizard() {
   const { invitations, loading, actionLoadingId } = useAppSelector(
     state => state.authorInbox
   );
+  const { orgIds, loading: catalogLoading } = useDiscoverableCatalogIds();
 
   useEffect(() => {
     dispatch(fetchMyInvitations()).catch(showApiError);
@@ -46,13 +49,21 @@ function InvitationRespondWizard() {
 
   const requestedInvitationId = searchParams.get('invitationId');
 
+  const discoverableInvitations = useMemo(
+    () =>
+      invitations.filter(invitation =>
+        isDiscoverableOrg(invitation.organization.id, orgIds)
+      ),
+    [invitations, orgIds]
+  );
+
   const activeInvitation = useMemo(() => {
-    if (invitations.length === 0) {
+    if (discoverableInvitations.length === 0) {
       return null;
     }
 
     if (requestedInvitationId) {
-      const match = invitations.find(
+      const match = discoverableInvitations.find(
         invitation => invitation.id === requestedInvitationId
       );
       if (match) {
@@ -60,9 +71,9 @@ function InvitationRespondWizard() {
       }
     }
 
-    const pending = getPendingAuthorInvitations(invitations);
+    const pending = getPendingAuthorInvitations(discoverableInvitations);
     return pending[0] ?? null;
-  }, [invitations, requestedInvitationId]);
+  }, [discoverableInvitations, requestedInvitationId]);
 
   const currentStep = activeInvitation
     ? getInvitationWizardStep(activeInvitation.status)
@@ -151,7 +162,7 @@ function InvitationRespondWizard() {
     }
   };
 
-  if (loading) {
+  if (loading || catalogLoading) {
     return (
       <div className="loading-container invitation-respond-wizard-loading">
         <LoadingSpinner />

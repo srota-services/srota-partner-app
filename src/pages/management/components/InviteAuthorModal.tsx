@@ -1,6 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useAppDispatch } from '../../../hooks/redux';
-import { getAuthors, type AuthorItem } from '../../../utils/audiobookApi';
+import {
+  getDiscoverableAuthors,
+  toAuthorPickerItem,
+  type AuthorItem,
+} from '../../../utils/audiobookApi';
 import { inviteAuthor } from '../../../store/slices/organizationAuthorsSlice';
 import Modal from '../../../components/common/Modal';
 import SearchBar from '../../../components/common/SearchBar';
@@ -45,10 +49,10 @@ const InviteAuthorModal: React.FC<InviteAuthorModalProps> = ({
     let cancelled = false;
     setLoading(true);
 
-    getAuthors()
-      .then(data => {
+    getDiscoverableAuthors(1, 100)
+      .then(result => {
         if (!cancelled) {
-          setAuthors(data);
+          setAuthors(result.authors.map(toAuthorPickerItem));
         }
       })
       .catch(error => {

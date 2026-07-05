@@ -45,7 +45,18 @@ vi.mock('../src/utils/audiobookApi', async importOriginal => {
         },
       ],
     }),
+    getDiscoverableOrganizations: vi.fn().mockResolvedValue({
+      organizations: [
+        {
+          id: 'org-1',
+          name: 'Acme Publishing',
+          slug: 'acme',
+          description: 'A publisher',
+        },
+      ],
+    }),
     getAuthors: vi.fn().mockResolvedValue([]),
+    getDiscoverableAuthors: vi.fn().mockResolvedValue({ authors: [] }),
   };
 });
 

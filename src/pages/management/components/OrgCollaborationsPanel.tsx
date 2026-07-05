@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
+import { useDiscoverableCatalogIds } from '../../../hooks/useDiscoverableCatalogIds';
 import {
   acceptCollaboration,
   fetchCollaborations,
@@ -13,6 +14,7 @@ import CollaborationsTable from './CollaborationsTable';
 import NegotiateCollaborationModal from './NegotiateCollaborationModal';
 import CollaborationDetailModal from './CollaborationDetailModal';
 import { getCollaborationAuthorName } from '../../../utils/collaborationDisplay';
+import { isDiscoverableAuthor } from '../../../utils/discoverableCatalogFilter';
 import { showApiError, showSuccess } from '../../../utils/toast';
 import { isOrgStaffRole } from '../../../utils/authRole';
 import '../../../styles/pages/audiobooks/Audiobooks.css';
@@ -28,14 +30,20 @@ const OrgCollaborationsPanel: React.FC = () => {
     useState<OrgCollaboration | null>(null);
   const [negotiateTarget, setNegotiateTarget] =
     useState<OrgCollaboration | null>(null);
+  const { authorIds, loading: catalogLoading } = useDiscoverableCatalogIds();
 
   useEffect(() => {
     dispatch(fetchCollaborations()).catch(showApiError);
   }, [dispatch]);
 
   const orgCollaborations = useMemo(
-    () => collaborations.filter((item): item is OrgCollaboration => 'author' in item),
-    [collaborations]
+    () =>
+      collaborations
+        .filter((item): item is OrgCollaboration => 'author' in item)
+        .filter(collaboration =>
+          isDiscoverableAuthor(collaboration.author.id, authorIds)
+        ),
+    [collaborations, authorIds]
   );
 
   const filteredCollaborations = useMemo(() => {
@@ -113,7 +121,7 @@ const OrgCollaborationsPanel: React.FC = () => {
         />
       </div>
 
-      {loading ? (
+      {loading || catalogLoading ? (
         <div className="loading-container">
           <LoadingSpinner />
         </div>
