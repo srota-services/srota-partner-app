@@ -9,8 +9,6 @@ import type {
 } from '../types/auth';
 import type {
   AuthorProfileDto,
-  AuthorAppProfile,
-  AuthorAppProfileResponse,
   CompletePartnerOrganizationInput,
   CreateOrganizationRequest,
   CreateOrganizationResponse,
@@ -20,7 +18,6 @@ import type {
   RegisterRequest,
   RegisterResponse,
   UserProfile,
-  UserProfileResponse,
   VerifyRegistrationOtpRequest,
   VerifyRegistrationOtpResponse,
 } from '../types/partner';
@@ -329,37 +326,6 @@ export async function resetPassword(
 }
 
 /**
- * Fetches the authenticated author's app-service profile (avatar)
- */
-export async function getMyAuthorAppProfile(): Promise<AuthorAppProfile> {
-  try {
-    const headers = getAuthHeaders();
-    const response = await fetch(
-      `${getContentApiBaseUrl()}/api/v1/author-profiles/me`,
-      {
-        method: 'GET',
-        headers,
-      }
-    );
-    const data = await response.json();
-    if (!response.ok) {
-      const error: ApiError = {
-        message:
-          data.message || data.error || 'Failed to fetch author app profile',
-        error: data.error,
-        statusCode: response.status,
-      };
-      throw error;
-    }
-
-    const profileResponse = data as AuthorAppProfileResponse;
-    return profileResponse.data;
-  } catch (error) {
-    throw handleApiError(error);
-  }
-}
-
-/**
  * Fetches the authenticated author's profile from auth-service
  */
 export async function getMyAuthorProfile(): Promise<AuthorProfileDto> {
@@ -402,13 +368,13 @@ export async function storeAuthorSlugAfterRegistration(): Promise<void> {
 const PROFILE_RETRY_DELAY_MS = 500;
 
 /**
- * Fetches the authenticated user's profile from app-service
+ * Fetches the authenticated user's profile from auth-service
  */
 export async function getUserProfile(): Promise<UserProfile> {
   try {
     const headers = getAuthHeaders();
     const response = await fetch(
-      `${getContentApiBaseUrl()}/api/v1/user/profile`,
+      `${getAuthApiBaseUrl()}/auth/user/profile`,
       {
         method: 'GET',
         headers,
@@ -424,15 +390,14 @@ export async function getUserProfile(): Promise<UserProfile> {
       throw error;
     }
 
-    const profileResponse = data as UserProfileResponse;
-    return profileResponse.data;
+    return (data as { user: UserProfile }).user;
   } catch (error) {
     throw handleApiError(error);
   }
 }
 
 /**
- * Fetches an app profile for a specific user (avatar, username).
+ * Fetches a public profile for a specific user (avatar, username).
  */
 export async function getUserProfileByUserId(
   userId: string
@@ -440,7 +405,7 @@ export async function getUserProfileByUserId(
   try {
     const headers = getAuthHeaders();
     const response = await fetch(
-      `${getContentApiBaseUrl()}/api/v1/users/${encodeURIComponent(userId)}/profile`,
+      `${getAuthApiBaseUrl()}/auth/users/${encodeURIComponent(userId)}/profile`,
       {
         method: 'GET',
         headers,
@@ -459,8 +424,15 @@ export async function getUserProfileByUserId(
       throw error;
     }
 
-    const profileResponse = data as UserProfileResponse;
-    return profileResponse.data;
+    const { profile } = data as {
+      profile: Pick<UserProfile, 'userId' | 'username' | 'avatar'>;
+    };
+    return {
+      id: profile.userId,
+      userId: profile.userId,
+      username: profile.username,
+      avatar: profile.avatar,
+    };
   } catch (error) {
     throw handleApiError(error);
   }

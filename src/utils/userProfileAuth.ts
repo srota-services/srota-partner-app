@@ -1,4 +1,4 @@
-import type { UserProfile, AuthorAppProfile, AuthorProfileDto } from '../types/partner';
+import type { UserProfile, AuthorProfileDto } from '../types/partner';
 import type { AuthUser } from '../store/slices/authSlice';
 
 export function mapProfileToAuthUser(
@@ -20,8 +20,7 @@ export function mapProfileToAuthUser(
   };
 }
 
-export function mapAuthorProfilesToAuthUser(
-  appProfile: AuthorAppProfile,
+export function mapAuthorProfileToAuthUser(
   author: AuthorProfileDto,
   current: AuthUser | null
 ): AuthUser {
@@ -33,6 +32,6 @@ export function mapAuthorProfilesToAuthUser(
     id: author.userId ?? current?.id,
     email: current?.email,
     name,
-    avatarUrl: appProfile.avatar ?? current?.avatarUrl,
+    avatarUrl: author.avatar ?? current?.avatarUrl,
   };
 }
