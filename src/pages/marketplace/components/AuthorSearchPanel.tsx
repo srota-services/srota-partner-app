@@ -6,6 +6,7 @@ import {
   inviteAuthor,
 } from '../../../store/slices/organizationAuthorsSlice';
 import { getAuthors, type AuthorItem } from '../../../utils/audiobookApi';
+import { getAuthorDiscoveryInvitationBadge } from '../../../utils/discoveryInvitationDisplay';
 import SearchBar from '../../../components/common/SearchBar';
 import Button from '../../../components/common/Button';
 import AppImage from '../../../components/common/AppImage';
@@ -101,14 +102,14 @@ const AuthorSearchPanel: React.FC = () => {
     }
   };
 
-  const isUnavailable = (authorId: string) =>
+  const isInvited = (authorId: string) =>
     linkedAuthorIds.has(authorId) || pendingInvitationAuthorIds.has(authorId);
 
   return (
     <div className="marketplace-panel">
       <p className="marketplace-panel-description">
-        Search for authors to invite to your organization. They will receive
-        the invitation in their Inbox.
+        Search for authors to invite to your organization. Track sent
+        invitations under Manage → Invitations.
       </p>
       <SearchBar
         value={searchQuery}
@@ -126,7 +127,12 @@ const AuthorSearchPanel: React.FC = () => {
       ) : (
         <ul className="marketplace-list">
           {filteredAuthors.map(author => {
-            const unavailable = isUnavailable(author.id);
+            const invited = isInvited(author.id);
+            const badge = getAuthorDiscoveryInvitationBadge(
+              author.id,
+              linkedAuthorIds,
+              pendingInvitationAuthorIds
+            );
             const isInviting = invitingId === author.id;
 
             return (
@@ -142,18 +148,14 @@ const AuthorSearchPanel: React.FC = () => {
                     <span className="marketplace-list-name">
                       {getPickerAuthorName(author)}
                     </span>
-                    {unavailable && (
-                      <span className="marketplace-list-badge">
-                        {linkedAuthorIds.has(author.id)
-                          ? 'Already linked'
-                          : 'Invitation pending'}
-                      </span>
+                    {badge && (
+                      <span className="marketplace-list-badge">{badge}</span>
                     )}
                   </div>
                   <Button
                     variant="primary"
                     size="small"
-                    disabled={unavailable || isInviting}
+                    disabled={invited || isInviting}
                     onClick={() => handleInvite(author.id)}
                   >
                     {isInviting ? 'Inviting...' : 'Invite'}

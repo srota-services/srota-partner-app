@@ -9,7 +9,7 @@ import {
 import '../../styles/pages/management/Management.css';
 import '../../styles/pages/marketplace/Marketplace.css';
 
-const Marketplace: React.FC = () => {
+const Discovery: React.FC = () => {
   const { role, appType } = useAppSelector(state => state.auth);
   const showAuthorPanel = isOrgMarketplaceContext(appType, role);
   const showOrganizationPanel = isAuthorMarketplaceContext(appType, role);
@@ -17,12 +17,12 @@ const Marketplace: React.FC = () => {
   return (
     <div className="marketplace-page">
       <div className="management-header">
-        <h1 className="page-title">Marketplace</h1>
+        <h1 className="page-title">Discovery</h1>
         <p className="page-subtitle">
           {showAuthorPanel
             ? 'Discover and invite authors to your organization.'
             : showOrganizationPanel
-              ? 'Discover organizations and request to connect.'
+              ? 'Discover organizations on the platform.'
               : 'Discover partners on the platform.'}
         </p>
       </div>
@@ -33,11 +33,11 @@ const Marketplace: React.FC = () => {
       )}
       {!showAuthorPanel && !showOrganizationPanel && (
         <p className="marketplace-unavailable">
-          Marketplace is not available for your account type.
+          Discovery is not available for your account type.
         </p>
       )}
     </div>
   );
 };
 
-export default Marketplace;
+export default Discovery;

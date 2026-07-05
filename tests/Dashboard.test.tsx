@@ -63,9 +63,9 @@ describe('Dashboard', () => {
     expect(
       screen.getByText(/your author workspace is ready/i)
     ).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Marketplace' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Discovery' })).toHaveAttribute(
       'href',
-      '/marketplace'
+      '/discovery'
     );
     expect(
       screen.queryByText('Analytics dashboard coming soon...')

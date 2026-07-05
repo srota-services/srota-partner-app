@@ -6,39 +6,12 @@ import {
 import { getMyOrganizationInvitations } from '../../../utils/authorInvitationApi';
 import { getMyAuthorProfile } from '../../../utils/partnerApi';
 import type { AuthorInvitationForAuthor } from '../../../types/authorInvitation';
+import { getDiscoveryInvitationBadge } from '../../../utils/discoveryInvitationDisplay';
 import SearchBar from '../../../components/common/SearchBar';
-import Button from '../../../components/common/Button';
 import AppImage from '../../../components/common/AppImage';
 import LoadingSpinner from '../../../components/common/LoadingSpinner';
 import { showApiError } from '../../../utils/toast';
 import '../../../styles/pages/marketplace/Marketplace.css';
-
-const TERMINAL_INVITATION_STATUSES = new Set(['ACCEPTED', 'DECLINED']);
-
-function getOrgBadge(
-  orgId: string,
-  linkedOrgIds: Set<string>,
-  invitationsByOrgId: Map<string, AuthorInvitationForAuthor>
-): string | null {
-  if (linkedOrgIds.has(orgId)) {
-    return 'Already linked';
-  }
-
-  const invitation = invitationsByOrgId.get(orgId);
-  if (!invitation) {
-    return null;
-  }
-
-  if (invitation.status === 'ACCEPTED') {
-    return 'Already linked';
-  }
-
-  if (!TERMINAL_INVITATION_STATUSES.has(invitation.status)) {
-    return 'Invitation received';
-  }
-
-  return null;
-}
 
 const OrganizationSearchPanel: React.FC = () => {
   const [organizations, setOrganizations] = useState<CatalogOrganizationItem[]>(
@@ -112,10 +85,10 @@ const OrganizationSearchPanel: React.FC = () => {
   }, [organizations, searchQuery]);
 
   return (
-    <div className="marketplace-panel">
+    <div className="marketplace-panel" data-testid="organization-search-panel">
       <p className="marketplace-panel-description">
-        Search for organizations to connect with. Request to join will be
-        available soon.
+        Search for organizations on the platform. Start collaborations from
+        Manage → Collaborations.
       </p>
       <SearchBar
         value={searchQuery}
@@ -133,7 +106,11 @@ const OrganizationSearchPanel: React.FC = () => {
       ) : (
         <ul className="marketplace-list">
           {filteredOrganizations.map(org => {
-            const badge = getOrgBadge(org.id, linkedOrgIds, invitationsByOrgId);
+            const badge = getDiscoveryInvitationBadge(
+              org.id,
+              linkedOrgIds,
+              invitationsByOrgId
+            );
 
             return (
               <li key={org.id} className="marketplace-list-item">
@@ -155,15 +132,6 @@ const OrganizationSearchPanel: React.FC = () => {
                       <span className="marketplace-list-badge">{badge}</span>
                     )}
                   </div>
-                  <Button
-                    variant="primary"
-                    size="small"
-                    disabled
-                    title="Coming soon"
-                    aria-label="Request to join — coming soon"
-                  >
-                    Request to join
-                  </Button>
                 </div>
               </li>
             );

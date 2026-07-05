@@ -10,7 +10,6 @@ import {
   PenLine,
   Store,
   Upload,
-  Users,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useAppSelector } from '../../hooks/redux';
@@ -28,9 +27,8 @@ const navItems: NavItem[] = [
   { label: 'Library', path: '/library', icon: BookOpen },
   { label: 'Editor', path: '/editor', icon: PenLine },
   { label: 'Analytics', path: '/analytics', icon: BarChart3 },
-  { label: 'Marketplace', path: '/marketplace', icon: Store },
+  { label: 'Discovery', path: '/discovery', icon: Store },
   { label: 'Manage', path: '/management', icon: Upload },
-  { label: 'Team', path: '/team', icon: Users },
   { label: 'Inbox', path: '/inbox', icon: Inbox },
 ];
 

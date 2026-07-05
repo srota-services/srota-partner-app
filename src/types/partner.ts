@@ -7,6 +7,7 @@ export type TeamSize = '1-10' | '11-50' | '51-200' | '200+';
 
 export interface UserProfile {
   id: string;
+  userId?: string;
   email?: string;
   firstName?: string;
   lastName?: string;
@@ -135,6 +136,13 @@ export interface CompletePartnerOrganizationInput {
   image?: File;
 }
 
+export interface OrganizationMemberUserSummary {
+  email: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  contact?: string | null;
+}
+
 export interface OrganizationMemberDto {
   id: string;
   userId: string;
@@ -143,6 +151,7 @@ export interface OrganizationMemberDto {
   joinedAt: string;
   createdAt: string;
   updatedAt: string;
+  user?: OrganizationMemberUserSummary;
   organization?: OrganizationItem;
 }
 

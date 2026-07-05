@@ -518,6 +518,17 @@
   background: transparent;
 }
 
+.wizard-field-group .wizard-input-with-icon input:not(.wizard-pill-input):not(.narrators-input),
+.wizard-field-group .wizard-input-with-icon textarea,
+.wizard-field-group .wizard-input-with-icon select:not(.select-input) {
+  width: auto;
+  border: none;
+  border-radius: 0;
+  padding: 12px 0;
+  box-shadow: none;
+  background: transparent;
+}
+
 .wizard-input-with-icon textarea {
   min-height: 72px;
   resize: vertical;
@@ -528,6 +539,14 @@
 .wizard-input-with-icon select:focus {
   box-shadow: none;
   border-color: transparent;
+}
+
+.wizard-field-group .wizard-input-with-icon input:not(.wizard-pill-input):not(.narrators-input):focus,
+.wizard-field-group .wizard-input-with-icon textarea:focus,
+.wizard-field-group .wizard-input-with-icon select:not(.select-input):focus {
+  outline: none;
+  border: none;
+  box-shadow: none;
 }
 
 .narrators-input-container--inline {

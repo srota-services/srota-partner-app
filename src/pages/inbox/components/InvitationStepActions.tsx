@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useAppDispatch } from '../../../hooks/redux';
 import type { AuthorInvitationForAuthor } from '../../../types/authorInvitation';
 import {
@@ -7,9 +7,10 @@ import {
   decideJoinThunk,
 } from '../../../store/slices/authorInboxSlice';
 import { getOrganizationDisplayName } from '../../../utils/authorInvitationDisplay';
-import Button from '../../../components/common/Button';
-import ConfirmDialog from '../../../components/common/ConfirmDialog';
 import { showApiError, showSuccess } from '../../../utils/toast';
+import InvitationContactConsentStep from '../../management/components/invitation-wizard/InvitationContactConsentStep';
+import InvitationOrgContactStep from '../../management/components/invitation-wizard/InvitationOrgContactStep';
+import InvitationJoinDecisionStep from '../../management/components/invitation-wizard/InvitationJoinDecisionStep';
 import '../../../styles/pages/inbox/components/InvitationStepActions.css';
 
 interface InvitationStepActionsProps {
@@ -23,10 +24,6 @@ const InvitationStepActions: React.FC<InvitationStepActionsProps> = ({
 }) => {
   const dispatch = useAppDispatch();
   const orgName = getOrganizationDisplayName(invitation.organization);
-
-  const [confirmDialog, setConfirmDialog] = useState<{
-    type: 'decline-reveal' | 'decline-join';
-  } | null>(null);
 
   const handleReveal = async (reveal: boolean) => {
     try {
@@ -64,118 +61,29 @@ const InvitationStepActions: React.FC<InvitationStepActionsProps> = ({
   switch (invitation.status) {
     case 'PENDING_CONTACT_CONSENT':
       return (
-        <>
-          <div className="invitation-step-actions">
-            <p className="invitation-step-copy">
-              <strong>{orgName}</strong> has invited you to join their
-              organization. Would you like to share your email and contact
-              information so they can reach you?
-            </p>
-            <div className="invitation-step-buttons">
-              <Button
-                variant="primary"
-                size="small"
-                disabled={isLoading}
-                onClick={() => handleReveal(true)}
-              >
-                Share contact info
-              </Button>
-              <Button
-                variant="danger"
-                size="small"
-                disabled={isLoading}
-                onClick={() => setConfirmDialog({ type: 'decline-reveal' })}
-              >
-                Decline invitation
-              </Button>
-            </div>
-          </div>
-          <ConfirmDialog
-            isOpen={confirmDialog?.type === 'decline-reveal'}
-            onClose={() => setConfirmDialog(null)}
-            onConfirm={async () => {
-              await handleReveal(false);
-              setConfirmDialog(null);
-            }}
-            title="Decline invitation"
-            message={`Declining will automatically reject the invitation from ${orgName}. This cannot be undone.`}
-            confirmText="Decline"
-            cancelText="Cancel"
-            variant="danger"
-            isLoading={isLoading}
-          />
-        </>
+        <InvitationContactConsentStep
+          invitation={invitation}
+          isLoading={isLoading}
+          onReveal={handleReveal}
+        />
       );
 
     case 'AWAITING_ORG_CONTACT':
       return (
-        <div className="invitation-step-actions">
-          <p className="invitation-step-copy">
-            You shared your contact details with <strong>{orgName}</strong>.
-            Has the organization contacted you?
-          </p>
-          <div className="invitation-step-buttons">
-            <Button
-              variant="primary"
-              size="small"
-              disabled={isLoading}
-              onClick={() => handleConfirmContact(true)}
-            >
-              Yes, they contacted me
-            </Button>
-            <Button
-              variant="outline"
-              size="small"
-              disabled={isLoading}
-              onClick={() => handleConfirmContact(false)}
-            >
-              Not yet
-            </Button>
-          </div>
-        </div>
+        <InvitationOrgContactStep
+          invitation={invitation}
+          isLoading={isLoading}
+          onConfirmContact={handleConfirmContact}
+        />
       );
 
     case 'AWAITING_JOIN_DECISION':
       return (
-        <>
-          <div className="invitation-step-actions">
-            <p className="invitation-step-copy">
-              Would you like to join <strong>{orgName}</strong>?
-            </p>
-            <div className="invitation-step-buttons">
-              <Button
-                variant="primary"
-                size="small"
-                disabled={isLoading}
-                onClick={() => handleJoin(true)}
-              >
-                Accept & join
-              </Button>
-              <Button
-                variant="danger"
-                size="small"
-                disabled={isLoading}
-                onClick={() => setConfirmDialog({ type: 'decline-join' })}
-              >
-                Decline
-              </Button>
-            </div>
-          </div>
-          <ConfirmDialog
-            isOpen={confirmDialog?.type === 'decline-join'}
-            onClose={() => setConfirmDialog(null)}
-            onConfirm={async () => {
-              await handleJoin(false);
-              setConfirmDialog(null);
-            }}
-            title="Decline to join"
-            message={`Are you sure you do not want to join ${orgName}?`}
-            confirmText="Decline"
-            cancelText="Cancel"
-            variant="danger"
-            isLoading={isLoading}
-          />
-        </>
+        <InvitationJoinDecisionStep
+          invitation={invitation}
+          isLoading={isLoading}
+          onJoin={handleJoin}
+        />
       );
 
     case 'DECLINED':
