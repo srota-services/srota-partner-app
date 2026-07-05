@@ -15,9 +15,9 @@ import {
   ChapterWizard,
   Dashboard,
   Analytics,
-  Marketplace,
+  Discovery,
   Management,
-  Team,
+  CollaborationCreate,
   Inbox,
   Settings,
   Editor,
@@ -154,10 +154,25 @@ function App() {
           <Route path="/library/:id/chapters" element={<Chapters />} />
           <Route path="/library" element={<Audiobooks />} />
           <Route path="/analytics" element={<Analytics />} />
-          <Route path="/marketplace" element={<Marketplace />} />
+          <Route path="/discovery" element={<Discovery />} />
+          <Route
+            path="/marketplace"
+            element={<Navigate to="/discovery" replace />}
+          />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/management" element={<Management />} />
-          <Route path="/team" element={<Team />} />
+          <Route
+            path="/management/collaborations/create"
+            element={
+              <AuthorRoute>
+                <CollaborationCreate />
+              </AuthorRoute>
+            }
+          />
+          <Route
+            path="/team"
+            element={<Navigate to="/management?tab=team" replace />}
+          />
           <Route path="/inbox" element={<Inbox />} />
           <Route path="/settings" element={<Settings />} />
           <Route

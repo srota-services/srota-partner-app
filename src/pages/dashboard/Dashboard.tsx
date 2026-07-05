@@ -43,8 +43,8 @@ const Dashboard: React.FC = () => {
           <p className="dashboard-welcome-text">
             Your author workspace is ready. Analytics and insights are coming
             soon. In the meantime, visit the{' '}
-            <Link to="/marketplace" className="dashboard-welcome-link">
-              Marketplace
+            <Link to="/discovery" className="dashboard-welcome-link">
+              Discovery
             </Link>{' '}
             to discover organizations you can connect with.
           </p>

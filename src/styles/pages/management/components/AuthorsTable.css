@@ -57,11 +57,33 @@
 }
 
 .authors-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
-.authors-search {
+.authors-filter-bar .authors-search {
+  flex: 0 1 auto;
   max-width: 360px;
+  width: 100%;
+}
+
+.collaborations-toolbar {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.collaborations-toolbar .authors-search.search-bar {
+  flex: 0 0 auto;
+  width: 360px;
+  max-width: 360px;
+}
+
+.collaborations-toolbar-action {
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .loading-container {
@@ -78,5 +100,20 @@
 
   .authors-search {
     max-width: 100%;
+  }
+
+  .collaborations-toolbar .authors-search.search-bar {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .collaborations-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .collaborations-toolbar-action {
+    margin-left: 0;
+    width: 100%;
   }
 }

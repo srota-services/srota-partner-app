@@ -18,19 +18,19 @@ function QuickActionsWidget() {
   const navigate = useNavigate();
   const { role, appType } = useAppSelector(state => state.auth);
 
-  const marketplaceAction = useMemo(() => {
+  const discoveryAction = useMemo(() => {
     if (isOrgMarketplaceContext(appType, role)) {
       return {
-        label: 'Browse Marketplace',
+        label: 'Browse Discovery',
         icon: Store,
-        onClick: () => navigate('/marketplace'),
+        onClick: () => navigate('/discovery'),
       };
     }
     if (isAuthorMarketplaceContext(appType, role)) {
       return {
         label: 'Find Organizations',
         icon: Store,
-        onClick: () => navigate('/marketplace'),
+        onClick: () => navigate('/discovery'),
       };
     }
     return null;
@@ -48,7 +48,7 @@ function QuickActionsWidget() {
       onClick: () => navigate('/library/create'),
     },
     { label: 'View Analytics', icon: BarChart3, onClick: () => navigate('/analytics') },
-    ...(marketplaceAction ? [marketplaceAction] : []),
+    ...(discoveryAction ? [discoveryAction] : []),
   ];
 
   return (

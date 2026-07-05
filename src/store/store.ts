@@ -10,6 +10,8 @@ import languagesReducer from './slices/languagesSlice';
 import tagsReducer from './slices/tagsSlice';
 import authorsReducer from './slices/authorsSlice';
 import organizationAuthorsReducer from './slices/organizationAuthorsSlice';
+import organizationMembersReducer from './slices/organizationMembersSlice';
+import collaborationsReducer from './slices/collaborationsSlice';
 import authorInboxReducer from './slices/authorInboxSlice';
 import partnerRegistrationReducer from './slices/partnerRegistrationSlice';
 import transcodingReducer from './slices/transcodingSlice';
@@ -27,6 +29,8 @@ export const store = configureStore({
     tags: tagsReducer,
     authors: authorsReducer,
     organizationAuthors: organizationAuthorsReducer,
+    organizationMembers: organizationMembersReducer,
+    collaborations: collaborationsReducer,
     authorInbox: authorInboxReducer,
     partnerRegistration: partnerRegistrationReducer,
   },

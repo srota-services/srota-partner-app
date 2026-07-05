@@ -42,13 +42,15 @@ export const Dashboard = lazyWithPreload(
 export const Analytics = lazyWithPreload(
   () => import('../pages/analytics/Analytics')
 );
-export const Marketplace = lazyWithPreload(
+export const Discovery = lazyWithPreload(
   () => import('../pages/marketplace/Marketplace')
 );
 export const Management = lazyWithPreload(
   () => import('../pages/management/Management')
 );
-export const Team = lazyWithPreload(() => import('../pages/team/Team'));
+export const CollaborationCreate = lazyWithPreload(
+  () => import('../pages/management/CollaborationCreate')
+);
 export const Inbox = lazyWithPreload(() => import('../pages/inbox/Inbox'));
 export const Settings = lazyWithPreload(
   () => import('../pages/settings/Settings')
@@ -67,9 +69,8 @@ export const PRELOADABLE_PAGES = [
   ChapterWizard,
   Editor,
   Analytics,
-  Marketplace,
+  Discovery,
   Management,
-  Team,
   Inbox,
   Settings,
 ];

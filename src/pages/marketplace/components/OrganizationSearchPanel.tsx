@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
 import {
   getAllOrganizations,
   type CatalogOrganizationItem,
@@ -6,6 +8,11 @@ import {
 import { getMyOrganizationInvitations } from '../../../utils/authorInvitationApi';
 import { getMyAuthorProfile } from '../../../utils/partnerApi';
 import type { AuthorInvitationForAuthor } from '../../../types/authorInvitation';
+import {
+  TERMINAL_COLLABORATION_STATUSES,
+  type AuthorCollaboration,
+} from '../../../types/authorCollaboration';
+import { fetchCollaborations } from '../../../store/slices/collaborationsSlice';
 import SearchBar from '../../../components/common/SearchBar';
 import Button from '../../../components/common/Button';
 import AppImage from '../../../components/common/AppImage';
@@ -18,10 +25,19 @@ const TERMINAL_INVITATION_STATUSES = new Set(['ACCEPTED', 'DECLINED']);
 function getOrgBadge(
   orgId: string,
   linkedOrgIds: Set<string>,
-  invitationsByOrgId: Map<string, AuthorInvitationForAuthor>
+  invitationsByOrgId: Map<string, AuthorInvitationForAuthor>,
+  collaborationsByOrgId: Map<string, AuthorCollaboration>
 ): string | null {
   if (linkedOrgIds.has(orgId)) {
     return 'Already linked';
+  }
+
+  const collaboration = collaborationsByOrgId.get(orgId);
+  if (
+    collaboration &&
+    !TERMINAL_COLLABORATION_STATUSES.has(collaboration.status)
+  ) {
+    return 'Collaboration pending';
   }
 
   const invitation = invitationsByOrgId.get(orgId);
@@ -40,7 +56,44 @@ function getOrgBadge(
   return null;
 }
 
+function canRequestToJoin(
+  orgId: string,
+  linkedOrgIds: Set<string>,
+  invitationsByOrgId: Map<string, AuthorInvitationForAuthor>,
+  collaborationsByOrgId: Map<string, AuthorCollaboration>
+): boolean {
+  if (linkedOrgIds.has(orgId)) {
+    return false;
+  }
+
+  const collaboration = collaborationsByOrgId.get(orgId);
+  if (
+    collaboration &&
+    !TERMINAL_COLLABORATION_STATUSES.has(collaboration.status)
+  ) {
+    return false;
+  }
+
+  const invitation = invitationsByOrgId.get(orgId);
+  if (invitation && !TERMINAL_INVITATION_STATUSES.has(invitation.status)) {
+    return false;
+  }
+
+  return true;
+}
+
+function buildCollaborationCreatePath(org: CatalogOrganizationItem): string {
+  const params = new URLSearchParams({
+    organizationId: org.id,
+    organizationName: org.name,
+  });
+  return `/management/collaborations/create?${params.toString()}`;
+}
+
 const OrganizationSearchPanel: React.FC = () => {
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const { collaborations } = useAppSelector(state => state.collaborations);
   const [organizations, setOrganizations] = useState<CatalogOrganizationItem[]>(
     []
   );
@@ -59,6 +112,7 @@ const OrganizationSearchPanel: React.FC = () => {
       getAllOrganizations(1, 100),
       getMyOrganizationInvitations(),
       getMyAuthorProfile(),
+      dispatch(fetchCollaborations()).unwrap(),
     ])
       .then(([catalog, authorInvitations, authorProfile]) => {
         if (cancelled) {
@@ -84,7 +138,7 @@ const OrganizationSearchPanel: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [dispatch]);
 
   const invitationsByOrgId = useMemo(() => {
     const map = new Map<string, AuthorInvitationForAuthor>();
@@ -93,6 +147,16 @@ const OrganizationSearchPanel: React.FC = () => {
     });
     return map;
   }, [invitations]);
+
+  const collaborationsByOrgId = useMemo(() => {
+    const map = new Map<string, AuthorCollaboration>();
+    collaborations.forEach(collaboration => {
+      if ('organization' in collaboration) {
+        map.set(collaboration.organization.id, collaboration);
+      }
+    });
+    return map;
+  }, [collaborations]);
 
   const filteredOrganizations = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -112,10 +176,10 @@ const OrganizationSearchPanel: React.FC = () => {
   }, [organizations, searchQuery]);
 
   return (
-    <div className="marketplace-panel">
+    <div className="marketplace-panel" data-testid="organization-search-panel">
       <p className="marketplace-panel-description">
-        Search for organizations to connect with. Request to join will be
-        available soon.
+        Search for organizations to connect with and submit a collaboration
+        request.
       </p>
       <SearchBar
         value={searchQuery}
@@ -133,7 +197,18 @@ const OrganizationSearchPanel: React.FC = () => {
       ) : (
         <ul className="marketplace-list">
           {filteredOrganizations.map(org => {
-            const badge = getOrgBadge(org.id, linkedOrgIds, invitationsByOrgId);
+            const badge = getOrgBadge(
+              org.id,
+              linkedOrgIds,
+              invitationsByOrgId,
+              collaborationsByOrgId
+            );
+            const canJoin = canRequestToJoin(
+              org.id,
+              linkedOrgIds,
+              invitationsByOrgId,
+              collaborationsByOrgId
+            );
 
             return (
               <li key={org.id} className="marketplace-list-item">
@@ -158,9 +233,18 @@ const OrganizationSearchPanel: React.FC = () => {
                   <Button
                     variant="primary"
                     size="small"
-                    disabled
-                    title="Coming soon"
-                    aria-label="Request to join — coming soon"
+                    disabled={!canJoin}
+                    title={
+                      canJoin
+                        ? 'Submit a collaboration request'
+                        : 'Request unavailable for this organization'
+                    }
+                    aria-label={
+                      canJoin
+                        ? `Request to join ${org.name}`
+                        : `Request to join ${org.name} unavailable`
+                    }
+                    onClick={() => navigate(buildCollaborationCreatePath(org))}
                   >
                     Request to join
                   </Button>
