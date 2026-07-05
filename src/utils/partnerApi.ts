@@ -17,18 +17,23 @@ import type {
   RegisterPartnerUserInput,
   RegisterRequest,
   RegisterResponse,
+  UpdateMyAuthorProfileRequest,
+  UpdateOrganizationRequest,
+  UpdateUserProfileRequest,
   UserProfile,
   VerifyRegistrationOtpRequest,
   VerifyRegistrationOtpResponse,
 } from '../types/partner';
 import {
   getAuthApiBaseUrl,
-  getContentApiBaseUrl,
   getAuthHeaders,
   getAuthHeadersForFileUpload,
   handleApiError,
 } from './config';
-import { buildOrganizationFormData } from './organizationFormData';
+import {
+  buildOrganizationFormData,
+  buildOrganizationUpdateFormData,
+} from './organizationFormData';
 import {
   buildRegisterFormData,
   type RegisterFormDataInput,
@@ -397,6 +402,156 @@ export async function getUserProfile(): Promise<UserProfile> {
 }
 
 /**
+ * Updates the authenticated user's profile (partial JSON or avatar upload)
+ */
+export async function updateUserProfile(
+  payload: UpdateUserProfileRequest
+): Promise<UserProfile> {
+  try {
+    if (payload.avatar) {
+      const formData = new FormData();
+      formData.append('avatar', payload.avatar);
+      const headers = getAuthHeadersForFileUpload();
+      const response = await fetch(
+        `${getAuthApiBaseUrl()}/auth/user/profile`,
+        {
+          method: 'PUT',
+          headers,
+          body: formData,
+        }
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        const error: ApiError = {
+          message: data.message || data.error || 'Failed to update user profile',
+          error: data.error,
+          statusCode: response.status,
+        };
+        throw error;
+      }
+
+      return (data as { user: UserProfile }).user;
+    }
+
+    const headers = getAuthHeaders();
+    const response = await fetch(
+      `${getAuthApiBaseUrl()}/auth/user/profile`,
+      {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(payload),
+      }
+    );
+    const data = await response.json();
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to update user profile',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    return (data as { user: UserProfile }).user;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Requests an OTP to verify email change
+ */
+export async function requestEmailUpdateOtp(
+  email: string
+): Promise<MessageResponse> {
+  try {
+    const headers = getAuthHeaders();
+    const response = await fetch(
+      `${getAuthApiBaseUrl()}/auth/request-email-update-otp?email=${encodeURIComponent(email.trim())}`,
+      {
+        method: 'GET',
+        headers,
+      }
+    );
+    const data = await response.json();
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to send verification code',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    return data as MessageResponse;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Verifies the OTP for email change
+ */
+export async function verifyEmailUpdateOtp(
+  otp: string
+): Promise<MessageResponse> {
+  try {
+    const headers = getAuthHeaders();
+    const response = await fetch(
+      `${getAuthApiBaseUrl()}/auth/verify-email-update-otp`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ otp: otp.trim() }),
+      }
+    );
+    const data = await response.json();
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to verify code',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    return data as MessageResponse;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Updates the user's email after OTP verification
+ */
+export async function updateEmail(newEmail: string): Promise<MessageResponse> {
+  try {
+    const headers = getAuthHeaders();
+    const response = await fetch(
+      `${getAuthApiBaseUrl()}/auth/update-email`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ newEmail: newEmail.trim() }),
+      }
+    );
+    const data = await response.json();
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to update email',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    return data as MessageResponse;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
  * Fetches a public profile for a specific user (avatar, username).
  */
 export async function getUserProfileByUserId(
@@ -530,4 +685,109 @@ export async function completePartnerOrganizationSetup(
     preferredGenre: input.preferredGenre,
     image: input.image,
   });
+}
+
+/**
+ * Fetches a single organization by ID from auth-service
+ */
+export async function getOrganizationById(
+  id: string
+): Promise<OrganizationItem> {
+  try {
+    const headers = getAuthHeaders();
+    const response = await fetch(
+      `${getAuthApiBaseUrl()}/auth/organizations/${encodeURIComponent(id)}`,
+      {
+        method: 'GET',
+        headers,
+      }
+    );
+    const data = await response.json();
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to fetch organization',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    return (data as { organization: OrganizationItem }).organization;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Updates an organization with partial fields (multipart)
+ */
+export async function updateOrganization(
+  id: string,
+  payload: UpdateOrganizationRequest
+): Promise<OrganizationItem> {
+  try {
+    const formData = buildOrganizationUpdateFormData(payload);
+    const headers = getAuthHeadersForFileUpload();
+    const response = await fetch(
+      `${getAuthApiBaseUrl()}/auth/organizations/${encodeURIComponent(id)}`,
+      {
+        method: 'PUT',
+        headers,
+        body: formData,
+      }
+    );
+    const data = await response.json();
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to update organization',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    return (data as { organization: OrganizationItem }).organization;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Updates the authenticated author's profile (avatar, discoverable)
+ */
+export async function updateMyAuthorProfile(
+  payload: UpdateMyAuthorProfileRequest
+): Promise<AuthorProfileDto> {
+  try {
+    const formData = new FormData();
+    if (payload.profileImage) {
+      formData.append('profileImage', payload.profileImage);
+    }
+    if (payload.discoverable !== undefined) {
+      formData.append(
+        'discoverable',
+        payload.discoverable ? 'true' : 'false'
+      );
+    }
+
+    const headers = getAuthHeadersForFileUpload();
+    const response = await fetch(`${getAuthApiBaseUrl()}/auth/authors/me`, {
+      method: 'PUT',
+      headers,
+      body: formData,
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to update author profile',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    return (data as { author: AuthorProfileDto }).author;
+  } catch (error) {
+    throw handleApiError(error);
+  }
 }

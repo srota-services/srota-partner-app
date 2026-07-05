@@ -18,6 +18,7 @@ interface ImageUploadZoneProps {
   showPreview?: boolean;
   ariaLabel?: string;
   recommendedSizeHint?: string;
+  variant?: 'default' | 'avatar';
 }
 
 function isAcceptedImage(file: File): boolean {
@@ -54,6 +55,7 @@ function ImageUploadZone({
   showPreview = true,
   ariaLabel = 'Upload image',
   recommendedSizeHint,
+  variant = 'default',
 }: ImageUploadZoneProps) {
   const inputId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -111,6 +113,67 @@ function ImageUploadZone({
       inputRef.current.value = '';
     }
   };
+
+  if (variant === 'avatar') {
+    return (
+      <div className="image-upload-zone image-upload-zone--avatar">
+        <label
+          htmlFor={inputId}
+          className={`image-upload-avatar-trigger${dragOver ? ' image-upload-avatar-trigger--active' : ''}${disabled ? ' image-upload-avatar-trigger--disabled' : ''}`}
+          onDragOver={event => {
+            event.preventDefault();
+            if (!disabled) {
+              setDragOver(true);
+            }
+          }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={handleDrop}
+          aria-label={ariaLabel}
+        >
+          <div className="image-upload-avatar">
+            {objectPreview ? (
+              <AppImage
+                src={objectPreview}
+                alt="Avatar preview"
+                variant="cover"
+                className="image-upload-avatar-image"
+              />
+            ) : (
+              <CloudUpload size={28} className="image-upload-icon" aria-hidden="true" />
+            )}
+          </div>
+          <span className="image-upload-avatar-action">
+            {objectPreview ? 'Change photo' : 'Upload photo'}
+          </span>
+          <input
+            id={inputId}
+            ref={inputRef}
+            type="file"
+            accept={ACCEPTED_TYPES.join(',')}
+            className="image-upload-input"
+            onChange={handleFileChange}
+            disabled={disabled}
+          />
+        </label>
+
+        {objectPreview && (
+          <CloseButton
+            size="sm"
+            className="image-upload-avatar-remove"
+            label="Remove image"
+            onClick={event => {
+              event.stopPropagation();
+              clearFile();
+            }}
+            disabled={disabled}
+          />
+        )}
+
+        {hintText && <p className="image-upload-hint">{hintText}</p>}
+        {error && <span className="upload-zone-error">{error}</span>}
+      </div>
+    );
+  }
 
   return (
     <div className={`image-upload-zone${compact ? ' image-upload-zone--compact' : ''}`}>

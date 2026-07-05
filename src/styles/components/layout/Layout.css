@@ -33,6 +33,10 @@
   margin-left: 240px;
 }
 
+.layout-main--settings {
+  margin-left: 0;
+}
+
 .layout-page-fallback {
   display: flex;
   align-items: center;
@@ -42,6 +46,10 @@
 }
 
 @media (max-width: 768px) {
+  .layout-main--settings {
+    margin-left: 0;
+  }
+
   .layout-main {
     padding: 16px;
     margin-left: 200px;
