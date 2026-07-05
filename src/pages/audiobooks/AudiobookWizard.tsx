@@ -3,6 +3,7 @@ import { useFilePreviewUrl } from '../../hooks/useFilePreviewUrl';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import {
   BookOpen,
+  Crown,
   FileText,
   Image as ImageIcon,
   Users,
@@ -12,6 +13,7 @@ import WizardShell from '../../components/wizard/WizardShell';
 import type { WizardStepConfig } from '../../components/wizard/WizardStepper';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { fetchGenres } from '../../store/slices/genresSlice';
+import { fetchLanguages } from '../../store/slices/languagesSlice';
 import { fetchTags } from '../../store/slices/tagsSlice';
 import {
   createAudiobookThunk,
@@ -38,11 +40,13 @@ import {
   validateAudiobookStep,
   type AudiobookWizardStep,
 } from '../../utils/audiobookWizard';
+import { resolveDefaultLanguageName } from '../../utils/languages';
 import AudiobookLivePreview from './components/wizard/AudiobookLivePreview';
 import BasicsStep from './components/wizard/steps/BasicsStep';
 import ContributorsStep from './components/wizard/steps/ContributorsStep';
 import ContentAssetsStep from './components/wizard/steps/ContentAssetsStep';
 import ReviewPublishStep from './components/wizard/steps/ReviewPublishStep';
+import SubscriptionTiersStep from './components/wizard/steps/SubscriptionTiersStep';
 import '../../styles/components/wizard/WizardShell.css';
 import '../../styles/pages/audiobooks/AudiobookWizard.css';
 
@@ -53,6 +57,11 @@ const AUDIOBOOK_STEPS: WizardStepConfig[] = [
     label: 'Content & Assets',
     description: 'Upload cover image',
     icon: ImageIcon,
+  },
+  {
+    label: 'Subscription tiers',
+    description: 'Set access and pricing',
+    icon: Crown,
   },
   {
     label: 'Review & Publish',
@@ -73,6 +82,9 @@ function AudiobookWizard() {
 
   const { genres, loading: genresLoading } = useAppSelector(
     state => state.genres
+  );
+  const { languages, loading: languagesLoading } = useAppSelector(
+    state => state.languages
   );
   const { tags, loading: tagsLoading } = useAppSelector(state => state.tags);
   const { loading, filter } = useAppSelector(state => state.audiobooks);
@@ -107,13 +119,47 @@ function AudiobookWizard() {
     if (tags.length === 0) {
       dispatch(fetchTags());
     }
-  }, [dispatch, genres.length, tags.length]);
+    if (languages.length === 0) {
+      dispatch(fetchLanguages());
+    }
+  }, [dispatch, genres.length, tags.length, languages.length]);
 
   useEffect(() => {
-    if (mode === 'edit' && editingAudiobook && genres.length > 0 && tags.length > 0) {
-      setData(hydrateAudiobookWizardData(editingAudiobook, genres, tags));
+    if (
+      mode === 'edit' &&
+      editingAudiobook &&
+      genres.length > 0 &&
+      tags.length > 0
+    ) {
+      setData(
+        hydrateAudiobookWizardData(
+          editingAudiobook,
+          genres,
+          tags,
+          languages
+        )
+      );
     }
-  }, [mode, editingAudiobook, genres, tags]);
+  }, [mode, editingAudiobook, genres, tags, languages]);
+
+  useEffect(() => {
+    if (mode !== 'create' || languages.length === 0) {
+      return;
+    }
+
+    const defaultLanguage = resolveDefaultLanguageName(languages);
+    setData(prev => {
+      const hasKnownLanguage = languages.some(
+        language => language.name === prev.language
+      );
+
+      if (hasKnownLanguage) {
+        return prev;
+      }
+
+      return { ...prev, language: defaultLanguage };
+    });
+  }, [mode, languages]);
 
   useEffect(() => {
     if (mode === 'edit') {
@@ -190,7 +236,7 @@ function AudiobookWizard() {
     if (!validateCurrentStep()) {
       return;
     }
-    setStep(prev => Math.min(4, prev + 1) as AudiobookWizardStep);
+    setStep(prev => Math.min(5, prev + 1) as AudiobookWizardStep);
   };
 
   const handleBack = () => {
@@ -243,7 +289,7 @@ function AudiobookWizard() {
       }
       await dispatch(fetchAudiobooks({ page: 1, filter }));
       localStorage.removeItem(DRAFT_STORAGE_KEY);
-      navigate('/audiobooks');
+      navigate('/library');
     } catch (error) {
       showApiError(error);
     }
@@ -263,7 +309,7 @@ function AudiobookWizard() {
       subtitle={subtitle}
       mode={mode}
       currentStep={step}
-      totalSteps={4}
+      totalSteps={5}
       steps={AUDIOBOOK_STEPS}
       draftSaved={draftSaved}
       isLoading={loading}
@@ -277,12 +323,12 @@ function AudiobookWizard() {
           subscriptionPlans={subscriptionPlans}
         />
       }
-      onCancel={() => navigate('/audiobooks')}
+      onCancel={() => navigate('/library')}
       onSaveDraft={mode === 'create' ? handleSaveDraft : undefined}
       onBack={step > 1 ? handleBack : undefined}
-      onContinue={step < 4 ? handleContinue : undefined}
-      onPublish={step === 4 ? () => void submitAudiobook(false) : undefined}
-      onSchedule={step === 4 ? () => void submitAudiobook(true) : undefined}
+      onContinue={step < 5 ? handleContinue : undefined}
+      onPublish={step === 5 ? () => void submitAudiobook(false) : undefined}
+      onSchedule={step === 5 ? () => void submitAudiobook(true) : undefined}
       scheduledAt={data.scheduledAt}
       scheduleError={errors.scheduledAt}
       onScheduledAtChange={scheduledAt => {
@@ -290,8 +336,8 @@ function AudiobookWizard() {
         setErrors(prev => ({ ...prev, scheduledAt: undefined }));
       }}
       showBack={step > 1}
-      showContinue={step < 4}
-      showPublishActions={step === 4}
+      showContinue={step < 5}
+      showPublishActions={step === 5}
     >
       {ownerError && step === 1 && mode === 'create' && (
         <p className="wizard-field-error">{ownerError}</p>
@@ -304,11 +350,11 @@ function AudiobookWizard() {
           genres={genres}
           tags={tags}
           moods={moods}
-          subscriptionPlans={subscriptionPlans}
+          languages={languages}
           genresLoading={genresLoading}
           tagsLoading={tagsLoading}
           moodsLoading={moodsLoading}
-          subscriptionPlansLoading={subscriptionPlansLoading}
+          languagesLoading={languagesLoading}
           isLoading={loading}
           onChange={updateData}
         />
@@ -325,11 +371,22 @@ function AudiobookWizard() {
         <ContentAssetsStep
           data={data}
           errors={errors}
+          mode={mode}
           isLoading={loading}
           onChange={updateData}
         />
       )}
       {step === 4 && (
+        <SubscriptionTiersStep
+          data={data}
+          errors={errors}
+          subscriptionPlans={subscriptionPlans}
+          subscriptionPlansLoading={subscriptionPlansLoading}
+          isLoading={loading}
+          onChange={updateData}
+        />
+      )}
+      {step === 5 && (
         <ReviewPublishStep
           data={data}
           genres={genres}

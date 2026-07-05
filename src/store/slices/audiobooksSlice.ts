@@ -9,6 +9,8 @@ import {
   updateAudiobook,
   deleteAudiobook,
 } from '../../utils/audiobookApi';
+import { resolveAudiobookFetchOwnerId } from '../../utils/resolveAudiobookFetchOwnerId';
+import type { RootState } from '../store';
 import type {
   AudiobookApiResponse,
   AudiobooksApiResponse,
@@ -48,7 +50,7 @@ export const fetchAudiobooks = createAsyncThunk(
   'audiobooks/fetchAudiobooks',
   async (
     { page = 1, filter }: { page?: number; filter?: AudiobookFilter },
-    { rejectWithValue }
+    { rejectWithValue, getState }
   ) => {
     try {
       if (filter === 'drafts' || filter === 'archived') {
@@ -70,9 +72,18 @@ export const fetchAudiobooks = createAsyncThunk(
         } satisfies AudiobooksApiResponse;
       }
 
+      const { appType } = (getState() as RootState).auth;
+      const ownerId = await resolveAudiobookFetchOwnerId(appType);
+
       const active = filter === 'live' ? true : undefined;
       const scheduled = filter === 'scheduled' ? true : undefined;
-      const response = await getAudiobooks(page, active, scheduled);
+      const response = await getAudiobooks(
+        page,
+        active,
+        scheduled,
+        ownerId ?? undefined,
+        'PUBLICATION'
+      );
       return response;
     } catch (error) {
       return rejectWithValue(error);
@@ -173,16 +184,24 @@ const audiobooksSlice = createSlice({
         state.loading = false;
         state.error = action.payload
           ? String(action.payload)
-          : 'Failed to create audiobook';
+          : 'Failed to create Audiobook. Try again later.';
       })
       .addCase(updateAudiobookThunk.pending, state => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(updateAudiobookThunk.fulfilled, state => {
-        state.loading = false;
-        // Don't update audiobook here - let fetchAudiobooks handle it to ensure consistency
-      })
+      .addCase(
+        updateAudiobookThunk.fulfilled,
+        (state, action: PayloadAction<AudiobookApiResponse>) => {
+          state.loading = false;
+          const index = state.audiobooks.findIndex(
+            audiobook => audiobook.id === action.payload.id
+          );
+          if (index !== -1) {
+            state.audiobooks[index] = action.payload;
+          }
+        }
+      )
       .addCase(updateAudiobookThunk.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload

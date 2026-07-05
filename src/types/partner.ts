@@ -6,18 +6,24 @@ export type PartnerType = 'organization' | 'individual';
 export type TeamSize = '1-10' | '11-50' | '51-200' | '200+';
 
 export interface UserProfile {
-  id: string;
+  id?: string;
+  userId?: string;
   email?: string;
   firstName?: string;
   lastName?: string;
+  username?: string;
   avatarUrl?: string;
   avatar?: string;
+  address?: string | null;
+  contact?: string | null;
 }
 
-export interface UserProfileResponse {
-  success: boolean;
-  data: UserProfile;
-  message?: string;
+export interface UpdateUserProfileRequest {
+  firstName?: string;
+  lastName?: string;
+  address?: string | null;
+  contact?: string | null;
+  avatar?: File;
 }
 
 export interface OrganizationItem {
@@ -29,9 +35,25 @@ export interface OrganizationItem {
   preferredGenre?: string | null;
   websiteUrl?: string | null;
   teamSize?: TeamSize | null;
+  discoverable?: boolean;
   memberCount?: number;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface UpdateOrganizationRequest {
+  name?: string;
+  description?: string;
+  image?: File;
+  preferredGenre?: string | null;
+  websiteUrl?: string | null;
+  teamSize?: TeamSize | null;
+  discoverable?: boolean;
+}
+
+export interface UpdateMyAuthorProfileRequest {
+  profileImage?: File;
+  discoverable?: boolean;
 }
 
 export interface CreateOrganizationRequest {
@@ -120,6 +142,13 @@ export interface CompletePartnerOrganizationInput {
   image?: File;
 }
 
+export interface OrganizationMemberUserSummary {
+  email: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  contact?: string | null;
+}
+
 export interface OrganizationMemberDto {
   id: string;
   userId: string;
@@ -128,6 +157,7 @@ export interface OrganizationMemberDto {
   joinedAt: string;
   createdAt: string;
   updatedAt: string;
+  user?: OrganizationMemberUserSummary;
   organization?: OrganizationItem;
 }
 
@@ -139,6 +169,9 @@ export interface AuthorProfileDto {
   lastName?: string | null;
   address?: string | null;
   contact?: string | null;
+  avatar?: string | null;
+  discoverable?: boolean;
+  imageAssets?: Record<string, string>;
   organizations?: Array<{ id: string; name: string; slug: string }>;
   createdAt?: string;
   updatedAt?: string;

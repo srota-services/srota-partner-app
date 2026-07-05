@@ -1,4 +1,12 @@
-import type { ApiError } from '../types/auth';
+import type {
+  ApiError,
+  ForgotPasswordRequest,
+  MessageResponse,
+  ResendOtpRequest,
+  ResendOtpResponse,
+  ResetPasswordRequest,
+  VerifyForgotPasswordOtpRequest,
+} from '../types/auth';
 import type {
   AuthorProfileDto,
   CompletePartnerOrganizationInput,
@@ -9,25 +17,46 @@ import type {
   RegisterPartnerUserInput,
   RegisterRequest,
   RegisterResponse,
+  UpdateMyAuthorProfileRequest,
+  UpdateOrganizationRequest,
+  UpdateUserProfileRequest,
   UserProfile,
-  UserProfileResponse,
   VerifyRegistrationOtpRequest,
   VerifyRegistrationOtpResponse,
 } from '../types/partner';
 import {
   getAuthApiBaseUrl,
-  getContentApiBaseUrl,
   getAuthHeaders,
   getAuthHeadersForFileUpload,
   handleApiError,
 } from './config';
-import { buildOrganizationFormData } from './organizationFormData';
+import {
+  buildOrganizationFormData,
+  buildOrganizationUpdateFormData,
+} from './organizationFormData';
 import {
   buildRegisterFormData,
   type RegisterFormDataInput,
 } from './registerFormData';
 import { setStoredWorkspaceSlug } from './workspaceSlug';
 import { setAccessToken } from './token';
+import { requiresAuthForResendOtp } from './otpResend';
+
+function mapAuthApiError(data: Record<string, unknown>, status: number): ApiError {
+  return {
+    message:
+      (typeof data.message === 'string' ? data.message : undefined) ||
+      (typeof data.error === 'string' ? data.error : undefined) ||
+      'Request failed',
+    error: typeof data.error === 'string' ? data.error : undefined,
+    statusCode: status,
+    code: typeof data.code === 'string' ? data.code : undefined,
+    details:
+      data.details && typeof data.details === 'object'
+        ? (data.details as ApiError['details'])
+        : undefined,
+  };
+}
 
 function getPublicJsonHeaders(): HeadersInit {
   return {
@@ -169,6 +198,139 @@ export async function verifyRegistrationOtp(
 }
 
 /**
+ * Resends an OTP for registration, password reset, password change, or email update.
+ * Public purposes (REGISTRATION, PASSWORD_RESET) require no auth.
+ * Authenticated purposes (PASSWORD_UPDATE, EMAIL_UPDATE) require a Bearer token.
+ */
+export async function resendOtp(
+  payload: ResendOtpRequest
+): Promise<ResendOtpResponse> {
+  try {
+    const body: Record<string, string> = {
+      email: payload.email,
+      purpose: payload.purpose,
+    };
+    if (payload.verificationEmail !== undefined) {
+      body.verificationEmail = payload.verificationEmail;
+    }
+
+    const headers = requiresAuthForResendOtp(payload.purpose)
+      ? getAuthHeaders()
+      : getPublicJsonHeaders();
+
+    const response = await fetch(`${getAuthApiBaseUrl()}/auth/resend-otp`, {
+      method: 'POST',
+      credentials: 'include',
+      headers,
+      body: JSON.stringify(body),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to resend OTP',
+        error: data.error,
+        statusCode: response.status,
+        code: data.code,
+        details: data.details,
+      };
+      throw error;
+    }
+
+    return data as ResendOtpResponse;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Resends a registration OTP (convenience wrapper).
+ */
+export async function resendRegistrationOtp(
+  email: string
+): Promise<ResendOtpResponse> {
+  return resendOtp({ email, purpose: 'REGISTRATION' });
+}
+
+/**
+ * Requests a password reset OTP (step 1).
+ */
+export async function forgotPassword(
+  payload: ForgotPasswordRequest
+): Promise<MessageResponse> {
+  try {
+    const response = await fetch(`${getAuthApiBaseUrl()}/auth/forgot-password`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: getPublicJsonHeaders(),
+      body: JSON.stringify({ email: payload.email.trim() }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw mapAuthApiError(data, response.status);
+    }
+    return data as MessageResponse;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Verifies a forgot-password OTP (step 2).
+ */
+export async function verifyForgotPasswordOtp(
+  payload: VerifyForgotPasswordOtpRequest
+): Promise<MessageResponse> {
+  try {
+    const response = await fetch(
+      `${getAuthApiBaseUrl()}/auth/verify-forgot-password-otp`,
+      {
+        method: 'POST',
+        credentials: 'include',
+        headers: getPublicJsonHeaders(),
+        body: JSON.stringify({
+          email: payload.email.trim(),
+          otp: payload.otp.trim(),
+        }),
+      }
+    );
+    const data = await response.json();
+    if (!response.ok) {
+      throw mapAuthApiError(data, response.status);
+    }
+    return data as MessageResponse;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Resets password after OTP verification (step 3).
+ */
+export async function resetPassword(
+  payload: ResetPasswordRequest
+): Promise<MessageResponse> {
+  try {
+    const response = await fetch(`${getAuthApiBaseUrl()}/auth/reset-password`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: getPublicJsonHeaders(),
+      body: JSON.stringify({
+        email: payload.email.trim(),
+        newPassword: payload.newPassword,
+        confirmPassword: payload.confirmPassword,
+      }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw mapAuthApiError(data, response.status);
+    }
+    return data as MessageResponse;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
  * Fetches the authenticated author's profile from auth-service
  */
 export async function getMyAuthorProfile(): Promise<AuthorProfileDto> {
@@ -211,13 +373,13 @@ export async function storeAuthorSlugAfterRegistration(): Promise<void> {
 const PROFILE_RETRY_DELAY_MS = 500;
 
 /**
- * Fetches the authenticated user's profile from app-service
+ * Fetches the authenticated user's profile from auth-service
  */
 export async function getUserProfile(): Promise<UserProfile> {
   try {
     const headers = getAuthHeaders();
     const response = await fetch(
-      `${getContentApiBaseUrl()}/api/v1/user/profile`,
+      `${getAuthApiBaseUrl()}/auth/user/profile`,
       {
         method: 'GET',
         headers,
@@ -233,8 +395,199 @@ export async function getUserProfile(): Promise<UserProfile> {
       throw error;
     }
 
-    const profileResponse = data as UserProfileResponse;
-    return profileResponse.data;
+    return (data as { user: UserProfile }).user;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Updates the authenticated user's profile (partial JSON or avatar upload)
+ */
+export async function updateUserProfile(
+  payload: UpdateUserProfileRequest
+): Promise<UserProfile> {
+  try {
+    if (payload.avatar) {
+      const formData = new FormData();
+      formData.append('avatar', payload.avatar);
+      const headers = getAuthHeadersForFileUpload();
+      const response = await fetch(
+        `${getAuthApiBaseUrl()}/auth/user/profile`,
+        {
+          method: 'PUT',
+          headers,
+          body: formData,
+        }
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        const error: ApiError = {
+          message: data.message || data.error || 'Failed to update user profile',
+          error: data.error,
+          statusCode: response.status,
+        };
+        throw error;
+      }
+
+      return (data as { user: UserProfile }).user;
+    }
+
+    const headers = getAuthHeaders();
+    const response = await fetch(
+      `${getAuthApiBaseUrl()}/auth/user/profile`,
+      {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(payload),
+      }
+    );
+    const data = await response.json();
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to update user profile',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    return (data as { user: UserProfile }).user;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Requests an OTP to verify email change
+ */
+export async function requestEmailUpdateOtp(
+  email: string
+): Promise<MessageResponse> {
+  try {
+    const headers = getAuthHeaders();
+    const response = await fetch(
+      `${getAuthApiBaseUrl()}/auth/request-email-update-otp?email=${encodeURIComponent(email.trim())}`,
+      {
+        method: 'GET',
+        headers,
+      }
+    );
+    const data = await response.json();
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to send verification code',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    return data as MessageResponse;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Verifies the OTP for email change
+ */
+export async function verifyEmailUpdateOtp(
+  otp: string
+): Promise<MessageResponse> {
+  try {
+    const headers = getAuthHeaders();
+    const response = await fetch(
+      `${getAuthApiBaseUrl()}/auth/verify-email-update-otp`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ otp: otp.trim() }),
+      }
+    );
+    const data = await response.json();
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to verify code',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    return data as MessageResponse;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Updates the user's email after OTP verification
+ */
+export async function updateEmail(newEmail: string): Promise<MessageResponse> {
+  try {
+    const headers = getAuthHeaders();
+    const response = await fetch(
+      `${getAuthApiBaseUrl()}/auth/update-email`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ newEmail: newEmail.trim() }),
+      }
+    );
+    const data = await response.json();
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to update email',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    return data as MessageResponse;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Fetches a public profile for a specific user (avatar, username).
+ */
+export async function getUserProfileByUserId(
+  userId: string
+): Promise<UserProfile | null> {
+  try {
+    const headers = getAuthHeaders();
+    const response = await fetch(
+      `${getAuthApiBaseUrl()}/auth/users/${encodeURIComponent(userId)}/profile`,
+      {
+        method: 'GET',
+        headers,
+      }
+    );
+    const data = await response.json();
+    if (response.status === 404) {
+      return null;
+    }
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to fetch user profile',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    const { profile } = data as {
+      profile: Pick<UserProfile, 'userId' | 'username' | 'avatar'>;
+    };
+    return {
+      id: profile.userId,
+      userId: profile.userId,
+      username: profile.username,
+      avatar: profile.avatar,
+    };
   } catch (error) {
     throw handleApiError(error);
   }
@@ -332,4 +685,109 @@ export async function completePartnerOrganizationSetup(
     preferredGenre: input.preferredGenre,
     image: input.image,
   });
+}
+
+/**
+ * Fetches a single organization by ID from auth-service
+ */
+export async function getOrganizationById(
+  id: string
+): Promise<OrganizationItem> {
+  try {
+    const headers = getAuthHeaders();
+    const response = await fetch(
+      `${getAuthApiBaseUrl()}/auth/organizations/${encodeURIComponent(id)}`,
+      {
+        method: 'GET',
+        headers,
+      }
+    );
+    const data = await response.json();
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to fetch organization',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    return (data as { organization: OrganizationItem }).organization;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Updates an organization with partial fields (multipart)
+ */
+export async function updateOrganization(
+  id: string,
+  payload: UpdateOrganizationRequest
+): Promise<OrganizationItem> {
+  try {
+    const formData = buildOrganizationUpdateFormData(payload);
+    const headers = getAuthHeadersForFileUpload();
+    const response = await fetch(
+      `${getAuthApiBaseUrl()}/auth/organizations/${encodeURIComponent(id)}`,
+      {
+        method: 'PUT',
+        headers,
+        body: formData,
+      }
+    );
+    const data = await response.json();
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to update organization',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    return (data as { organization: OrganizationItem }).organization;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Updates the authenticated author's profile (avatar, discoverable)
+ */
+export async function updateMyAuthorProfile(
+  payload: UpdateMyAuthorProfileRequest
+): Promise<AuthorProfileDto> {
+  try {
+    const formData = new FormData();
+    if (payload.profileImage) {
+      formData.append('profileImage', payload.profileImage);
+    }
+    if (payload.discoverable !== undefined) {
+      formData.append(
+        'discoverable',
+        payload.discoverable ? 'true' : 'false'
+      );
+    }
+
+    const headers = getAuthHeadersForFileUpload();
+    const response = await fetch(`${getAuthApiBaseUrl()}/auth/authors/me`, {
+      method: 'PUT',
+      headers,
+      body: formData,
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to update author profile',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    return (data as { author: AuthorProfileDto }).author;
+  } catch (error) {
+    throw handleApiError(error);
+  }
 }

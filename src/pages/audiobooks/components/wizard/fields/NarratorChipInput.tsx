@@ -1,6 +1,7 @@
 import { Mic } from 'lucide-react';
 import { useRef, useState } from 'react';
 import WizardFieldLabel from '../../../../../components/wizard/WizardFieldLabel';
+import CloseButton from '../../../../../components/common/CloseButton';
 import '../../../../../styles/pages/audiobooks/components/forms/AudiobookForm.css';
 
 interface NarratorChipInputProps {
@@ -47,17 +48,15 @@ function NarratorChipInput({
         {narrators.map((narrator, index) => (
           <span key={`${narrator}-${index}`} className="narrator-tag">
             {narrator}
-            <button
-              type="button"
+            <CloseButton
+              size="sm"
               className="narrator-tag-remove"
+              label={`Remove ${narrator}`}
               onClick={() =>
                 onChange(narrators.filter((_, i) => i !== index))
               }
-              aria-label={`Remove ${narrator}`}
               disabled={disabled}
-            >
-              ×
-            </button>
+            />
           </span>
         ))}
         <input

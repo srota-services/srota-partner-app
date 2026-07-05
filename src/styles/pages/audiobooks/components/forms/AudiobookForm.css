@@ -11,7 +11,7 @@
 .audiobook-form .form-group label {
   font-size: 14px;
   font-weight: 500;
-  color: #374151;
+  color: var(--color-text-primary);
 }
 .required {
   color: #dc2626;
@@ -25,9 +25,17 @@
 .current-image-preview {
   margin-bottom: 12px;
   padding: 8px;
-  background-color: #f9fafb;
+  background-color: var(--color-bg-secondary);
   border: 1px solid #e5e7eb;
   border-radius: 6px;
+}
+.current-image-preview-image {
+  max-width: 200px;
+  max-height: 200px;
+  width: 200px;
+  height: 200px;
+  border-radius: 6px;
+  overflow: hidden;
 }
 .current-image-text {
   margin: 8px 0 0 0;
@@ -43,7 +51,7 @@
   font-size: 14px;
   font-family: inherit;
   transition: all 0.2s;
-  background-color: white;
+  background-color: var(--color-bg-primary);
 }
 .audiobook-form .form-group input:focus,
 .audiobook-form .form-group textarea:focus {
@@ -60,7 +68,7 @@
   min-height: 100px;
 }
 .audiobook-form .readonly-input {
-  background-color: #f9fafb;
+  background-color: var(--color-bg-secondary);
   color: #6b7280;
   cursor: not-allowed;
 }
@@ -70,7 +78,7 @@
   margin-top: -4px;
 }
 .loading-message {
-  color: #6b7280;
+  color: var(--color-text-secondary);
   font-size: 12px;
   font-style: italic;
 }
@@ -82,7 +90,7 @@
   padding: 12px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
-  background-color: #f9fafb;
+  background-color: var(--color-bg-secondary);
   min-height: 60px;
   transition: border-color 0.2s;
 }
@@ -96,7 +104,7 @@
   gap: 6px;
   cursor: pointer;
   padding: 6px 12px;
-  background-color: white;
+  background-color: var(--color-bg-primary);
   border: 1px solid #d1d5db;
   border-radius: 6px;
   transition: all 0.2s;
@@ -129,7 +137,7 @@
   border-radius: 6px;
   font-size: 14px;
   font-family: inherit;
-  background-color: white;
+  background-color: var(--color-bg-primary);
   cursor: pointer;
   width: 100%;
   transition: border-color 0.2s;
@@ -148,7 +156,7 @@
   justify-content: space-between;
   margin-top: 8px;
   padding: 8px 12px;
-  background-color: #f9fafb;
+  background-color: var(--color-bg-secondary);
   border: 1px solid #e5e7eb;
   border-radius: 6px;
   font-size: 14px;
@@ -192,7 +200,7 @@
   font-size: 14px;
   font-family: inherit;
   transition: all 0.2s;
-  background-color: white;
+  background-color: var(--color-bg-primary);
   color: #374151;
 }
 .audiobook-form .date-picker-input:focus {
@@ -213,7 +221,7 @@
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 .react-datepicker__header {
-  background-color: #f9fafb;
+  background-color: var(--color-bg-secondary);
   border-bottom: 1px solid #e5e7eb;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
@@ -259,7 +267,7 @@
   border-left: 1px solid #e5e7eb;
 }
 .react-datepicker__time-container .react-datepicker__time {
-  background-color: white;
+  background-color: var(--color-bg-primary);
 }
 .react-datepicker__time-list-item {
   padding: 8px 10px;
@@ -291,9 +299,9 @@
   flex-wrap: wrap;
   gap: 8px;
   padding: 10px 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
-  background-color: white;
+  background-color: var(--color-bg-primary);
   min-height: 48px;
   align-items: center;
   transition: all 0.2s;
@@ -325,31 +333,11 @@
     transform: scale(1);
   }
 }
-.narrator-tag-remove {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.narrator-tag .narrator-tag-remove {
   width: 18px;
   height: 18px;
-  padding: 0;
-  margin-left: 4px;
-  background-color: transparent;
-  border: none;
-  border-radius: 50%;
-  color: #1e40af;
-  font-size: 18px;
-  font-weight: bold;
-  line-height: 1;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.narrator-tag-remove:hover {
-  background-color: #dbeafe;
-  color: #dc2626;
-  transform: scale(1.1);
-}
-.narrator-tag-remove:active {
-  transform: scale(0.95);
+  margin-left: 2px;
+  margin-right: -4px;
 }
 .narrators-input {
   flex: 1;
@@ -359,16 +347,16 @@
   font-size: 14px;
   font-family: inherit;
   background-color: transparent;
-  color: #374151;
+  color: var(--color-text-primary);
   padding: 0;
 }
 .narrators-input::placeholder {
-  color: #9ca3af;
+  color: var(--color-text-tertiary);
 }
 .narrators-hint {
   margin: 4px 0 0 0;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--color-text-secondary);
   font-style: italic;
 }
 /* Meta (Additional Info) Key-Value Pair Styles */
@@ -377,9 +365,9 @@
   flex-direction: column;
   gap: 12px;
   padding: 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-border);
   border-radius: 6px;
-  background-color: #f9fafb;
+  background-color: var(--color-bg-secondary);
   min-height: 80px;
 }
 .meta-empty-message {
@@ -395,8 +383,8 @@
   align-items: center;
   gap: 8px;
   padding: 8px;
-  background-color: white;
-  border: 1px solid #e5e7eb;
+  background-color: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   transition: all 0.2s;
   animation: fadeIn 0.2s ease-in;
@@ -409,21 +397,21 @@
 .meta-value-input {
   flex: 1;
   padding: 8px 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-border);
   border-radius: 4px;
   font-size: 14px;
   font-family: inherit;
   transition: all 0.2s;
-  background-color: white;
+  background-color: var(--color-bg-primary);
 }
 .meta-key-input {
   min-width: 150px;
   font-weight: 500;
-  color: #374151;
+  color: var(--color-text-primary);
 }
 .meta-value-input {
   min-width: 200px;
-  color: #374151;
+  color: var(--color-text-primary);
 }
 .meta-key-input:focus,
 .meta-value-input:focus {
@@ -437,34 +425,14 @@
   font-size: 16px;
   user-select: none;
 }
-.meta-remove-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.meta-row .meta-remove-button {
   width: 28px;
   height: 28px;
-  padding: 0;
-  background-color: #fee2e2;
-  color: #dc2626;
-  border: none;
-  border-radius: 50%;
-  font-size: 20px;
-  font-weight: bold;
-  line-height: 1;
-  cursor: pointer;
-  transition: all 0.2s;
   flex-shrink: 0;
-}
-.meta-remove-button:hover {
-  background-color: #fecaca;
-  transform: scale(1.1);
-}
-.meta-remove-button:active {
-  transform: scale(0.95);
 }
 .meta-add-button {
   padding: 10px 16px;
-  background-color: white;
+  background-color: var(--color-bg-primary);
   color: #2563eb;
   border: 2px dashed #2563eb;
   border-radius: 6px;

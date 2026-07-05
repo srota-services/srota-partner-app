@@ -1,6 +1,14 @@
 import React from 'react';
 import toast from 'react-hot-toast';
+import CloseButton from '../components/common/CloseButton';
 import type { ApiError } from '../types/auth';
+
+/** Absolute positioning for the toast close button. */
+const TOAST_CLOSE_STYLE: React.CSSProperties = {
+  position: 'absolute',
+  top: '-6px',
+  right: '-6px',
+};
 
 /**
  * Extracts error message from API error or unknown error
@@ -22,6 +30,42 @@ function extractErrorMessage(error: ApiError | unknown): string {
   return 'An unexpected error occurred';
 }
 
+function renderErrorToast(message: string, duration: number): void {
+  toast(
+    (t): React.ReactElement => (
+      <div style={{ position: 'relative', paddingRight: '24px' }}>
+        <span>{message}</span>
+        <CloseButton
+          size="sm"
+          style={TOAST_CLOSE_STYLE}
+          onClick={() => toast.dismiss(t.id)}
+        />
+      </div>
+    ),
+    {
+      duration,
+      position: 'top-right',
+      style: {
+        background: 'var(--toast-error-bg)',
+        color: 'var(--toast-error-text)',
+        border: '1px solid var(--toast-error-border)',
+        borderRadius: '8px',
+        padding: '12px 16px',
+        fontSize: '14px',
+        fontWeight: '500',
+      },
+      icon: undefined,
+    }
+  );
+}
+
+/**
+ * Shows a generic error toast notification
+ */
+export function showError(message: string, duration: number = 5000): void {
+  renderErrorToast(message, duration);
+}
+
 /**
  * Shows an error toast notification for API errors
  * @param error - The API error or unknown error
@@ -31,54 +75,7 @@ export function showApiError(
   error: ApiError | unknown,
   duration: number = 5000
 ): void {
-  const message = extractErrorMessage(error);
-  toast(
-    (t): React.ReactElement => (
-      <div style={{ position: 'relative', paddingRight: '24px' }}>
-        <span>{message}</span>
-        <button
-          onClick={() => toast.dismiss(t.id)}
-          style={{
-            position: 'absolute',
-            top: '-8px',
-            right: '-8px',
-            background: 'transparent',
-            border: 'none',
-            color: '#991b1b',
-            cursor: 'pointer',
-            padding: '4px 8px',
-            fontSize: '18px',
-            lineHeight: '1',
-            opacity: 0.8,
-            transition: 'opacity 0.2s',
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.opacity = '1';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.opacity = '0.8';
-          }}
-          aria-label="Close"
-        >
-          ×
-        </button>
-      </div>
-    ),
-    {
-      duration,
-      position: 'top-right',
-      style: {
-        background: '#fee2e2',
-        color: '#991b1b',
-        border: '1px solid #fca5a5',
-        borderRadius: '8px',
-        padding: '12px 16px',
-        fontSize: '14px',
-        fontWeight: '500',
-      },
-      icon: undefined,
-    }
-  );
+  renderErrorToast(extractErrorMessage(error), duration);
 }
 
 /**
@@ -91,41 +88,20 @@ export function showSuccess(message: string, duration: number = 3000): void {
     (t): React.ReactElement => (
       <div style={{ position: 'relative', paddingRight: '24px' }}>
         <span>{message}</span>
-        <button
+        <CloseButton
+          size="sm"
+          style={TOAST_CLOSE_STYLE}
           onClick={() => toast.dismiss(t.id)}
-          style={{
-            position: 'absolute',
-            top: '-8px',
-            right: '-8px',
-            background: 'transparent',
-            border: 'none',
-            color: '#166534',
-            cursor: 'pointer',
-            padding: '4px 8px',
-            fontSize: '18px',
-            lineHeight: '1',
-            opacity: 0.8,
-            transition: 'opacity 0.2s',
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.opacity = '1';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.opacity = '0.8';
-          }}
-          aria-label="Close"
-        >
-          ×
-        </button>
+        />
       </div>
     ),
     {
       duration,
       position: 'top-right',
       style: {
-        background: '#dcfce7',
-        color: '#166534',
-        border: '1px solid #86efac',
+        background: 'var(--toast-success-bg)',
+        color: 'var(--toast-success-text)',
+        border: '1px solid var(--toast-success-border)',
         borderRadius: '8px',
         padding: '12px 16px',
         fontSize: '14px',

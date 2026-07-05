@@ -27,6 +27,13 @@ vi.mock('../src/utils/config', async importOriginal => {
   };
 });
 
+vi.mock('../src/utils/resolveAudiobookOwner', () => ({
+  resolveAudiobookOwner: vi.fn().mockResolvedValue({
+    type: 'ORGANIZATION',
+    id: 'org-123',
+  }),
+}));
+
 vi.mock('../src/utils/audiobookApi', async importOriginal => {
   const actual =
     await importOriginal<typeof import('../src/utils/audiobookApi')>();
@@ -65,6 +72,29 @@ vi.mock('../src/utils/audiobookApi', async importOriginal => {
       { name: 'Standard Plan' },
       { name: 'Premium Plan' },
     ]),
+    getLanguages: vi.fn().mockResolvedValue([
+      {
+        id: 'lang-en',
+        name: 'English',
+        code: 'en',
+        createdAt: '2024-01-01T00:00:00.000Z',
+        updatedAt: '2024-01-01T00:00:00.000Z',
+      },
+      {
+        id: 'lang-hi',
+        name: 'Hindi',
+        code: 'hi',
+        createdAt: '2024-01-01T00:00:00.000Z',
+        updatedAt: '2024-01-01T00:00:00.000Z',
+      },
+      {
+        id: 'lang-es',
+        name: 'Spanish',
+        code: 'es',
+        createdAt: '2024-01-01T00:00:00.000Z',
+        updatedAt: '2024-01-01T00:00:00.000Z',
+      },
+    ]),
     getAudiobooks: vi.fn().mockResolvedValue({
       success: true,
       data: [],
@@ -88,6 +118,7 @@ async function waitForCatalogOptions() {
   await waitFor(() => {
     expect(screen.getByRole('checkbox', { name: /fiction/i })).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: /calm/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/^language$/i)).toBeInTheDocument();
   });
 }
 
@@ -117,12 +148,20 @@ async function advanceToCoverStep(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole('button', { name: /continue/i }));
 }
 
-async function advanceToReviewStep(user: ReturnType<typeof userEvent.setup>) {
+async function advanceToSubscriptionTiersStep(
+  user: ReturnType<typeof userEvent.setup>
+) {
   await advanceToCoverStep(user);
   const coverInput = document.querySelector(
     'input[type="file"]'
   ) as HTMLInputElement;
   await user.upload(coverInput, testCoverFile);
+  await user.click(screen.getByRole('button', { name: /continue/i }));
+  await screen.findByRole('radio', { name: /^none$/i });
+}
+
+async function advanceToReviewStep(user: ReturnType<typeof userEvent.setup>) {
+  await advanceToSubscriptionTiersStep(user);
   await user.click(screen.getByRole('button', { name: /continue/i }));
   await screen.findByRole('button', { name: /^publish$/i });
 }
@@ -130,10 +169,10 @@ async function advanceToReviewStep(user: ReturnType<typeof userEvent.setup>) {
 function renderCreateWizard() {
   return render(
     <Provider store={store}>
-      <MemoryRouter initialEntries={['/audiobooks/create']}>
+      <MemoryRouter initialEntries={['/library/create']}>
         <Routes>
-          <Route path="/audiobooks/create" element={<AudiobookWizard />} />
-          <Route path="/audiobooks" element={<div>Audiobooks List</div>} />
+          <Route path="/library/create" element={<AudiobookWizard />} />
+          <Route path="/library" element={<div>Library List</div>} />
         </Routes>
       </MemoryRouter>
     </Provider>
@@ -146,14 +185,14 @@ function renderEditWizard() {
       <MemoryRouter
         initialEntries={[
           {
-            pathname: '/audiobooks/ab-edit-1/edit',
+            pathname: '/library/ab-edit-1/edit',
             state: { audiobook: mockAudiobook },
           },
         ]}
       >
         <Routes>
-          <Route path="/audiobooks/:id/edit" element={<AudiobookWizard />} />
-          <Route path="/audiobooks" element={<div>Audiobooks List</div>} />
+          <Route path="/library/:id/edit" element={<AudiobookWizard />} />
+          <Route path="/library" element={<div>Library List</div>} />
         </Routes>
       </MemoryRouter>
     </Provider>
@@ -204,7 +243,7 @@ describe('AudiobookWizard', () => {
       await screen.findByRole('heading', { name: /create new audiobook/i })
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('progressbar', { name: /step 1 of 4/i })
+      screen.getByRole('progressbar', { name: /step 1 of 5/i })
     ).toBeInTheDocument();
     expect(screen.getByLabelText(/audiobook title/i)).toBeInTheDocument();
     expect(screen.getByText(/live preview/i)).toBeInTheDocument();
@@ -242,6 +281,16 @@ describe('AudiobookWizard', () => {
 
     await fillBasicsStep(user);
     await user.click(screen.getByRole('radio', { name: /calm/i }));
+    await user.click(screen.getByRole('button', { name: /continue/i }));
+    await user.type(screen.getByLabelText(/^author/i), 'Jane Author');
+    await user.click(screen.getByRole('button', { name: /continue/i }));
+    const coverInput = document.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement;
+    await user.upload(coverInput, testCoverFile);
+    await user.click(screen.getByRole('button', { name: /continue/i }));
+    await screen.findByRole('radio', { name: /^none$/i });
+    await user.click(screen.getByRole('radio', { name: /^audiobook$/i }));
     await user.click(screen.getByRole('switch', { name: /^paid$/i }));
     await user.selectOptions(
       screen.getByLabelText(/subscription plan/i),
@@ -294,9 +343,10 @@ describe('AudiobookWizard', () => {
       language: 'Hindi',
       genreIds: ['genre-1'],
       tagIds: ['tag-1'],
+      subscriptionGatingMode: 'NONE',
     });
     expect(
-      await screen.findByText('Audiobooks List')
+      await screen.findByText('Library List')
     ).toBeInTheDocument();
   });
 
@@ -362,9 +412,11 @@ describe('AudiobookWizard', () => {
     const user = userEvent.setup();
     renderCreateWizard();
     await waitForCatalogOptions();
+    await advanceToSubscriptionTiersStep(user);
 
     expect(screen.queryByLabelText(/subscription plan/i)).not.toBeInTheDocument();
 
+    await user.click(screen.getByRole('radio', { name: /^audiobook$/i }));
     await user.click(screen.getByRole('switch', { name: /^paid$/i }));
 
     expect(
@@ -372,11 +424,28 @@ describe('AudiobookWizard', () => {
     ).toBeInTheDocument();
   });
 
+  it('shows first-chapter free notice when chapter gating is selected', async () => {
+    const user = userEvent.setup();
+    renderCreateWizard();
+    await waitForCatalogOptions();
+    await advanceToSubscriptionTiersStep(user);
+
+    await user.click(screen.getByRole('radio', { name: /^chapter$/i }));
+
+    expect(
+      screen.getByText(/the first chapter of this audiobook must be a free chapter/i)
+    ).toBeInTheDocument();
+    expect(
+      document.querySelector('.wizard-chapter-gating-notice')
+    ).toBeInTheDocument();
+  });
+
   it('requires a subscription plan when paid switch is on', async () => {
     const user = userEvent.setup();
     renderCreateWizard();
     await waitForCatalogOptions();
-    await fillBasicsStep(user);
+    await advanceToSubscriptionTiersStep(user);
+    await user.click(screen.getByRole('radio', { name: /^audiobook$/i }));
     await user.click(screen.getByRole('switch', { name: /^paid$/i }));
     await user.click(screen.getByRole('button', { name: /continue/i }));
 
@@ -403,11 +472,6 @@ describe('AudiobookWizard', () => {
     renderCreateWizard();
     await waitForCatalogOptions();
     await fillBasicsStep(user);
-    await user.click(screen.getByRole('switch', { name: /^paid$/i }));
-    await user.selectOptions(
-      screen.getByLabelText(/subscription plan/i),
-      '2'
-    );
     await user.click(screen.getByRole('radio', { name: /calm/i }));
     await user.click(screen.getByRole('button', { name: /continue/i }));
     await user.type(screen.getByLabelText(/^author/i), 'Jane Author');
@@ -416,6 +480,14 @@ describe('AudiobookWizard', () => {
       'input[type="file"]'
     ) as HTMLInputElement;
     await user.upload(coverInput, testCoverFile);
+    await user.click(screen.getByRole('button', { name: /continue/i }));
+    await screen.findByRole('radio', { name: /^none$/i });
+    await user.click(screen.getByRole('radio', { name: /^audiobook$/i }));
+    await user.click(screen.getByRole('switch', { name: /^paid$/i }));
+    await user.selectOptions(
+      screen.getByLabelText(/subscription plan/i),
+      '2'
+    );
     await user.click(screen.getByRole('button', { name: /continue/i }));
     await screen.findByRole('button', { name: /^publish$/i });
 
@@ -431,6 +503,7 @@ describe('AudiobookWizard', () => {
       isPublic: false,
       minSubscriptionTier: 2,
       moodId: 'mood-1',
+      subscriptionGatingMode: 'AUDIOBOOK',
     });
   });
 
@@ -444,11 +517,24 @@ describe('AudiobookWizard', () => {
 
     expect(screen.getByDisplayValue('Hindi')).toBeInTheDocument();
     expect(screen.getByText(/language: hindi/i)).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: /^calm$/i })).toBeChecked();
 
     await user.selectOptions(screen.getByLabelText(/^language$/i), 'Spanish');
     await user.click(screen.getByRole('button', { name: /continue/i }));
     await user.click(screen.getByRole('button', { name: /continue/i }));
+
+    expect(
+      await screen.findByAltText(/existing audiobook/i)
+    ).toBeInTheDocument();
+
     await user.click(screen.getByRole('button', { name: /continue/i }));
+
+    expect(screen.getByLabelText(/subscription plan/i)).toHaveValue('2');
+
+    await user.click(screen.getByRole('button', { name: /continue/i }));
+
+    expect(screen.getByText(/existing cover/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/standard plan/i).length).toBeGreaterThan(0);
 
     await user.click(screen.getByRole('button', { name: /^update$/i }));
 

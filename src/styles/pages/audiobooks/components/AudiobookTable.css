@@ -2,6 +2,11 @@
   overflow: visible;
 }
 
+.audiobook-table-wrapper.marketing-card,
+.chapter-table-wrapper.marketing-card {
+  overflow: hidden;
+}
+
 .audiobook-table-scroll {
   overflow-x: auto;
   overflow-y: visible;
@@ -35,11 +40,17 @@
 
 .audiobook-table-row {
   cursor: pointer;
-  transition: background var(--transition-fast);
 }
 
-.audiobook-table-row:hover {
-  background: var(--color-bg-secondary);
+.audiobook-table tbody td,
+.chapter-table tbody td {
+  background-color: var(--color-bg-primary);
+  transition: background-color var(--transition-fast);
+}
+
+.audiobook-table-row:hover > td,
+.chapter-table-row:hover > td {
+  background-color: var(--color-bg-secondary);
 }
 
 .audiobook-table-title-cell {
@@ -92,15 +103,22 @@
   color: #166534;
 }
 
-.audiobook-status-badge--scheduled,
+.audiobook-status-badge--scheduled {
+  background: var(--color-scheduled-badge-bg);
+  color: var(--color-scheduled-badge-text);
+}
+
 .audiobook-status-badge--draft,
 .audiobook-status-badge--pending {
   background: var(--color-warning-light);
-  color: #92400e;
+  color: var(--color-warning-text);
 }
 
 .audiobook-table-actions {
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .audiobook-table-actions-cell,
@@ -108,13 +126,7 @@
   position: sticky;
   right: 0;
   z-index: 2;
-  background: var(--color-bg-primary);
   box-shadow: -8px 0 12px -10px rgba(15, 23, 42, 0.18);
-}
-
-.audiobook-table-row:hover .audiobook-table-actions-cell,
-.chapter-table-row:hover .chapter-table-actions-cell {
-  background: var(--color-bg-secondary);
 }
 
 .audiobook-table thead th:last-child,
@@ -123,6 +135,22 @@
   right: 0;
   z-index: 3;
   background: var(--color-bg-primary);
+  border-top-right-radius: var(--radius-lg);
+}
+
+.audiobook-table thead th:first-child,
+.chapter-table thead th:first-child {
+  border-top-left-radius: var(--radius-lg);
+}
+
+.audiobook-table tbody tr:last-child td:first-child,
+.chapter-table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: var(--radius-lg);
+}
+
+.audiobook-table tbody tr:last-child td:last-child,
+.chapter-table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: var(--radius-lg);
 }
 
 .audiobook-table-menu-btn {

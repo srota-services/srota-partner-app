@@ -6,27 +6,43 @@ import authReducer from './slices/authSlice';
 import audiobooksReducer from './slices/audiobooksSlice';
 import chaptersReducer from './slices/chaptersSlice';
 import genresReducer from './slices/genresSlice';
+import languagesReducer from './slices/languagesSlice';
 import tagsReducer from './slices/tagsSlice';
 import authorsReducer from './slices/authorsSlice';
+import organizationAuthorsReducer from './slices/organizationAuthorsSlice';
+import organizationMembersReducer from './slices/organizationMembersSlice';
+import collaborationsReducer from './slices/collaborationsSlice';
+import authorInboxReducer from './slices/authorInboxSlice';
 import partnerRegistrationReducer from './slices/partnerRegistrationSlice';
 import transcodingReducer from './slices/transcodingSlice';
+import themeReducer from './slices/themeSlice';
+import { partnerRegistrationPersistenceMiddleware } from './partnerRegistrationPersistenceMiddleware';
 export const store = configureStore({
   reducer: {
     auth: authReducer,
+    theme: themeReducer,
     audiobooks: audiobooksReducer,
     chapters: chaptersReducer,
     transcoding: transcodingReducer,
     genres: genresReducer,
+    languages: languagesReducer,
     tags: tagsReducer,
     authors: authorsReducer,
+    organizationAuthors: organizationAuthorsReducer,
+    organizationMembers: organizationMembersReducer,
+    collaborations: collaborationsReducer,
+    authorInbox: authorInboxReducer,
     partnerRegistration: partnerRegistrationReducer,
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
       serializableCheck: {
-        ignoredPaths: ['partnerRegistration.organizationProfile.image'],
+        ignoredPaths: [
+          'partnerRegistration.organizationProfile.image',
+          'partnerRegistration.individualDetails.image',
+        ],
       },
-    }),
+    }).concat(partnerRegistrationPersistenceMiddleware),
 });
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

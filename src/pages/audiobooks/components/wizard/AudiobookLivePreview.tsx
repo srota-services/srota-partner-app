@@ -1,4 +1,5 @@
 import WizardLivePreviewHeader from '../../../../components/wizard/WizardLivePreviewHeader';
+import AppImage from '../../../../components/common/AppImage';
 import type { AudiobookWizardData } from '../../../../types/audiobook';
 import type {
   GenreItem,
@@ -42,7 +43,9 @@ function AudiobookLivePreview({
     ? moods.find(mood => mood.id === data.moodId)
     : undefined;
   const subscriptionPlanName =
-    data.isPaid && data.minSubscriptionTier != null
+    data.subscriptionGatingMode === 'AUDIOBOOK' &&
+    data.isPaid &&
+    data.minSubscriptionTier != null
       ? subscriptionPlans.find(
           plan =>
             resolveSubscriptionPlanTier(plan) === data.minSubscriptionTier
@@ -57,13 +60,11 @@ function AudiobookLivePreview({
 
       <div className="audiobook-card audiobook-card--preview">
         <div className="audiobook-card-cover">
-          {coverPreviewUrl ? (
-            <img src={coverPreviewUrl} alt={data.title || 'Cover preview'} />
-          ) : (
-            <div className="audiobook-card-placeholder">
-              <span>📚</span>
-            </div>
-          )}
+          <AppImage
+            src={coverPreviewUrl}
+            alt={data.title || 'Cover preview'}
+            variant="cover"
+          />
         </div>
         <div className="audiobook-card-content">
           <h3 className="audiobook-card-title">

@@ -1,3 +1,5 @@
+import AppImage from './AppImage';
+
 interface IndividualProfilePreviewProps {
   fullName: string;
   photoPreviewUrl: string | null;
@@ -20,15 +22,12 @@ function IndividualProfilePreview({
       <p className="individual-profile-preview-label">Preview</p>
       <div className="individual-profile-preview-card">
         <div className="individual-profile-preview-header">
-          {photoPreviewUrl ? (
-            <img
-              src={photoPreviewUrl}
-              alt=""
-              className="individual-profile-preview-avatar"
-            />
-          ) : (
-            <div className="individual-profile-preview-avatar individual-profile-preview-avatar--placeholder" />
-          )}
+          <AppImage
+            src={photoPreviewUrl}
+            alt=""
+            variant="author"
+            className="individual-profile-preview-avatar"
+          />
           <div>
             <p className="individual-profile-preview-name">{displayName}</p>
             <span className="individual-profile-preview-badge">Individual</span>

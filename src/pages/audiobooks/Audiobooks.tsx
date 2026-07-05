@@ -15,6 +15,7 @@ import {
   type AudiobookFilter,
 } from '../../store/slices/audiobooksSlice';
 import { fetchGenres } from '../../store/slices/genresSlice';
+import { fetchLanguages } from '../../store/slices/languagesSlice';
 import type { AudiobookApiResponse } from '../../types/audiobook';
 import AudiobookTable from './components/AudiobookTable';
 import SummaryCards from './components/SummaryCards';
@@ -25,7 +26,11 @@ import RecentActivityWidget from './components/widgets/RecentActivityWidget';
 import Button from '../../components/common/Button';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Pagination from '../../components/common/Pagination';
+import SearchBar from '../../components/common/SearchBar';
+import Select from '../../components/common/Select';
+import TabPanel from '../../components/common/TabPanel';
 import { showApiError } from '../../utils/toast';
+import { audiobookMatchesLanguageFilter } from '../../utils/languages';
 import '../../styles/pages/audiobooks/Audiobooks.css';
 
 const TABS: { id: AudiobookFilter; label: string }[] = [
@@ -42,6 +47,9 @@ const Audiobooks: React.FC = () => {
   const { audiobooks, pagination, loading, filter, searchQuery, currentPage } =
     useAppSelector(state => state.audiobooks);
   const { genres } = useAppSelector(state => state.genres);
+  const { languages, loading: languagesLoading } = useAppSelector(
+    state => state.languages
+  );
 
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deletingAudiobook, setDeletingAudiobook] =
@@ -49,6 +57,7 @@ const Audiobooks: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [localSearch, setLocalSearch] = useState('');
   const [genreFilter, setGenreFilter] = useState('all');
+  const [languageFilter, setLanguageFilter] = useState('all');
 
   useEffect(() => {
     dispatch(fetchAudiobooks({ page: currentPage, filter }));
@@ -58,7 +67,10 @@ const Audiobooks: React.FC = () => {
     if (genres.length === 0) {
       dispatch(fetchGenres());
     }
-  }, [dispatch, genres.length]);
+    if (languages.length === 0) {
+      dispatch(fetchLanguages());
+    }
+  }, [dispatch, genres.length, languages.length]);
 
   const filteredAudiobooks = useMemo(() => {
     let result = audiobooks;
@@ -83,8 +95,14 @@ const Audiobooks: React.FC = () => {
       });
     }
 
+    if (languageFilter !== 'all') {
+      result = result.filter(ab =>
+        audiobookMatchesLanguageFilter(ab.language, languageFilter, languages)
+      );
+    }
+
     return result;
-  }, [audiobooks, searchQuery, localSearch, genreFilter]);
+  }, [audiobooks, searchQuery, localSearch, genreFilter, languageFilter, languages]);
 
   const genreOptions = useMemo(
     () => [...genres].sort((a, b) => a.name.localeCompare(b.name)),
@@ -96,7 +114,7 @@ const Audiobooks: React.FC = () => {
   };
 
   const handleEdit = (audiobook: AudiobookApiResponse) => {
-    navigate(`/audiobooks/${audiobook.id}/edit`, { state: { audiobook } });
+    navigate(`/library/${audiobook.id}/edit`, { state: { audiobook } });
   };
 
   const handleDelete = (audiobook: AudiobookApiResponse) => {
@@ -158,7 +176,7 @@ const Audiobooks: React.FC = () => {
                 <Upload size={16} className="btn-icon-left" />
                 Import Catalog
               </Button>
-              <Button onClick={() => navigate('/audiobooks/create')}>
+              <Button onClick={() => navigate('/library/create')}>
                 <Plus size={16} className="btn-icon-left" />
                 Create Audiobook
               </Button>
@@ -181,15 +199,16 @@ const Audiobooks: React.FC = () => {
           </div>
 
           <div className="audiobooks-filters">
-            <input
-              type="search"
+            <SearchBar
               className="audiobooks-local-search"
-              placeholder="Search audiobooks"
               value={localSearch}
-              onChange={e => setLocalSearch(e.target.value)}
+              onChange={setLocalSearch}
+              placeholder="Search audiobooks"
             />
-            <select
-              className="audiobooks-filter-select"
+            <Select
+              fieldSize="sm"
+              wrapperClassName="audiobooks-filter-select"
+              placeholder={false}
               value={genreFilter}
               onChange={e => setGenreFilter(e.target.value)}
             >
@@ -199,62 +218,86 @@ const Audiobooks: React.FC = () => {
                   {genre.name}
                 </option>
               ))}
-            </select>
-            <select className="audiobooks-filter-select" defaultValue="all">
+            </Select>
+            <Select
+              fieldSize="sm"
+              wrapperClassName="audiobooks-filter-select"
+              placeholder={false}
+              value={languageFilter}
+              onChange={e => setLanguageFilter(e.target.value)}
+              disabled={languagesLoading && languages.length === 0}
+            >
               <option value="all">Language</option>
-            </select>
-            <select className="audiobooks-filter-select" defaultValue="recent">
+              {languages.map(language => (
+                <option key={language.id} value={language.name}>
+                  {language.name}
+                </option>
+              ))}
+            </Select>
+            <Select
+              fieldSize="sm"
+              wrapperClassName="audiobooks-filter-select"
+              placeholder={false}
+              defaultValue="recent"
+            >
               <option value="recent">Sort by</option>
-            </select>
+            </Select>
           </div>
 
-          {loading && (
-            <div className="loading-state">
-              <p>Loading audiobooks...</p>
-            </div>
-          )}
-
-          {!loading && filteredAudiobooks.length === 0 && (
-            <div className="empty-state marketing-card">
-              <p>
-                {filter === 'drafts' || filter === 'archived'
-                  ? `No ${filter} audiobooks yet.`
-                  : 'No audiobooks found. Create one to get started.'}
-              </p>
-            </div>
-          )}
-
-          {!loading && filteredAudiobooks.length > 0 && (
-            <>
-              <AudiobookTable
-                audiobooks={filteredAudiobooks}
-                filter={filter}
-                onRowClick={ab => navigate(`/audiobooks/${ab.id}/chapters`)}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-
-              <div className="audiobooks-pagination-bar">
-                {pagination && (
-                  <p className="audiobooks-showing">
-                    Showing {showingFrom}–{showingTo} of{' '}
-                    {pagination.totalItems} audiobooks
-                  </p>
-                )}
-                {pagination && pagination.totalPages > 1 && (
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={pagination.totalPages}
-                    onPageChange={handlePageChange}
-                  />
-                )}
-                <select className="audiobooks-filter-select" defaultValue="10">
-                  <option value="10">10 / page</option>
-                  <option value="25">25 / page</option>
-                </select>
+          <TabPanel activeKey={filter}>
+            {loading && (
+              <div className="loading-state">
+                <p>Loading audiobooks...</p>
               </div>
-            </>
-          )}
+            )}
+
+            {!loading && filteredAudiobooks.length === 0 && (
+              <div className="empty-state marketing-card">
+                <p>
+                  {filter === 'drafts' || filter === 'archived'
+                    ? `No ${filter} audiobooks yet.`
+                    : 'No audiobooks found. Create one to get started.'}
+                </p>
+              </div>
+            )}
+
+            {!loading && filteredAudiobooks.length > 0 && (
+              <>
+                <AudiobookTable
+                  audiobooks={filteredAudiobooks}
+                  filter={filter}
+                  onRowClick={ab => navigate(`/library/${ab.id}/chapters`)}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+
+                <div className="audiobooks-pagination-bar">
+                  {pagination && (
+                    <p className="audiobooks-showing">
+                      Showing {showingFrom}–{showingTo} of{' '}
+                      {pagination.totalItems} audiobooks
+                    </p>
+                  )}
+                  {pagination && pagination.totalPages > 1 && (
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={pagination.totalPages}
+                      onPageChange={handlePageChange}
+                    />
+                  )}
+                  <Select
+                    fieldSize="sm"
+                    wrapperClassName="audiobooks-filter-select"
+                    placeholder={false}
+                    defaultValue="10"
+                  >
+                    <option value="10">10 / page</option>
+                    <option value="25">25 / page</option>
+                  </Select>
+                </div>
+              </>
+            )}
+          </TabPanel>
         </div>
 
         <aside className="audiobooks-sidebar">

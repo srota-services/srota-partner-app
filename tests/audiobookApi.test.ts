@@ -1,8 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   createAudiobook,
+  getAudiobooks,
+  getChapter,
+  getLanguages,
   getMoods,
   getSubscriptionPlans,
+  normalizeAudiobookResponse,
   updateAudiobook,
 } from '../src/utils/audiobookApi';
 
@@ -174,6 +178,34 @@ describe('audiobook API catalog endpoints', () => {
     expect(moods[0].color).toBe('#38BDF8');
   });
 
+  it('fetches languages from content API', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        data: [
+          {
+            id: 'lang-hi',
+            name: 'Hindi',
+            code: 'hi',
+            createdAt: '2024-01-01T00:00:00.000Z',
+            updatedAt: '2024-01-01T00:00:00.000Z',
+          },
+        ],
+      }),
+    } as Response);
+
+    const languages = await getLanguages();
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.com/api/v1/languages',
+      expect.objectContaining({ method: 'GET' })
+    );
+    expect(languages).toHaveLength(1);
+    expect(languages[0]?.name).toBe('Hindi');
+    expect(languages[0]?.code).toBe('hi');
+  });
+
   it('returns an empty array when subscription plans response has no data array', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       ok: true,
@@ -246,6 +278,97 @@ describe('audiobook API catalog endpoints', () => {
   });
 });
 
+describe('getAudiobooks ownerId query', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('includes ownerId in query string when provided', async () => {
+    const { getAudiobooks } = await import('../src/utils/audiobookApi');
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        data: [],
+        pagination: {
+          currentPage: 1,
+          totalPages: 1,
+          totalItems: 0,
+          itemsPerPage: 10,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        },
+      }),
+    } as Response);
+
+    await getAudiobooks(1, true, undefined, 'org-abc');
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api.example.com/api/v1/audiobooks?page=1&active=true&ownerId=org-abc',
+      expect.objectContaining({ method: 'GET' })
+    );
+  });
+
+  it('normalizes mood from audiobook list responses', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        data: [
+          {
+            id: 'ab-1',
+            title: 'Calm Stories',
+            author: 'Author',
+            description: 'Description',
+            moodId: 'mood-calm',
+            mood: {
+              id: 'mood-calm',
+              name: 'Calm',
+              hexcode: '#38BDF8',
+            },
+          },
+        ],
+        message: 'ok',
+        statusCode: 200,
+        timestamp: '2024-01-01T00:00:00.000Z',
+        path: '/api/v1/audiobooks',
+      }),
+    } as Response);
+
+    const response = await getAudiobooks();
+
+    expect(response.data[0].moodId).toBe('mood-calm');
+    expect(response.data[0].mood).toEqual({
+      id: 'mood-calm',
+      name: 'Calm',
+      hexcode: '#38BDF8',
+      color: '#38BDF8',
+    });
+  });
+
+  it('normalizes moodId from nested mood when moodId is missing', () => {
+    const audiobook = normalizeAudiobookResponse({
+      id: 'ab-2',
+      title: 'Focus Time',
+      author: 'Author',
+      description: 'Description',
+      mood: {
+        id: 'mood-focus',
+        name: 'Focus',
+        hexcode: '#22C55E',
+      },
+    });
+
+    expect(audiobook.moodId).toBe('mood-focus');
+    expect(audiobook.mood?.name).toBe('Focus');
+    expect(audiobook.mood?.color).toBe('#22C55E');
+  });
+});
+
 describe('audiobook API paid and mood payloads', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -269,6 +392,7 @@ describe('audiobook API paid and mood payloads', () => {
       isPublic: true,
       minSubscriptionTier: 2,
       moodId: 'mood-1',
+      subscriptionGatingMode: 'AUDIOBOOK',
     });
 
     const [, request] = fetchMock.mock.calls[0];
@@ -276,6 +400,7 @@ describe('audiobook API paid and mood payloads', () => {
     expect(body.isPublic).toBe(true);
     expect(body.minSubscriptionTier).toBe(2);
     expect(body.moodId).toBe('mood-1');
+    expect(body.subscriptionGatingMode).toBe('AUDIOBOOK');
   });
 
   it('includes paid and mood fields in FormData create payload', async () => {
@@ -294,6 +419,7 @@ describe('audiobook API paid and mood payloads', () => {
       isPublic: true,
       minSubscriptionTier: 3,
       moodId: 'mood-2',
+      subscriptionGatingMode: 'CHAPTER',
     });
 
     const [, request] = fetchMock.mock.calls[0];
@@ -301,6 +427,7 @@ describe('audiobook API paid and mood payloads', () => {
     expect(formData.get('isPublic')).toBe('true');
     expect(formData.get('minSubscriptionTier')).toBe('3');
     expect(formData.get('moodId')).toBe('mood-2');
+    expect(formData.get('subscriptionGatingMode')).toBe('CHAPTER');
   });
 
   it('includes owner as JSON string in FormData create payload', async () => {
@@ -324,5 +451,36 @@ describe('audiobook API paid and mood payloads', () => {
     expect(formData.get('owner')).toBe(
       JSON.stringify({ type: 'ORGANIZATION', id: 'org-123' })
     );
+  });
+});
+
+describe('getChapter', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('fetches a single chapter by id', async () => {
+    const chapter = {
+      id: 'ch-1',
+      title: 'Chapter One',
+      description: 'Description',
+      chapterNumber: 1,
+      audiobookId: 'ab-1',
+    };
+
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        data: chapter,
+      }),
+    } as Response);
+
+    const result = await getChapter('ch-1');
+
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      'https://api.example.com/api/v1/chapters/ch-1'
+    );
+    expect(result).toEqual(chapter);
   });
 });

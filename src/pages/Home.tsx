@@ -8,7 +8,7 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
   useEffect(() => {
     // Redirect to audiobooks page by default
-    navigate('/audiobooks', { replace: true });
+    navigate('/library', { replace: true });
   }, [navigate]);
   return (
     <div className="home-page">

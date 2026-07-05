@@ -2,8 +2,11 @@ import { describe, expect, it } from 'vitest';
 import {
   buildSubscriptionPlanSelectOptions,
   getAudiobookSubscriptionTierLabel,
+  getEffectiveChapterSubscriptionTier,
   getSubscriptionPlanNameForTier,
   getSubscriptionTierForPlanName,
+  isChapterSubscriptionTierBelowPrevious,
+  normalizeMinSubscriptionTier,
   resolveSubscriptionPlanTier,
 } from '../src/utils/subscriptionPlans';
 
@@ -53,9 +56,39 @@ describe('subscriptionPlans', () => {
   it('maps audiobook subscription tiers to table labels', () => {
     expect(getAudiobookSubscriptionTierLabel(null)).toBe('Free');
     expect(getAudiobookSubscriptionTierLabel(undefined)).toBe('Free');
+    expect(getAudiobookSubscriptionTierLabel(0)).toBe('Free');
     expect(getAudiobookSubscriptionTierLabel(1)).toBe('Base');
     expect(getAudiobookSubscriptionTierLabel(2)).toBe('Standard');
     expect(getAudiobookSubscriptionTierLabel(3)).toBe('Premium');
-    expect(getAudiobookSubscriptionTierLabel(4)).toBe('Tier 4');
+    expect(getAudiobookSubscriptionTierLabel(4)).toBe('4');
+  });
+
+  it('normalizes API tier values', () => {
+    expect(normalizeMinSubscriptionTier('STANDARD')).toBe(2);
+    expect(normalizeMinSubscriptionTier('premium')).toBe(3);
+    expect(normalizeMinSubscriptionTier(0)).toBeNull();
+    expect(normalizeMinSubscriptionTier(null)).toBeNull();
+  });
+});
+
+describe('chapter subscription tier ordering', () => {
+  it('treats free chapters as tier 0', () => {
+    expect(getEffectiveChapterSubscriptionTier(null)).toBe(0);
+    expect(getEffectiveChapterSubscriptionTier(0)).toBe(0);
+  });
+
+  it('detects when a chapter tier is below the previous chapter', () => {
+    expect(
+      isChapterSubscriptionTierBelowPrevious(false, null, 2)
+    ).toBe(true);
+    expect(
+      isChapterSubscriptionTierBelowPrevious(true, 1, 2)
+    ).toBe(true);
+    expect(
+      isChapterSubscriptionTierBelowPrevious(true, 2, 2)
+    ).toBe(false);
+    expect(
+      isChapterSubscriptionTierBelowPrevious(true, 3, 2)
+    ).toBe(false);
   });
 });

@@ -17,6 +17,10 @@ import {
   updateChapterThunk,
 } from '../../store/slices/chaptersSlice';
 import type { ChapterApiResponse, ChapterWizardData } from '../../types/audiobook';
+import {
+  getSubscriptionPlans,
+  type SubscriptionPlanItem,
+} from '../../utils/audiobookApi';
 import { showApiError } from '../../utils/toast';
 import {
   buildCreateChapterRequest,
@@ -27,6 +31,7 @@ import {
   validateChapterForPublish,
   validateChapterForSchedule,
   validateChapterStep,
+  type ChapterSubscriptionContext,
   type ChapterWizardStep,
 } from '../../utils/chapterWizard';
 import ChapterLivePreview from './components/wizard/ChapterLivePreview';
@@ -75,6 +80,7 @@ function ChapterWizard() {
   );
   const lastChapter = sortedChapters.at(-1);
   const nextChapterNumber = lastChapter ? lastChapter.chapterNumber + 1 : 1;
+  const isFirstChapter = mode === 'create' && nextChapterNumber === 1;
 
   const [step, setStep] = useState<ChapterWizardStep>(1);
   const [data, setData] = useState<ChapterWizardData>(
@@ -85,11 +91,61 @@ function ChapterWizard() {
   >({});
   const [draftSaved, setDraftSaved] = useState(false);
   const [isLoadingMetadata, setIsLoadingMetadata] = useState(false);
+  const [subscriptionPlans, setSubscriptionPlans] = useState<
+    SubscriptionPlanItem[]
+  >([]);
+  const [subscriptionPlansLoading, setSubscriptionPlansLoading] =
+    useState(false);
+
+  const previousChapter =
+    mode === 'create'
+      ? sortedChapters.find(
+          chapter => chapter.chapterNumber === data.chapterNumber - 1
+        ) ?? null
+      : null;
+  const subscriptionContext: ChapterSubscriptionContext = {
+    isFirstChapter,
+    previousChapterMinTier: previousChapter?.minSubscriptionTier ?? null,
+  };
 
   useEffect(() => {
-    if (mode === 'create') {
-      setData(createEmptyChapterWizardData(nextChapterNumber));
+    if (audiobookId) {
+      void dispatch(fetchChapters({ audiobookId, page: 1 }));
     }
+  }, [audiobookId, dispatch]);
+
+  useEffect(() => {
+    const fetchSubscriptionPlans = async () => {
+      setSubscriptionPlansLoading(true);
+
+      try {
+        const plans = await getSubscriptionPlans();
+        setSubscriptionPlans(plans);
+      } catch (error) {
+        showApiError(error);
+      } finally {
+        setSubscriptionPlansLoading(false);
+      }
+    };
+
+    void fetchSubscriptionPlans();
+  }, []);
+
+  useEffect(() => {
+    if (mode !== 'create') {
+      return;
+    }
+
+    setData(prev => {
+      if (prev.chapterNumber === nextChapterNumber) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        chapterNumber: nextChapterNumber,
+      };
+    });
   }, [mode, nextChapterNumber]);
 
   useEffect(() => {
@@ -97,6 +153,20 @@ function ChapterWizard() {
       setData(hydrateChapterWizardData(editingChapter));
     }
   }, [mode, editingChapter]);
+
+  useEffect(() => {
+    if (!isFirstChapter || mode !== 'create') {
+      return;
+    }
+
+    if (data.isPaid || data.minSubscriptionTier != null) {
+      setData(prev => ({
+        ...prev,
+        isPaid: false,
+        minSubscriptionTier: null,
+      }));
+    }
+  }, [isFirstChapter, mode, data.chapterNumber, data.isPaid, data.minSubscriptionTier]);
 
   const coverPreviewUrl = useFilePreviewUrl(
     data.coverImage,
@@ -110,12 +180,7 @@ function ChapterWizard() {
 
   const handleFileChange = async (file: File | null) => {
     if (!file) {
-      updateData({
-        file: null,
-        duration: undefined,
-        startPosition: undefined,
-        endPosition: undefined,
-      });
+      updateData({ file: null });
       return;
     }
 
@@ -137,7 +202,12 @@ function ChapterWizard() {
   };
 
   const validateCurrentStep = (): boolean => {
-    const stepErrors = validateChapterStep(step, data, mode);
+    const stepErrors = validateChapterStep(
+      step,
+      data,
+      mode,
+      subscriptionContext
+    );
     setErrors(stepErrors);
     return Object.keys(stepErrors).length === 0;
   };
@@ -179,8 +249,8 @@ function ChapterWizard() {
       scheduledAt: scheduled ? data.scheduledAt : undefined,
     };
     const validationErrors = scheduled
-      ? validateChapterForSchedule(submissionData, mode)
-      : validateChapterForPublish(submissionData, mode);
+      ? validateChapterForSchedule(submissionData, mode, subscriptionContext)
+      : validateChapterForPublish(submissionData, mode, subscriptionContext);
 
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -211,7 +281,7 @@ function ChapterWizard() {
         fetchChapters({ audiobookId, page: currentPage })
       );
       localStorage.removeItem(`${DRAFT_STORAGE_PREFIX}${audiobookId}`);
-      navigate(`/audiobooks/${audiobookId}/chapters`);
+      navigate(`/library/${audiobookId}/chapters`);
     } catch (error) {
       showApiError(error);
     }
@@ -234,12 +304,16 @@ function ChapterWizard() {
       draftSaved={draftSaved}
       isLoading={loading || isLoadingMetadata}
       preview={
-        <ChapterLivePreview data={data} coverPreviewUrl={coverPreviewUrl} />
+        <ChapterLivePreview
+          data={data}
+          coverPreviewUrl={coverPreviewUrl}
+          subscriptionPlans={subscriptionPlans}
+        />
       }
       onCancel={() =>
         audiobookId
-          ? navigate(`/audiobooks/${audiobookId}/chapters`)
-          : navigate('/audiobooks')
+          ? navigate(`/library/${audiobookId}/chapters`)
+          : navigate('/library')
       }
       onSaveDraft={mode === 'create' ? handleSaveDraft : undefined}
       onBack={step > 1 ? handleBack : undefined}
@@ -260,6 +334,10 @@ function ChapterWizard() {
         <ChapterBasicsStep
           data={data}
           errors={errors}
+          subscriptionPlans={subscriptionPlans}
+          subscriptionPlansLoading={subscriptionPlansLoading}
+          isFirstChapter={isFirstChapter}
+          previousChapterMinTier={previousChapter?.minSubscriptionTier ?? null}
           isLoading={loading}
           onChange={updateData}
         />
@@ -279,6 +357,7 @@ function ChapterWizard() {
         <ChapterContentAssetsStep
           data={data}
           errors={errors}
+          mode={mode}
           isLoading={loading}
           onChange={updateData}
         />

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 
 import userEvent from '@testing-library/user-event';
 
@@ -10,7 +10,7 @@ import { MemoryRouter } from 'react-router-dom';
 
 import { store } from '../src/store/store';
 
-import { resetPartnerRegistration } from '../src/store/slices/partnerRegistrationSlice';
+import { resetPartnerRegistration, setPartnerType, setStep, setRegisteredEmail, setIsOtpVerified, setIndividualDetails, setIndividualPassword } from '../src/store/slices/partnerRegistrationSlice';
 
 import PartnerRegister from '../src/pages/partner/PartnerRegister';
 
@@ -35,6 +35,10 @@ vi.mock('../src/utils/partnerApi', () => ({
   fetchUserProfileWithRetry: vi.fn().mockResolvedValue({ id: 'profile-123' }),
 
   verifyRegistrationOtp: vi.fn().mockResolvedValue({ accessToken: 'access-token' }),
+
+  resendOtp: vi.fn().mockResolvedValue({
+    message: 'If the email exists, an OTP has been sent to your email',
+  }),
 
   completePartnerOrganizationSetup: vi.fn().mockResolvedValue({
     id: 'org-1',
@@ -641,7 +645,20 @@ describe('PartnerRegister organization flow', () => {
 
 
 
-    await completeOrganizationOtpStep(user);
+    await user.type(
+      document.getElementById('adminConfirmPassword') as HTMLInputElement,
+      'Secure1pass!'
+    );
+
+    await user.click(screen.getByRole('button', { name: /continue/i }));
+
+
+
+    await waitFor(() => {
+
+      expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument();
+
+    });
 
 
 
@@ -703,6 +720,54 @@ describe('PartnerRegister organization flow', () => {
     });
 
     expect(screen.getByText(/verify your email/i)).toBeInTheDocument();
+
+  });
+
+
+
+  it('skips OTP step when returning to account step after OTP is verified', async () => {
+
+    const user = userEvent.setup();
+
+    const { registerPartnerUser } = await import('../src/utils/partnerApi');
+
+
+
+    renderPartnerRegister();
+
+
+
+    await reachOrganizationProfileStep(user);
+
+
+
+    await user.click(screen.getByRole('button', { name: /back/i }));
+
+
+
+    expect(screen.getByLabelText(/work email/i)).toBeInTheDocument();
+
+    expect(screen.queryByText(/verify your email/i)).not.toBeInTheDocument();
+
+
+
+    await user.type(screen.getByLabelText(/^address/i), '456 Updated Lane');
+
+    await user.type(
+      document.getElementById('adminConfirmPassword') as HTMLInputElement,
+      'Secure1pass!'
+    );
+
+    await user.click(screen.getByRole('button', { name: /continue/i }));
+
+
+
+    await waitFor(() => {
+      expect(registerPartnerUser).toHaveBeenCalledTimes(1);
+      expect(screen.getByLabelText(/organization name/i)).toBeInTheDocument();
+    });
+
+    expect(screen.queryByText(/verify your email/i)).not.toBeInTheDocument();
 
   });
 
@@ -904,6 +969,82 @@ describe('PartnerRegister individual flow', () => {
 
 
 
+  it('calls resendOtp when resend code is clicked on OTP step', async () => {
+
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+
+    const { resendOtp } = await import('../src/utils/partnerApi');
+
+
+
+    renderPartnerRegister();
+
+
+
+    await completeIndividualProfileStep(user);
+
+    await completeIndividualSecurityStep(user);
+
+
+
+    await waitFor(() => {
+
+      expect(screen.getByText(/verify your email/i)).toBeInTheDocument();
+
+    });
+
+
+
+    for (let i = 0; i < 30; i += 1) {
+
+      await act(async () => {
+
+        vi.advanceTimersByTime(1000);
+
+      });
+
+    }
+
+
+
+    await waitFor(() => {
+
+      expect(
+
+        screen.getByRole('button', { name: /^resend code$/i })
+
+      ).toBeEnabled();
+
+    });
+
+
+
+    await user.click(screen.getByRole('button', { name: /^resend code$/i }));
+
+
+
+    await waitFor(() => {
+
+      expect(resendOtp).toHaveBeenCalledWith({
+
+        email: 'author@example.com',
+
+        purpose: 'REGISTRATION',
+
+      });
+
+    });
+
+
+
+    vi.useRealTimers();
+
+  });
+
+
+
   it('blocks security submit until terms are accepted', async () => {
 
     const user = userEvent.setup();
@@ -985,6 +1126,92 @@ describe('PartnerRegister individual flow', () => {
       expect(registerIndividualPartner).toHaveBeenCalledTimes(1);
 
     });
+
+  });
+
+
+
+  it('skips OTP when continuing from security step after OTP is verified', async () => {
+
+    const user = userEvent.setup();
+
+    const { endSessionAndRedirectToLogin } = await import('../src/utils/authSession');
+
+
+
+    store.dispatch(setPartnerType('individual'));
+
+    store.dispatch(setRegisteredEmail('author@example.com'));
+
+    store.dispatch(setIsOtpVerified(true));
+
+    store.dispatch(
+
+      setIndividualDetails({
+
+        firstName: 'Jane',
+
+        lastName: 'Author',
+
+        email: 'author@example.com',
+
+        address: '456 Author Street',
+
+        contact: '+1 555 0200',
+
+        image: null,
+
+      })
+
+    );
+
+    store.dispatch(
+
+      setIndividualPassword({
+
+        password: 'Secure1pass!',
+
+        acceptedTerms: true,
+
+      })
+
+    );
+
+    store.dispatch(setStep(3));
+
+
+
+    renderPartnerRegister();
+
+
+
+    expect(
+
+      screen.getByRole('heading', { name: /secure your account/i })
+
+    ).toBeInTheDocument();
+
+
+
+    await user.type(
+
+      document.getElementById('individualConfirmPassword') as HTMLInputElement,
+
+      'Secure1pass!'
+
+    );
+
+    await user.click(screen.getByRole('button', { name: /^continue$/i }));
+
+
+
+    await waitFor(() => {
+
+      expect(endSessionAndRedirectToLogin).toHaveBeenCalled();
+
+    });
+
+    expect(screen.queryByText(/verify your email/i)).not.toBeInTheDocument();
 
   });
 

@@ -78,7 +78,7 @@
   height: 8px;
   background: var(--color-danger);
   border-radius: 50%;
-  border: 2px solid white;
+  border: 2px solid var(--color-bg-primary);
 }
 
 .top-nav-avatar {

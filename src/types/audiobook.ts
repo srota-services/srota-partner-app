@@ -23,11 +23,31 @@ export interface AudiobookGenre {
   name: string;
 }
 
+export type SubscriptionGatingMode = 'AUDIOBOOK' | 'CHAPTER' | 'NONE';
+
+export type AudiobookType = 'AUTHORING' | 'PUBLICATION';
+
+/**
+ * Mood summary nested in audiobook API responses
+ */
+export interface AudiobookMoodSummary {
+  id: string;
+  name: string;
+  description?: string | null;
+  descriptionIcon?: string;
+  hexcode?: string;
+  color?: string;
+  icon?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 /**
  * Audiobook structure from API response
  */
 export interface AudiobookApiResponse {
   id: string;
+  type?: AudiobookType;
   title: string;
   author: string;
   narrator?: string;
@@ -37,7 +57,7 @@ export interface AudiobookApiResponse {
   chapterCount?: number;
   fileSize?: number;
   coverImage?: string;
-  language?: string;
+  language?: string | { name?: string; code?: string };
   publisher?: string;
   publishDate?: string;
   isbn?: string;
@@ -50,6 +70,9 @@ export interface AudiobookApiResponse {
   genres?: AudiobookGenre[];
   meta?: Record<string, string>;
   minSubscriptionTier?: number | null;
+  subscriptionGatingMode?: SubscriptionGatingMode;
+  moodId?: string | null;
+  mood?: AudiobookMoodSummary | null;
 }
 
 /**
@@ -97,6 +120,7 @@ export interface AudiobookFormData {
   isPaid: boolean;
   minSubscriptionTier: number | null;
   moodId: string | null;
+  subscriptionGatingMode: SubscriptionGatingMode;
 }
 
 export type AudiobookWizardData = AudiobookFormData & {
@@ -116,6 +140,8 @@ export interface ChapterFormData {
   endPosition?: number;
   scheduledAt?: string;
   coverImage: File | null;
+  isPaid: boolean;
+  minSubscriptionTier: number | null;
 }
 
 /**
@@ -136,6 +162,7 @@ export interface CreateAudiobookRequest {
   author: string;
   narrators?: string[];
   description: string;
+  type?: AudiobookType;
   genreIds: string[];
   tagIds: string[];
   owner?: AudioBookOwnerInput;
@@ -148,6 +175,7 @@ export interface CreateAudiobookRequest {
   isPublic?: boolean;
   minSubscriptionTier?: number;
   moodId?: string;
+  subscriptionGatingMode?: SubscriptionGatingMode;
 }
 
 /**
@@ -155,6 +183,7 @@ export interface CreateAudiobookRequest {
  */
 export interface UpdateAudiobookRequest {
   audiobookId: string;
+  type?: AudiobookType;
   title?: string;
   author?: string;
   narrators?: string[];
@@ -170,6 +199,7 @@ export interface UpdateAudiobookRequest {
   isPublic?: boolean;
   minSubscriptionTier?: number;
   moodId?: string;
+  subscriptionGatingMode?: SubscriptionGatingMode;
 }
 
 export type ChapterWizardData = ChapterFormData & {
@@ -233,6 +263,7 @@ export interface ChapterApiResponse {
   scheduledAt?: string;
   createdAt?: string;
   updatedAt?: string;
+  minSubscriptionTier?: number | null;
   audiobook?: ChapterAudiobookReference;
   bookmarks?: unknown[];
   notes?: unknown[];
@@ -253,6 +284,7 @@ export interface CreateChapterRequest {
   startPosition?: number;
   endPosition?: number;
   scheduledAt?: string;
+  minSubscriptionTier?: number | null;
 }
 
 /**
@@ -269,6 +301,7 @@ export interface UpdateChapterRequest {
   endPosition?: number;
   scheduledAt?: string;
   coverImage?: File;
+  minSubscriptionTier?: number | null;
 }
 
 /**
@@ -282,4 +315,69 @@ export interface ChaptersApiResponse {
   timestamp: string;
   path: string;
   pagination?: PaginationInfo;
+}
+
+/**
+ * Page input for authoring chapter create (inline pages array).
+ */
+export interface CreatePageInput {
+  pageNumber: number;
+  plainText: string;
+  richText: Record<string, unknown> | unknown[];
+}
+
+/**
+ * Page structure from API response.
+ */
+export interface PageApiResponse {
+  id: string;
+  chapterId: string;
+  pageNumber: number;
+  plainText: string;
+  richText: Record<string, unknown> | unknown[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/**
+ * Create page request payload.
+ */
+export interface CreatePageRequest {
+  chapterId: string;
+  pageNumber: number;
+  plainText: string;
+  richText: Record<string, unknown> | unknown[];
+}
+
+/**
+ * Update page request payload.
+ */
+export interface UpdatePageRequest {
+  chapterId: string;
+  pageNumber: number;
+  plainText: string;
+  richText: Record<string, unknown> | unknown[];
+}
+
+/**
+ * Pages API response structure.
+ */
+export interface PagesApiResponse {
+  success: boolean;
+  data: PageApiResponse[];
+  message: string;
+  statusCode: number;
+  timestamp: string;
+  path: string;
+}
+
+/**
+ * Create authoring chapter request (no audio file or cover required).
+ */
+export interface CreateAuthoringChapterRequest {
+  audiobookId: string;
+  title: string;
+  description: string;
+  chapterNumber: number;
+  pages?: CreatePageInput[];
 }

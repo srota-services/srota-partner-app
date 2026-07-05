@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import CloseButton from '../../../../../components/common/CloseButton';
 import '../../../../../styles/pages/audiobooks/components/forms/AudiobookForm.css';
 
 interface MetaKeyValueEditorProps {
@@ -125,14 +126,12 @@ function MetaKeyValueEditor({ meta, onChange }: MetaKeyValueEditorProps) {
                 placeholder="Add value"
                 className="meta-value-input"
               />
-              <button
-                type="button"
+              <CloseButton
+                size="sm"
                 className="meta-remove-button"
+                label={`Remove ${originalKey || 'entry'}`}
                 onClick={() => handleMetaRemove(originalKey)}
-                aria-label={`Remove ${originalKey || 'entry'}`}
-              >
-                ×
-              </button>
+              />
             </div>
           ))
         )}

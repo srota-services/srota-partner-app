@@ -16,6 +16,10 @@ import {
 import { getUserRoleFromAuthResponse } from '../../utils/authRole';
 import { ensureCsrfToken } from '../../utils/csrf';
 import { getStoredWorkspaceSlug } from '../../utils/workspaceSlug';
+import {
+  getStoredAppType,
+  setStoredAppType,
+} from '../../utils/workspaceAppType';
 import { removeAccessToken } from '../../utils/token';
 let authInitPromise: Promise<void> | null = null;
 async function runAuthInitialization(
@@ -32,7 +36,13 @@ async function runAuthInitialization(
         dispatch(setUserRole(role));
       }
       if (refreshResponse.appType) {
+        setStoredAppType(refreshResponse.appType);
         dispatch(setAppType(refreshResponse.appType));
+      } else {
+        const storedAppType = getStoredAppType();
+        if (storedAppType) {
+          dispatch(setAppType(storedAppType));
+        }
       }
       const storedSlug = getStoredWorkspaceSlug();
       if (storedSlug) {
@@ -41,6 +51,7 @@ async function runAuthInitialization(
       if (refreshResponse.user) {
         dispatch(
           setUser({
+            id: refreshResponse.user.id,
             email: refreshResponse.user.email,
             name: refreshResponse.user.name,
           })

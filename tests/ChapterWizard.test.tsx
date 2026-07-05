@@ -5,6 +5,8 @@ import { Provider } from 'react-redux';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { store } from '../src/store/store';
 import ChapterWizard from '../src/pages/chapters/ChapterWizard';
+import { fetchChapters } from '../src/store/slices/chaptersSlice';
+import { getChapters } from '../src/utils/audiobookApi';
 import { mockChapter, testAudioFile, testCoverFile } from './wizardTestHelpers';
 
 const { createChapterMock, updateChapterMock } = vi.hoisted(() => ({
@@ -26,6 +28,11 @@ vi.mock('../src/utils/audiobookApi', async importOriginal => {
     ...actual,
     createChapter: createChapterMock,
     updateChapter: updateChapterMock,
+    getSubscriptionPlans: vi.fn().mockResolvedValue([
+      { name: 'Base Plan' },
+      { name: 'Standard Plan' },
+      { name: 'Premium Plan' },
+    ]),
     getChapters: vi.fn().mockResolvedValue({
       success: true,
       data: [],
@@ -43,8 +50,51 @@ vi.mock('../src/utils/audiobookApi', async importOriginal => {
   };
 });
 
+const mockExistingChapterOne = {
+  ...mockChapter,
+  id: 'ch-1',
+  title: 'First Chapter',
+  chapterNumber: 1,
+  minSubscriptionTier: 2,
+};
+
+function mockChaptersResponse(chapters: typeof mockExistingChapterOne[]) {
+  vi.mocked(getChapters).mockResolvedValue({
+    success: true,
+    data: chapters,
+    message: 'ok',
+    statusCode: 200,
+    timestamp: '2024-01-01T00:00:00.000Z',
+    path: '/chapters',
+    pagination: {
+      currentPage: 1,
+      totalPages: 1,
+      totalItems: chapters.length,
+      itemsPerPage: 10,
+    },
+  });
+}
+
+function getSubscriptionPlanSelect() {
+  const select = document.getElementById(
+    'chapter-subscription-plan'
+  ) as HTMLSelectElement | null;
+  if (!select) {
+    throw new Error('Subscription plan select not found');
+  }
+  return select;
+}
+
+function querySubscriptionPlanSelect() {
+  return document.getElementById(
+    'chapter-subscription-plan'
+  ) as HTMLSelectElement | null;
+}
+
 async function fillBasicsStep(user: ReturnType<typeof userEvent.setup>) {
-  await user.type(screen.getByLabelText(/^title/i), 'Chapter One');
+  const titleInput = await screen.findByLabelText(/^title/i);
+  await waitFor(() => expect(titleInput).not.toBeDisabled());
+  await user.type(titleInput, 'Chapter One');
   await user.type(
     screen.getByLabelText(/^description/i),
     'Opening chapter description.'
@@ -98,14 +148,14 @@ function mockAudioMetadata() {
 function renderCreateWizard() {
   return render(
     <Provider store={store}>
-      <MemoryRouter initialEntries={['/audiobooks/ab-1/chapters/create']}>
+      <MemoryRouter initialEntries={['/library/ab-1/chapters/create']}>
         <Routes>
           <Route
-            path="/audiobooks/:id/chapters/create"
+            path="/library/:id/chapters/create"
             element={<ChapterWizard />}
           />
           <Route
-            path="/audiobooks/:id/chapters"
+            path="/library/:id/chapters"
             element={<div>Chapters List</div>}
           />
         </Routes>
@@ -120,18 +170,18 @@ function renderEditWizard() {
       <MemoryRouter
         initialEntries={[
           {
-            pathname: '/audiobooks/ab-1/chapters/ch-edit-1/edit',
+            pathname: '/library/ab-1/chapters/ch-edit-1/edit',
             state: { chapter: mockChapter },
           },
         ]}
       >
         <Routes>
           <Route
-            path="/audiobooks/:id/chapters/:chapterId/edit"
+            path="/library/:id/chapters/:chapterId/edit"
             element={<ChapterWizard />}
           />
           <Route
-            path="/audiobooks/:id/chapters"
+            path="/library/:id/chapters"
             element={<div>Chapters List</div>}
           />
         </Routes>
@@ -141,7 +191,7 @@ function renderEditWizard() {
 }
 
 describe('ChapterWizard', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     createChapterMock.mockReset();
     updateChapterMock.mockReset();
     createChapterMock.mockResolvedValue({ id: 'ch-new', title: 'Chapter One' });
@@ -149,6 +199,8 @@ describe('ChapterWizard', () => {
       id: 'ch-edit-1',
       title: 'Existing Chapter',
     });
+    mockChaptersResponse([]);
+    await store.dispatch(fetchChapters({ audiobookId: 'ab-1', page: 1 }));
     mockAudioMetadata();
     localStorage.clear();
   });
@@ -170,6 +222,147 @@ describe('ChapterWizard', () => {
 
     expect(await screen.findByText(/title is required/i)).toBeInTheDocument();
     expect(screen.getByText(/description is required/i)).toBeInTheDocument();
+  });
+
+  it('disables paid switch for the first chapter with an info hint', async () => {
+    renderCreateWizard();
+    await screen.findByLabelText(/^title/i);
+
+    expect(screen.getByRole('switch', { name: /^paid$/i })).toBeDisabled();
+    expect(
+      screen.getByLabelText(/the first chapter of this audiobook must be free/i)
+    ).toBeInTheDocument();
+  });
+
+  it('shows subscription plan dropdown when paid switch is on', async () => {
+    const user = userEvent.setup();
+    mockChaptersResponse([mockExistingChapterOne]);
+    await store.dispatch(fetchChapters({ audiobookId: 'ab-1', page: 1 }));
+    renderCreateWizard();
+    await screen.findByLabelText(/^title/i);
+    await waitFor(() => {
+      expect(screen.getByLabelText(/chapter number/i)).toHaveValue(2);
+    });
+
+    expect(querySubscriptionPlanSelect()).toBeNull();
+
+    await user.click(screen.getByRole('switch', { name: /^paid$/i }));
+
+    expect(
+      getSubscriptionPlanSelect().closest('.wizard-paid-plan-content')
+    ).toBeInTheDocument();
+  });
+
+  it('shows a red info hint when selected plan is lower than previous chapter', async () => {
+    const user = userEvent.setup();
+    mockChaptersResponse([mockExistingChapterOne]);
+    await store.dispatch(fetchChapters({ audiobookId: 'ab-1', page: 1 }));
+    renderCreateWizard();
+    await fillBasicsStep(user);
+    await waitFor(() => {
+      expect(screen.getByLabelText(/chapter number/i)).toHaveValue(2);
+    });
+
+    await user.click(screen.getByRole('switch', { name: /^paid$/i }));
+    await user.selectOptions(getSubscriptionPlanSelect(), 'Base Plan');
+
+    expect(
+      screen.getByLabelText(
+        /the subscription plan for this chapter must be same or higher than the previous chapter/i
+      )
+    ).toHaveClass('info-hint--error');
+  });
+
+  it('blocks continue when selected plan is lower than previous chapter', async () => {
+    const user = userEvent.setup();
+    mockChaptersResponse([mockExistingChapterOne]);
+    await store.dispatch(fetchChapters({ audiobookId: 'ab-1', page: 1 }));
+    renderCreateWizard();
+    await fillBasicsStep(user);
+    await waitFor(() => {
+      expect(screen.getByLabelText(/chapter number/i)).toHaveValue(2);
+    });
+
+    await user.click(screen.getByRole('switch', { name: /^paid$/i }));
+    await user.selectOptions(getSubscriptionPlanSelect(), 'Base Plan');
+    await user.click(screen.getByRole('button', { name: /continue/i }));
+
+    await waitFor(() => {
+      const error = document.querySelector(
+        '.wizard-paid-plan-dropdown .wizard-field-error'
+      );
+      expect(error).toHaveTextContent(
+        /the subscription plan for this chapter must be same or higher than the previous chapter/i
+      );
+    });
+  });
+
+  it('requires a subscription plan when paid switch is on', async () => {
+    const user = userEvent.setup();
+    mockChaptersResponse([mockExistingChapterOne]);
+    await store.dispatch(fetchChapters({ audiobookId: 'ab-1', page: 1 }));
+    renderCreateWizard();
+    await fillBasicsStep(user);
+    await waitFor(() => {
+      expect(screen.getByLabelText(/chapter number/i)).toHaveValue(2);
+    });
+    await user.click(screen.getByRole('switch', { name: /^paid$/i }));
+    await user.click(screen.getByRole('button', { name: /continue/i }));
+
+    expect(
+      await screen.findByText(/please select a subscription plan/i)
+    ).toBeInTheDocument();
+  });
+
+  it('updates live preview with subscription plan when selected', async () => {
+    const user = userEvent.setup();
+    mockChaptersResponse([mockExistingChapterOne]);
+    await store.dispatch(fetchChapters({ audiobookId: 'ab-1', page: 1 }));
+    renderCreateWizard();
+    await fillBasicsStep(user);
+    await waitFor(() => {
+      expect(screen.getByLabelText(/chapter number/i)).toHaveValue(2);
+    });
+    await user.click(screen.getByRole('switch', { name: /^paid$/i }));
+    await user.selectOptions(getSubscriptionPlanSelect(), 'Standard Plan');
+
+    expect(
+      screen.getByText(/subscription plan: standard plan/i)
+    ).toBeInTheDocument();
+  });
+
+  it('publishes a paid chapter with subscription tier', async () => {
+    const user = userEvent.setup();
+    mockChaptersResponse([mockExistingChapterOne]);
+    await store.dispatch(fetchChapters({ audiobookId: 'ab-1', page: 1 }));
+    renderCreateWizard();
+    await fillBasicsStep(user);
+    await waitFor(() => {
+      expect(screen.getByLabelText(/chapter number/i)).toHaveValue(2);
+    });
+    await user.click(screen.getByRole('switch', { name: /^paid$/i }));
+    await user.selectOptions(getSubscriptionPlanSelect(), 'Standard Plan');
+    await user.click(screen.getByRole('button', { name: /continue/i }));
+
+    const audioInput = await screen.findByLabelText(/audio file/i);
+    await user.upload(audioInput, testAudioFile);
+    await screen.findByText(/chapter\.mp3/i);
+    await user.click(screen.getByRole('button', { name: /continue/i }));
+
+    const coverInputs = document.querySelectorAll('input[type="file"]');
+    const coverInput = coverInputs[coverInputs.length - 1] as HTMLInputElement;
+    await user.upload(coverInput, testCoverFile);
+    await user.click(screen.getByRole('button', { name: /continue/i }));
+
+    await user.click(screen.getByRole('button', { name: /^publish$/i }));
+
+    await waitFor(() => {
+      expect(createChapterMock).toHaveBeenCalledTimes(1);
+    });
+
+    expect(createChapterMock.mock.calls[0][0]).toMatchObject({
+      minSubscriptionTier: 2,
+    });
   });
 
   it('loads audio metadata on file upload', async () => {
@@ -241,9 +434,24 @@ describe('ChapterWizard', () => {
       expect(screen.getByDisplayValue('Existing Chapter')).toBeInTheDocument();
     });
 
+    expect(getSubscriptionPlanSelect()).toHaveValue('2');
+
     await user.click(screen.getByRole('button', { name: /continue/i }));
+
+    expect(await screen.findByText(/chapter-audio\.mp3/i)).toBeInTheDocument();
+    expect(screen.getByDisplayValue('03:00')).toBeInTheDocument();
+
     await user.click(screen.getByRole('button', { name: /continue/i }));
+
+    expect(
+      await screen.findByAltText(/existing chapter/i)
+    ).toBeInTheDocument();
+
     await user.click(screen.getByRole('button', { name: /continue/i }));
+
+    expect(await screen.findByText(/chapter-audio\.mp3/i)).toBeInTheDocument();
+    expect(screen.getByText(/existing cover/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/standard plan/i).length).toBeGreaterThan(0);
 
     await user.click(screen.getByRole('button', { name: /^update$/i }));
 

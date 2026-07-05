@@ -3,24 +3,39 @@ import type {
   AudiobookFormData,
   AudiobookWizardData,
   CreateAudiobookRequest,
+  SubscriptionGatingMode,
   UpdateAudiobookRequest,
 } from '../types/audiobook';
-import type { GenreItem, TagItem } from './audiobookApi';
+import type { GenreItem, LanguageItem, TagItem } from './audiobookApi';
+import { normalizeMinSubscriptionTier } from './subscriptionPlans';
+import { resolveAudiobookLanguageName } from './languages';
 
 export const DEFAULT_AUDIOBOOK_LANGUAGE = 'English';
 
-export const AUDIOBOOK_LANGUAGE_OPTIONS = [
-  'English',
-  'Hindi',
-  'Spanish',
-  'French',
-  'German',
-  'Japanese',
-  'Mandarin',
-] as const;
-
-export type AudiobookWizardStep = 1 | 2 | 3 | 4;
+export type AudiobookWizardStep = 1 | 2 | 3 | 4 | 5;
 export type WizardMode = 'create' | 'edit';
+
+export const SUBSCRIPTION_GATING_MODE_OPTIONS: {
+  id: SubscriptionGatingMode;
+  label: string;
+}[] = [
+  { id: 'NONE', label: 'None' },
+  { id: 'AUDIOBOOK', label: 'Audiobook' },
+  { id: 'CHAPTER', label: 'Chapter' },
+];
+
+const SUBSCRIPTION_GATING_MODE_LABELS = Object.fromEntries(
+  SUBSCRIPTION_GATING_MODE_OPTIONS.map(option => [option.id, option.label])
+) as Record<SubscriptionGatingMode, string>;
+
+export function getSubscriptionGatingModeLabel(
+  mode: SubscriptionGatingMode
+): string {
+  return SUBSCRIPTION_GATING_MODE_LABELS[mode];
+}
+
+export const CHAPTER_GATING_FIRST_CHAPTER_FREE_MESSAGE =
+  'The first chapter of this audiobook must be a free chapter.';
 
 export function createEmptyAudiobookWizardData(): AudiobookWizardData {
   return {
@@ -37,7 +52,28 @@ export function createEmptyAudiobookWizardData(): AudiobookWizardData {
     isPaid: false,
     minSubscriptionTier: null,
     moodId: null,
+    subscriptionGatingMode: 'NONE',
     existingCoverUrl: undefined,
+  };
+}
+
+export function createEmptyAudiobookFormData(): AudiobookFormData {
+  const data = createEmptyAudiobookWizardData();
+  return {
+    title: data.title,
+    author: data.author,
+    narrators: data.narrators,
+    description: data.description,
+    genres: data.genres,
+    tags: data.tags,
+    language: data.language,
+    coverImage: data.coverImage,
+    scheduledAt: data.scheduledAt,
+    meta: data.meta,
+    isPaid: data.isPaid,
+    minSubscriptionTier: data.minSubscriptionTier,
+    moodId: data.moodId,
+    subscriptionGatingMode: data.subscriptionGatingMode,
   };
 }
 
@@ -58,10 +94,25 @@ export function filterAudiobookMeta(
     );
 }
 
+export function resolveAudiobookMoodId(
+  initialData: AudiobookApiResponse
+): string | null {
+  if (typeof initialData.moodId === 'string' && initialData.moodId.trim()) {
+    return initialData.moodId.trim();
+  }
+
+  if (initialData.mood?.id) {
+    return initialData.mood.id;
+  }
+
+  return null;
+}
+
 export function hydrateAudiobookWizardData(
   initialData: AudiobookApiResponse,
   genres: GenreItem[],
-  tags: TagItem[]
+  tags: TagItem[],
+  languages: LanguageItem[] = []
 ): AudiobookWizardData {
   const genreIds: string[] = [];
   if (initialData.genres && initialData.genres.length > 0) {
@@ -84,6 +135,17 @@ export function hydrateAudiobookWizardData(
     narrators.push(initialData.narrator);
   }
 
+  const minSubscriptionTier = normalizeMinSubscriptionTier(
+    initialData.minSubscriptionTier
+  );
+  const subscriptionGatingMode: SubscriptionGatingMode =
+    initialData.subscriptionGatingMode ??
+    (minSubscriptionTier != null
+      ? 'AUDIOBOOK'
+      : initialData.isPublic === false
+        ? 'AUDIOBOOK'
+        : 'NONE');
+
   return {
     title: initialData.title || '',
     author: initialData.author || '',
@@ -94,13 +156,20 @@ export function hydrateAudiobookWizardData(
       initialData.audiobookTags
         ?.map(tag => tags.find(t => t.name === tag.name)?.id || '')
         .filter(id => id) || [],
-    language: initialData.language || DEFAULT_AUDIOBOOK_LANGUAGE,
+    language: resolveAudiobookLanguageName(
+      initialData.language,
+      languages,
+      DEFAULT_AUDIOBOOK_LANGUAGE
+    ),
     coverImage: null,
     scheduledAt: undefined,
     meta: initialData.meta || {},
-    isPaid: initialData.isPublic === false,
-    minSubscriptionTier: null,
-    moodId: null,
+    isPaid:
+      subscriptionGatingMode === 'AUDIOBOOK' &&
+      (minSubscriptionTier != null || initialData.isPublic === false),
+    minSubscriptionTier,
+    moodId: resolveAudiobookMoodId(initialData),
+    subscriptionGatingMode,
     existingCoverUrl: initialData.coverImage,
   };
 }
@@ -127,9 +196,6 @@ export function validateAudiobookStep(
     if (data.tags.length === 0) {
       errors.tags = 'At least one tag is required';
     }
-    if (data.isPaid && data.minSubscriptionTier == null) {
-      errors.minSubscriptionTier = 'Please select a subscription plan';
-    }
   }
 
   if (step === 2) {
@@ -145,7 +211,17 @@ export function validateAudiobookStep(
     }
   }
 
-  if (step === 4 && !data.scheduledAt && mode === 'create') {
+  if (step === 4) {
+    if (
+      data.subscriptionGatingMode === 'AUDIOBOOK' &&
+      data.isPaid &&
+      data.minSubscriptionTier == null
+    ) {
+      errors.minSubscriptionTier = 'Please select a subscription plan';
+    }
+  }
+
+  if (step === 5 && !data.scheduledAt && mode === 'create') {
     // scheduledAt validated only when scheduling explicitly
   }
 
@@ -159,6 +235,7 @@ export function validateAudiobookForSchedule(
     ...validateAudiobookStep(1, data, 'create'),
     ...validateAudiobookStep(2, data, 'create'),
     ...validateAudiobookStep(3, data, 'create'),
+    ...validateAudiobookStep(4, data, 'create'),
   };
 
   if (!data.scheduledAt) {
@@ -176,6 +253,7 @@ export function validateAudiobookForPublish(
     ...validateAudiobookStep(1, data, mode),
     ...validateAudiobookStep(2, data, mode),
     ...validateAudiobookStep(3, data, mode),
+    ...validateAudiobookStep(4, data, mode),
   };
 }
 
@@ -199,6 +277,11 @@ function buildPaidAndMoodFields(data: AudiobookFormData): {
     fields.isPublic = true;
   }
 
+  if (data.subscriptionGatingMode === 'CHAPTER') {
+    fields.isPublic = true;
+    fields.minSubscriptionTier = 0;
+  }
+
   if (data.moodId) {
     fields.moodId = data.moodId;
   }
@@ -215,6 +298,7 @@ export function buildCreateAudiobookRequest(
   return {
     title: data.title.trim(),
     author: data.author.trim(),
+    type: 'PUBLICATION',
     narrators:
       data.narrators.length > 0
         ? data.narrators.map(n => n.trim()).filter(n => n)
@@ -229,6 +313,7 @@ export function buildCreateAudiobookRequest(
     coverImage: data.coverImage || undefined,
     scheduledAt: data.scheduledAt,
     meta: Object.keys(filteredMeta).length > 0 ? filteredMeta : undefined,
+    subscriptionGatingMode: data.subscriptionGatingMode,
     ...buildPaidAndMoodFields(data),
   };
 }
@@ -241,6 +326,7 @@ export function buildUpdateAudiobookRequest(
 
   return {
     audiobookId,
+    type: 'PUBLICATION',
     title: data.title.trim(),
     author: data.author.trim(),
     narrators:
@@ -256,6 +342,7 @@ export function buildUpdateAudiobookRequest(
     coverImage: data.coverImage || undefined,
     scheduledAt: data.scheduledAt,
     meta: Object.keys(filteredMeta).length > 0 ? filteredMeta : undefined,
+    subscriptionGatingMode: data.subscriptionGatingMode,
     ...buildPaidAndMoodFields(data),
   };
 }

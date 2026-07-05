@@ -1,4 +1,4 @@
-import { formatDurationDetailed } from '../../../../../utils/formatting';
+import { formatDurationDetailed, getFileNameFromUrl } from '../../../../../utils/formatting';
 import AudioUploadZone from '../../../../../components/common/AudioUploadZone';
 import type { ChapterWizardData } from '../../../../../types/audiobook';
 
@@ -21,6 +21,12 @@ function ChapterAudioStep({
   onFileChange,
   onChange,
 }: ChapterAudioStepProps) {
+  const existingAudioLabel =
+    mode === 'edit' && data.existingAudioUrl && !data.file
+      ? getFileNameFromUrl(data.existingAudioUrl)
+      : null;
+  const showAudioMetadata = data.duration !== undefined;
+
   return (
     <div className="wizard-step-form">
       <div className="wizard-field-group">
@@ -33,20 +39,18 @@ function ChapterAudioStep({
             </span>
           )}
         </label>
-        {mode === 'edit' && data.existingAudioUrl && !data.file && (
-          <p className="narrators-hint">Current audio file is attached.</p>
-        )}
         <AudioUploadZone
           value={data.file}
           onChange={onFileChange}
           disabled={isLoading}
           isLoading={isLoadingMetadata}
+          existingFileLabel={existingAudioLabel}
           ariaLabel="Upload chapter audio file"
         />
         {errors.file && <span className="wizard-field-error">{errors.file}</span>}
       </div>
 
-      {data.file && data.duration !== undefined && (
+      {showAudioMetadata && (
         <>
           <div className="wizard-field-group">
             <label>Duration</label>
@@ -91,7 +95,6 @@ function ChapterAudioStep({
           </div>
         </>
       )}
-
     </div>
   );
 }

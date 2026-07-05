@@ -20,8 +20,10 @@ import type {
 } from '../../../../types/audiobook';
 import { resolveAudiobookOwner } from '../../../../utils/resolveAudiobookOwner';
 import Button from '../../../../components/common/Button';
+import AppImage from '../../../../components/common/AppImage';
 import { showApiError } from '../../../../utils/toast';
-import { DEFAULT_AUDIOBOOK_LANGUAGE } from '../../../../utils/audiobookWizard';
+import { DEFAULT_AUDIOBOOK_LANGUAGE, createEmptyAudiobookFormData, resolveAudiobookMoodId } from '../../../../utils/audiobookWizard';
+import { resolveAudiobookLanguageName } from '../../../../utils/languages';
 import '../../../../styles/pages/audiobooks/components/forms/AudiobookForm.css';
 
 interface AudiobookFormProps {
@@ -50,6 +52,8 @@ const AudiobookForm: React.FC<AudiobookFormProps> = ({
 
   // Initialize form data from initialData if provided
   const getInitialFormData = (): AudiobookFormData => {
+    const defaults = createEmptyAudiobookFormData();
+
     if (initialData) {
       // Handle multiple genres - support both old (genre) and new (genres) API response formats
       const genreIds: string[] = [];
@@ -87,27 +91,18 @@ const AudiobookForm: React.FC<AudiobookFormProps> = ({
         coverImage: null,
         scheduledAt: undefined, // Note: scheduledAt may not be in API response
         meta: initialData.meta || {},
-        language: initialData.language || DEFAULT_AUDIOBOOK_LANGUAGE,
+        language: resolveAudiobookLanguageName(
+          initialData.language,
+          [],
+          DEFAULT_AUDIOBOOK_LANGUAGE
+        ),
         isPaid: false,
-        minSubscriptionTier: null,
-        moodId: null,
+        minSubscriptionTier: initialData.minSubscriptionTier ?? null,
+        moodId: resolveAudiobookMoodId(initialData),
+        subscriptionGatingMode: initialData.subscriptionGatingMode ?? 'NONE',
       };
     }
-    return {
-      title: '',
-      author: '',
-      narrators: [],
-      description: '',
-      genres: [],
-      tags: [],
-      coverImage: null,
-      scheduledAt: undefined,
-      meta: {},
-      language: DEFAULT_AUDIOBOOK_LANGUAGE,
-      isPaid: false,
-      minSubscriptionTier: null,
-      moodId: null,
-    };
+    return defaults;
   };
 
   const [formData, setFormData] =
@@ -202,10 +197,15 @@ const AudiobookForm: React.FC<AudiobookFormProps> = ({
         coverImage: null,
         scheduledAt: undefined,
         meta: initialData.meta || {},
-        language: initialData.language || DEFAULT_AUDIOBOOK_LANGUAGE,
+        language: resolveAudiobookLanguageName(
+          initialData.language,
+          [],
+          DEFAULT_AUDIOBOOK_LANGUAGE
+        ),
         isPaid: false,
         minSubscriptionTier: initialData.minSubscriptionTier ?? null,
-        moodId: null,
+        moodId: resolveAudiobookMoodId(initialData),
+        subscriptionGatingMode: initialData.subscriptionGatingMode ?? 'NONE',
       });
     }
   }, [initialData, genres, tags]);
@@ -323,21 +323,7 @@ const AudiobookForm: React.FC<AudiobookFormProps> = ({
         await dispatch(fetchAudiobooks({ page: 1, filter }));
 
         // Reset form only in create mode
-        setFormData({
-          title: '',
-          author: '',
-          narrators: [],
-          description: '',
-          genres: [],
-          tags: [],
-          coverImage: null,
-          scheduledAt: undefined,
-          meta: {},
-          language: DEFAULT_AUDIOBOOK_LANGUAGE,
-          isPaid: false,
-          minSubscriptionTier: null,
-          moodId: null,
-        });
+        setFormData(createEmptyAudiobookFormData());
       }
 
       if (onSuccess) {
@@ -466,21 +452,7 @@ const AudiobookForm: React.FC<AudiobookFormProps> = ({
         await dispatch(fetchAudiobooks({ page: 1, filter }));
 
         // Reset form only in create mode
-        setFormData({
-          title: '',
-          author: '',
-          narrators: [],
-          description: '',
-          genres: [],
-          tags: [],
-          coverImage: null,
-          scheduledAt: undefined,
-          meta: {},
-          language: DEFAULT_AUDIOBOOK_LANGUAGE,
-          isPaid: false,
-          minSubscriptionTier: null,
-          moodId: null,
-        });
+        setFormData(createEmptyAudiobookFormData());
       }
 
       if (onSuccess) {
@@ -811,14 +783,11 @@ const AudiobookForm: React.FC<AudiobookFormProps> = ({
         </label>
         {isEditMode && initialData?.coverImage && !formData.coverImage && (
           <div className="current-image-preview">
-            <img
+            <AppImage
               src={initialData.coverImage}
               alt="Current cover"
-              style={{
-                maxWidth: '200px',
-                maxHeight: '200px',
-                marginBottom: '8px',
-              }}
+              variant="cover"
+              className="current-image-preview-image"
             />
             <p className="current-image-text">Current cover image</p>
           </div>

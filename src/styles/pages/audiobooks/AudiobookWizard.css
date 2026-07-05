@@ -4,7 +4,7 @@
 
 .audiobook-wizard .wizard-field-group input:not(.wizard-pill-input):not(.narrators-input),
 .audiobook-wizard .wizard-field-group textarea,
-.audiobook-wizard .wizard-field-group select:not(.select-input) {
+.audiobook-wizard .wizard-field-group .select-input {
   border-color: var(--audiobook-control-border);
 }
 

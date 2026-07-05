@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #f9fafb;
+  background-color: var(--color-bg-secondary);
 }
 
 .layout-content {
@@ -15,12 +15,41 @@
   flex: 1;
   overflow-y: auto;
   padding: 24px;
-  background-color: #f9fafb;
+  background-color: var(--color-bg-secondary);
   margin-left: 240px;
   min-height: calc(100vh - 64px);
 }
 
+.layout-main--editor {
+  padding: 0;
+  overflow: hidden;
+}
+
+.layout-main--editor-collapsed {
+  margin-left: 56px;
+}
+
+.layout-main--editor-expanded {
+  margin-left: 240px;
+}
+
+.layout-main--settings {
+  margin-left: 0;
+}
+
+.layout-page-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 60vh;
+}
+
 @media (max-width: 768px) {
+  .layout-main--settings {
+    margin-left: 0;
+  }
+
   .layout-main {
     padding: 16px;
     margin-left: 200px;

@@ -212,7 +212,7 @@
   flex-direction: column;
   min-width: 0;
   min-height: 100%;
-  background: rgb(230, 232, 248);
+  background: var(--color-wizard-content-bg);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
   padding: 24px;
@@ -337,6 +337,63 @@
   flex-shrink: 0;
 }
 
+.wizard-paid-switch-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wizard-subscription-plan-label-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wizard-chapter-gating-notice {
+  overflow: hidden;
+  animation: wizardChapterGatingNoticeDropDown 0.35s cubic-bezier(0.4, 0, 0.2, 1)
+    forwards;
+}
+
+.wizard-chapter-gating-notice-panel {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(14, 165, 233, 0.22);
+  background: var(--color-info-light);
+  color: var(--color-text-primary);
+}
+
+.wizard-chapter-gating-notice-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--color-info);
+}
+
+.wizard-chapter-gating-notice-text {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+}
+
+@keyframes wizardChapterGatingNoticeDropDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    max-height: 120px;
+    transform: translateY(0);
+  }
+}
+
 .wizard-paid-plan-content {
   display: flex;
   flex-direction: column;
@@ -349,7 +406,7 @@
   margin-bottom: 0;
 }
 
-.wizard-paid-plan-dropdown select {
+.wizard-paid-plan-dropdown .select-wrapper {
   width: 100%;
 }
 
@@ -359,7 +416,7 @@
   gap: 12px;
 }
 
-.wizard-language-continue-row select {
+.wizard-language-continue-row .select-wrapper {
   flex: 1;
   min-width: 0;
   width: auto;
@@ -461,6 +518,17 @@
   background: transparent;
 }
 
+.wizard-field-group .wizard-input-with-icon input:not(.wizard-pill-input):not(.narrators-input),
+.wizard-field-group .wizard-input-with-icon textarea,
+.wizard-field-group .wizard-input-with-icon select:not(.select-input) {
+  width: auto;
+  border: none;
+  border-radius: 0;
+  padding: 12px 0;
+  box-shadow: none;
+  background: transparent;
+}
+
 .wizard-input-with-icon textarea {
   min-height: 72px;
   resize: vertical;
@@ -471,6 +539,14 @@
 .wizard-input-with-icon select:focus {
   box-shadow: none;
   border-color: transparent;
+}
+
+.wizard-field-group .wizard-input-with-icon input:not(.wizard-pill-input):not(.narrators-input):focus,
+.wizard-field-group .wizard-input-with-icon textarea:focus,
+.wizard-field-group .wizard-input-with-icon select:not(.select-input):focus {
+  outline: none;
+  border: none;
+  box-shadow: none;
 }
 
 .narrators-input-container--inline {
@@ -575,7 +651,7 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #ffffff;
+  background: var(--color-bg-primary);
   flex-shrink: 0;
 }
 
@@ -650,7 +726,9 @@
 }
 
 .wizard-preview-card .audiobook-card--preview .audiobook-card-cover img,
-.wizard-preview-card .chapter-card--preview .chapter-card-cover img {
+.wizard-preview-card .chapter-card--preview .chapter-card-cover img,
+.wizard-preview-card .audiobook-card--preview .audiobook-card-cover .app-image,
+.wizard-preview-card .chapter-card--preview .chapter-card-cover .app-image {
   width: 100%;
   height: 100%;
   object-fit: cover;

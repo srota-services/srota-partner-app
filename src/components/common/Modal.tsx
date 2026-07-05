@@ -4,6 +4,13 @@
 
 import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+  getModalVariants,
+  getOverlayVariants,
+  getPageTransition,
+  getTabTransition,
+} from '../../utils/motion';
+import CloseButton from './CloseButton';
 import '../../styles/components/common/Modal.css';
 
 interface ModalProps {
@@ -45,32 +52,25 @@ const Modal: React.FC<ModalProps> = ({
         <motion.div
           className="modal-overlay"
           onClick={onClose}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          variants={getOverlayVariants()}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          transition={getTabTransition()}
         >
           <motion.div
             className={`modal-content modal-${size}`}
             onClick={e => e.stopPropagation()}
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{
-              duration: 0.2,
-              ease: [0.22, 1, 0.36, 1],
-            }}
+            variants={getModalVariants()}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={getPageTransition()}
           >
             {title && (
               <div className="modal-header">
                 <h2 className="modal-title">{title}</h2>
-                <button
-                  className="modal-close"
-                  onClick={onClose}
-                  aria-label="Close"
-                >
-                  ×
-                </button>
+                <CloseButton onClick={onClose} />
               </div>
             )}
             <div className="modal-body">{children}</div>

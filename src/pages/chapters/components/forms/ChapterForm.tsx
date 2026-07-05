@@ -17,7 +17,12 @@ import type {
   UpdateChapterRequest,
 } from '../../../../types/audiobook';
 import Button from '../../../../components/common/Button';
+import AppImage from '../../../../components/common/AppImage';
 import { showApiError } from '../../../../utils/toast';
+import {
+  chapterResponseToFormData,
+  createEmptyChapterFormData,
+} from '../../../../utils/chapterWizard';
 import '../../../../styles/pages/chapters/components/forms/ChapterForm.css';
 
 interface ChapterFormProps {
@@ -41,32 +46,16 @@ const ChapterForm: React.FC<ChapterFormProps> = ({
   const { loading: isCreating } = useAppSelector(state => state.chapters);
   const isEditMode = !!chapterId && !!initialData;
 
-  const [formData, setFormData] = useState<ChapterFormData>({
-    title: initialData?.title || '',
-    description: initialData?.description || '',
-    chapterNumber: initialData?.chapterNumber || nextChapterNumber,
-    file: null,
-    duration: initialData?.duration,
-    startPosition: initialData?.startPosition,
-    endPosition: initialData?.endPosition,
-    scheduledAt: undefined,
-    coverImage: null,
-  });
+  const [formData, setFormData] = useState<ChapterFormData>(() =>
+    initialData
+      ? chapterResponseToFormData(initialData, nextChapterNumber)
+      : createEmptyChapterFormData(nextChapterNumber)
+  );
 
   // Update form data when initialData changes
   useEffect(() => {
     if (initialData) {
-      setFormData({
-        title: initialData.title || '',
-        description: initialData.description || '',
-        chapterNumber: initialData.chapterNumber || nextChapterNumber,
-        file: null,
-        duration: initialData.duration,
-        startPosition: initialData.startPosition,
-        endPosition: initialData.endPosition,
-        scheduledAt: undefined, // Note: scheduledAt may not be in API response
-        coverImage: null,
-      });
+      setFormData(chapterResponseToFormData(initialData, nextChapterNumber));
     }
   }, [initialData, nextChapterNumber]);
 
@@ -216,17 +205,7 @@ const ChapterForm: React.FC<ChapterFormProps> = ({
 
       // Reset form only in create mode
       if (!isEditMode) {
-        setFormData({
-          title: '',
-          description: '',
-          chapterNumber: nextChapterNumber + 1,
-          file: null,
-          duration: undefined,
-          startPosition: undefined,
-          endPosition: undefined,
-          scheduledAt: undefined,
-          coverImage: null,
-        });
+        setFormData(createEmptyChapterFormData(nextChapterNumber + 1));
       }
 
       // Call onSuccess which will trigger chapter refresh
@@ -317,17 +296,7 @@ const ChapterForm: React.FC<ChapterFormProps> = ({
         await dispatch(createChapterThunk(createRequest)).unwrap();
 
         // Reset form only in create mode
-        setFormData({
-          title: '',
-          description: '',
-          chapterNumber: nextChapterNumber + 1,
-          file: null,
-          duration: undefined,
-          startPosition: undefined,
-          endPosition: undefined,
-          scheduledAt: undefined,
-          coverImage: null,
-        });
+        setFormData(createEmptyChapterFormData(nextChapterNumber + 1));
       }
 
       // Call onSuccess which will trigger chapter refresh
@@ -425,14 +394,11 @@ const ChapterForm: React.FC<ChapterFormProps> = ({
         </label>
         {isEditMode && initialData?.coverImage && !formData.coverImage && (
           <div className="current-image-preview">
-            <img
+            <AppImage
               src={initialData.coverImage}
               alt="Current cover"
-              style={{
-                maxWidth: '200px',
-                maxHeight: '200px',
-                marginBottom: '8px',
-              }}
+              variant="cover"
+              className="current-image-preview-image"
             />
             <p className="current-image-text">Current cover image</p>
           </div>

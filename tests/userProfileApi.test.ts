@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   fetchUserProfileWithRetry,
   getUserProfile,
+  getUserProfileByUserId,
 } from '../src/utils/partnerApi';
 
 vi.mock('../src/utils/config', () => ({
@@ -9,7 +10,7 @@ vi.mock('../src/utils/config', () => ({
     Authorization: 'Bearer test-token',
     'Content-Type': 'application/json',
   })),
-  getContentApiBaseUrl: vi.fn(() => 'https://api.example.com'),
+  getAuthApiBaseUrl: vi.fn(() => 'https://auth.example.com'),
   handleApiError: vi.fn((error: unknown) => error),
 }));
 
@@ -26,8 +27,7 @@ describe('user profile API', () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       ok: true,
       json: async () => ({
-        success: true,
-        data: { id: 'profile-1', email: 'user@example.com' },
+        user: { id: 'profile-1', email: 'user@example.com' },
       }),
     } as Response);
 
@@ -35,9 +35,42 @@ describe('user profile API', () => {
 
     expect(profile.id).toBe('profile-1');
     expect(globalThis.fetch).toHaveBeenCalledWith(
-      'https://api.example.com/api/v1/user/profile',
+      'https://auth.example.com/auth/user/profile',
       expect.objectContaining({ method: 'GET' })
     );
+  });
+
+  it('fetches user profile by user id', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        profile: {
+          userId: 'user-99',
+          username: 'user99',
+          avatar: 'https://cdn.example.com/avatar.jpg',
+        },
+      }),
+    } as Response);
+
+    const profile = await getUserProfileByUserId('user-99');
+
+    expect(profile?.userId).toBe('user-99');
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      'https://auth.example.com/auth/users/user-99/profile',
+      expect.objectContaining({ method: 'GET' })
+    );
+  });
+
+  it('returns null when profile by user id is not found', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
+      ok: false,
+      status: 404,
+      json: async () => ({ error: 'User profile not found' }),
+    } as Response);
+
+    const profile = await getUserProfileByUserId('missing-user');
+
+    expect(profile).toBeNull();
   });
 
   it('retries up to 3 times on 404 then succeeds', async () => {
@@ -56,8 +89,7 @@ describe('user profile API', () => {
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          success: true,
-          data: { id: 'profile-2' },
+          user: { id: 'profile-2' },
         }),
       } as Response);
 

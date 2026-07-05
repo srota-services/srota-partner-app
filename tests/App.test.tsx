@@ -63,7 +63,7 @@ describe('App', () => {
     expect(
       await screen.findByRole(
         'heading',
-        { name: /^audiobooks$/i },
+        { name: /^dashboard$/i },
         { timeout: 5000 }
       )
     ).toBeInTheDocument();
@@ -78,7 +78,7 @@ describe('App', () => {
     expect(
       await screen.findByRole(
         'heading',
-        { name: /^audiobooks$/i },
+        { name: /^dashboard$/i },
         { timeout: 5000 }
       )
     ).toBeInTheDocument();

@@ -24,6 +24,46 @@ function isSubscriptionTier(value: number): value is SubscriptionTier {
   return value === 1 || value === 2 || value === 3;
 }
 
+const SUBSCRIPTION_TIER_CODE_TO_NUMBER = {
+  BASE: 1,
+  STANDARD: 2,
+  PREMIUM: 3,
+} as const;
+
+type SubscriptionTierCode = keyof typeof SUBSCRIPTION_TIER_CODE_TO_NUMBER;
+
+function isSubscriptionTierCode(value: string): value is SubscriptionTierCode {
+  return value in SUBSCRIPTION_TIER_CODE_TO_NUMBER;
+}
+
+/** Normalizes API tier values (number or enum string) to 1–3, or null when free. */
+export function normalizeMinSubscriptionTier(
+  tier: number | string | null | undefined
+): number | null {
+  if (tier == null) {
+    return null;
+  }
+
+  if (typeof tier === 'number') {
+    if (tier <= 0) {
+      return null;
+    }
+    return tier;
+  }
+
+  const normalized = tier.trim().toUpperCase();
+  if (isSubscriptionTierCode(normalized)) {
+    return SUBSCRIPTION_TIER_CODE_TO_NUMBER[normalized];
+  }
+
+  const parsed = Number(normalized);
+  if (!Number.isNaN(parsed) && parsed > 0) {
+    return parsed;
+  }
+
+  return null;
+}
+
 export function getSubscriptionTierForPlanName(
   name: string
 ): SubscriptionTier | undefined {
@@ -91,7 +131,7 @@ export function getSubscriptionPlanNameForTier(
 export function getAudiobookSubscriptionTierLabel(
   minSubscriptionTier: number | null | undefined
 ): string {
-  if (minSubscriptionTier == null) {
+  if (minSubscriptionTier == null || minSubscriptionTier === 0) {
     return 'Free';
   }
 
@@ -99,5 +139,25 @@ export function getAudiobookSubscriptionTierLabel(
     return SUBSCRIPTION_TIER_LABELS[minSubscriptionTier];
   }
 
-  return `Tier ${minSubscriptionTier}`;
+  return `${minSubscriptionTier}`;
+}
+
+/** Effective tier for comparison: free chapters are tier 0. */
+export function getEffectiveChapterSubscriptionTier(
+  minSubscriptionTier: number | null | undefined
+): number {
+  return normalizeMinSubscriptionTier(minSubscriptionTier) ?? 0;
+}
+
+export function isChapterSubscriptionTierBelowPrevious(
+  isPaid: boolean,
+  minSubscriptionTier: number | null | undefined,
+  previousChapterMinTier: number | null | undefined
+): boolean {
+  const currentTier =
+    isPaid && minSubscriptionTier != null ? minSubscriptionTier : 0;
+  const previousTier = getEffectiveChapterSubscriptionTier(
+    previousChapterMinTier
+  );
+  return currentTier < previousTier;
 }

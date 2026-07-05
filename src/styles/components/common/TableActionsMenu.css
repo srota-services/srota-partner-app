@@ -31,5 +31,6 @@
 }
 
 .table-actions-menu-item--danger:hover {
-  background: #fee2e2;
+  background-color: var(--color-danger);
+  color: #ffffff;
 }

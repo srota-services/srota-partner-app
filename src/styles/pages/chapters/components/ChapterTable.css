@@ -34,14 +34,6 @@
   vertical-align: middle;
 }
 
-.chapter-table-row {
-  transition: background var(--transition-fast);
-}
-
-.chapter-table-row:hover {
-  background: var(--color-bg-secondary);
-}
-
 .chapter-table-title-cell {
   display: flex;
   align-items: center;
@@ -83,4 +75,30 @@
   font-weight: 600;
   color: var(--color-text-secondary);
   font-variant-numeric: tabular-nums;
+}
+
+.chapter-table-refresh-btn,
+.chapter-table-refresh-btn svg {
+  cursor: pointer;
+}
+
+.chapter-table-refresh-btn:disabled,
+.chapter-table-refresh-btn:disabled svg {
+  cursor: not-allowed;
+}
+
+.chapter-table-refresh-icon--spinning {
+  animation: chapter-table-refresh-spin 0.35s linear 1;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+@keyframes chapter-table-refresh-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(180deg);
+  }
 }

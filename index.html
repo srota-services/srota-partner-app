@@ -5,9 +5,26 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Srota Partner</title>
+    <script>
+      (function () {
+        try {
+          var path = window.location.pathname;
+          var lightOnly =
+            path === '/' || path === '/login' || path === '/partner/register';
+          if (lightOnly) {
+            return;
+          }
+          var theme = localStorage.getItem('@partner/theme');
+          if (theme === 'dark') {
+            document.documentElement.dataset.theme = 'dark';
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <script src="/pramukhime/js/pramukhime.js"></script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

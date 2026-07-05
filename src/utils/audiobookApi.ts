@@ -4,10 +4,17 @@ import type {
   UpdateAudiobookRequest,
   AudiobooksApiResponse,
   AudiobookApiResponse,
+  AudiobookMoodSummary,
+  AudiobookType,
   CreateChapterRequest,
+  CreateAuthoringChapterRequest,
   UpdateChapterRequest,
   ChapterApiResponse,
   ChaptersApiResponse,
+  CreatePageRequest,
+  UpdatePageRequest,
+  PageApiResponse,
+  PagesApiResponse,
 } from '../types/audiobook';
 import {
   getAuthApiBaseUrl,
@@ -41,6 +48,17 @@ export interface TagItem {
 }
 
 /**
+ * Language item from API response
+ */
+export interface LanguageItem {
+  id: string;
+  name: string;
+  code: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
  * API response structure for genres
  */
 export interface GenresResponse {
@@ -58,6 +76,18 @@ export interface GenresResponse {
 export interface TagsResponse {
   success: boolean;
   data: TagItem[];
+  message: string;
+  statusCode: number;
+  timestamp: string;
+  path: string;
+}
+
+/**
+ * API response structure for languages
+ */
+export interface LanguagesResponse {
+  success: boolean;
+  data: LanguageItem[];
   message: string;
   statusCode: number;
   timestamp: string;
@@ -159,6 +189,7 @@ export interface OrganizationItem {
   name: string;
   slug: string;
   description?: string;
+  image?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -183,6 +214,35 @@ export interface UserOrganizationMembership {
 export interface OrganizationsAuthResponse {
   message: string;
   organizations: UserOrganizationMembership[];
+}
+
+/** Organization entry from the public catalog listing */
+export interface CatalogOrganizationItem {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  image?: string | null;
+  preferredGenre?: string | null;
+  websiteUrl?: string | null;
+  teamSize?: string | null;
+  memberCount?: number;
+  discoverable?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface OrganizationsPagination {
+  page: number;
+  limit: number;
+  totalCount: number;
+  totalPages: number;
+}
+
+export interface AllOrganizationsResponse {
+  message: string;
+  organizations: CatalogOrganizationItem[];
+  pagination?: OrganizationsPagination;
 }
 
 /**
@@ -253,6 +313,90 @@ export async function getOrganizations(): Promise<
 }
 
 /**
+ * Fetches all organizations from the catalog (for author marketplace discovery).
+ */
+export async function getAllOrganizations(
+  page = 1,
+  limit = 100
+): Promise<{
+  organizations: CatalogOrganizationItem[];
+  pagination?: OrganizationsPagination;
+}> {
+  try {
+    const headers = getAuthHeaders();
+
+    const response = await fetch(
+      `${getAuthApiBaseUrl()}/auth/organizations/all?page=${page}&limit=${limit}`,
+      {
+        method: 'GET',
+        headers,
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to fetch organizations',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    const catalogResponse = data as AllOrganizationsResponse;
+    return {
+      organizations: catalogResponse.organizations ?? [],
+      pagination: catalogResponse.pagination,
+    };
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Fetches discoverable organizations from the auth catalog (marketplace discovery).
+ */
+export async function getDiscoverableOrganizations(
+  page = 1,
+  limit = 100
+): Promise<{
+  organizations: CatalogOrganizationItem[];
+  pagination?: OrganizationsPagination;
+}> {
+  try {
+    const headers = getAuthHeaders();
+
+    const response = await fetch(
+      `${getAuthApiBaseUrl()}/auth/catalog/organizations/discoverable?page=${page}&limit=${limit}`,
+      {
+        method: 'GET',
+        headers,
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to fetch organizations',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    const catalogResponse = data as AllOrganizationsResponse;
+    return {
+      organizations: catalogResponse.organizations ?? [],
+      pagination: catalogResponse.pagination,
+    };
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
  * Fetches tags from the API
  * @returns Promise resolving to tags response or throwing an error
  */
@@ -278,6 +422,37 @@ export async function getTags(): Promise<TagItem[]> {
 
     const tagsResponse = data as TagsResponse;
     return tagsResponse.data;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Fetches languages from the API
+ * @returns Promise resolving to languages response or throwing an error
+ */
+export async function getLanguages(): Promise<LanguageItem[]> {
+  try {
+    const headers = getAuthHeaders();
+
+    const response = await fetch(`${getContentApiBaseUrl()}/api/v1/languages`, {
+      method: 'GET',
+      headers,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to fetch languages',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    const languagesResponse = data as LanguagesResponse;
+    return languagesResponse.data;
   } catch (error) {
     throw handleApiError(error);
   }
@@ -717,9 +892,39 @@ export interface AuthorItem {
   lastName?: string | null;
   address?: string | null;
   contact?: string | null;
+  avatar?: string | null;
+  discoverable?: boolean;
   organizations?: Array<{ id: string; name: string; slug: string }>;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface DiscoverableAuthorItem {
+  authorId: string;
+  slug: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  avatar?: string | null;
+  discoverable: boolean;
+  imageAssets?: Record<string, string>;
+}
+
+interface DiscoverableAuthorsResponse {
+  message: string;
+  authors: DiscoverableAuthorItem[];
+  pagination?: OrganizationsPagination;
+}
+
+export function toAuthorPickerItem(item: DiscoverableAuthorItem): AuthorItem {
+  return {
+    id: item.authorId,
+    userId: '',
+    slug: item.slug,
+    firstName: item.firstName,
+    lastName: item.lastName,
+    avatar: item.avatar,
+    discoverable: item.discoverable,
+  };
 }
 
 interface AuthorsAuthResponse {
@@ -761,6 +966,48 @@ function getAuthorDisplayName(author: AuthorItem): string {
 }
 
 export { getAuthorDisplayName };
+
+/**
+ * Fetches discoverable authors from the auth catalog (marketplace discovery).
+ */
+export async function getDiscoverableAuthors(
+  page = 1,
+  limit = 100
+): Promise<{
+  authors: DiscoverableAuthorItem[];
+  pagination?: OrganizationsPagination;
+}> {
+  try {
+    const headers = getAuthHeaders();
+
+    const response = await fetch(
+      `${getAuthApiBaseUrl()}/auth/catalog/authors/discoverable?page=${page}&limit=${limit}`,
+      {
+        method: 'GET',
+        headers,
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to fetch authors',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    const authorsResponse = data as DiscoverableAuthorsResponse;
+    return {
+      authors: authorsResponse.authors ?? [],
+      pagination: authorsResponse.pagination,
+    };
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
 
 /**
  * Fetches authors from auth-service
@@ -911,6 +1158,77 @@ export async function deleteAuthor(id: string): Promise<void> {
   }
 }
 
+function normalizeAudiobookMood(raw: unknown): AudiobookMoodSummary | null {
+  if (!raw || typeof raw !== 'object') {
+    return null;
+  }
+
+  const mood = raw as Record<string, unknown>;
+  const id = typeof mood.id === 'string' ? mood.id : undefined;
+  const name = typeof mood.name === 'string' ? mood.name : undefined;
+
+  if (!id || !name) {
+    return null;
+  }
+
+  const color =
+    normalizeHexColor(mood.hexcode) ??
+    normalizeHexColor(mood.hexCode) ??
+    normalizeHexColor(mood.color);
+
+  return {
+    id,
+    name,
+    description:
+      typeof mood.description === 'string' || mood.description === null
+        ? mood.description
+        : undefined,
+    descriptionIcon:
+      typeof mood.descriptionIcon === 'string'
+        ? mood.descriptionIcon
+        : undefined,
+    hexcode: typeof mood.hexcode === 'string' ? mood.hexcode : undefined,
+    ...(color ? { color } : {}),
+    icon: typeof mood.icon === 'string' ? mood.icon : undefined,
+    createdAt: typeof mood.createdAt === 'string' ? mood.createdAt : undefined,
+    updatedAt: typeof mood.updatedAt === 'string' ? mood.updatedAt : undefined,
+  };
+}
+
+export function normalizeAudiobookResponse(raw: unknown): AudiobookApiResponse {
+  if (!raw || typeof raw !== 'object') {
+    throw new Error('Invalid audiobook response');
+  }
+
+  const audiobook = raw as Record<string, unknown>;
+  const mood = normalizeAudiobookMood(audiobook.mood);
+  const moodId =
+    typeof audiobook.moodId === 'string' && audiobook.moodId.trim()
+      ? audiobook.moodId.trim()
+      : (mood?.id ?? null);
+
+  const rest = { ...audiobook };
+  delete rest.mood;
+  delete rest.moodId;
+
+  return {
+    ...(rest as Omit<AudiobookApiResponse, 'moodId' | 'mood'>),
+    moodId,
+    ...(mood ? { mood } : {}),
+  };
+}
+
+function normalizeAudiobooksApiResponse(data: unknown): AudiobooksApiResponse {
+  const response = data as AudiobooksApiResponse;
+
+  return {
+    ...response,
+    data: Array.isArray(response.data)
+      ? response.data.map(item => normalizeAudiobookResponse(item))
+      : [],
+  };
+}
+
 function appendAudiobookPaidAndMoodFields(
   formData: FormData,
   audiobookData: CreateAudiobookRequest | UpdateAudiobookRequest
@@ -926,6 +1244,12 @@ function appendAudiobookPaidAndMoodFields(
   }
   if (audiobookData.moodId !== undefined) {
     formData.append('moodId', audiobookData.moodId);
+  }
+  if (audiobookData.subscriptionGatingMode !== undefined) {
+    formData.append(
+      'subscriptionGatingMode',
+      audiobookData.subscriptionGatingMode
+    );
   }
 }
 
@@ -947,6 +1271,9 @@ export async function createAudiobook(
         formData.append('narrators', JSON.stringify(audiobookData.narrators));
       }
       formData.append('description', audiobookData.description);
+      if (audiobookData.type) {
+        formData.append('type', audiobookData.type);
+      }
       if (audiobookData.language) {
         formData.append('language', audiobookData.language);
       }
@@ -993,16 +1320,16 @@ export async function createAudiobook(
       const data = await response.json();
       if (!response.ok) {
         const error: ApiError = {
-          message: data.message || data.error || 'Failed to create audiobook',
+          message: data.message || data.error || 'Failed to create Audiobook. Try again later.',
           error: data.error,
           statusCode: response.status,
         };
         throw error;
       }
       if (data.success && data.data) {
-        return data.data as AudiobookApiResponse;
+        return normalizeAudiobookResponse(data.data);
       }
-      return data as AudiobookApiResponse;
+      return normalizeAudiobookResponse(data);
     } else {
       // No file, use JSON - exclude duration and fileSize
       const headers = getAuthHeaders();
@@ -1019,16 +1346,16 @@ export async function createAudiobook(
       const data = await response.json();
       if (!response.ok) {
         const error: ApiError = {
-          message: data.message || data.error || 'Failed to create audiobook',
+          message: data.message || data.error || 'Failed to create Audiobook. Try again later.',
           error: data.error,
           statusCode: response.status,
         };
         throw error;
       }
       if (data.success && data.data) {
-        return data.data as AudiobookApiResponse;
+        return normalizeAudiobookResponse(data.data);
       }
-      return data as AudiobookApiResponse;
+      return normalizeAudiobookResponse(data);
     }
   } catch (error) {
     throw handleApiError(error);
@@ -1038,7 +1365,9 @@ export async function createAudiobook(
 export async function getAudiobooks(
   page?: number,
   active?: boolean,
-  scheduled?: boolean
+  scheduled?: boolean,
+  ownerId?: string,
+  type?: AudiobookType
 ): Promise<AudiobooksApiResponse> {
   try {
     const headers = getAuthHeaders();
@@ -1053,6 +1382,12 @@ export async function getAudiobooks(
     }
     if (scheduled !== undefined) {
       queryParams.push(`scheduled=${scheduled}`);
+    }
+    if (ownerId) {
+      queryParams.push(`ownerId=${encodeURIComponent(ownerId)}`);
+    }
+    if (type) {
+      queryParams.push(`type=${type}`);
     }
 
     if (queryParams.length > 0) {
@@ -1072,7 +1407,7 @@ export async function getAudiobooks(
       };
       throw error;
     }
-    return data as AudiobooksApiResponse;
+    return normalizeAudiobooksApiResponse(data);
   } catch (error) {
     throw handleApiError(error);
   }
@@ -1107,6 +1442,9 @@ export async function updateAudiobook(
       }
       if (audiobookData.description !== undefined) {
         formData.append('description', audiobookData.description);
+      }
+      if (audiobookData.type !== undefined) {
+        formData.append('type', audiobookData.type);
       }
       if (audiobookData.language !== undefined) {
         formData.append('language', audiobookData.language);
@@ -1152,9 +1490,9 @@ export async function updateAudiobook(
         throw error;
       }
       if (data.success && data.data) {
-        return data.data as AudiobookApiResponse;
+        return normalizeAudiobookResponse(data.data);
       }
-      return data as AudiobookApiResponse;
+      return normalizeAudiobookResponse(data);
     } else {
       // No file, use JSON - exclude duration and fileSize
       const headers = getAuthHeaders();
@@ -1179,9 +1517,9 @@ export async function updateAudiobook(
         throw error;
       }
       if (data.success && data.data) {
-        return data.data as AudiobookApiResponse;
+        return normalizeAudiobookResponse(data.data);
       }
-      return data as AudiobookApiResponse;
+      return normalizeAudiobookResponse(data);
     }
   } catch (error) {
     throw handleApiError(error);
@@ -1248,6 +1586,29 @@ export async function deleteAudiobook(audiobookId: string): Promise<void> {
  * @param chapterData - Chapter data including file
  * @returns Promise resolving to created chapter response or throwing an error
  */
+function appendChapterSubscriptionTier(
+  formData: FormData,
+  minSubscriptionTier: number | null | undefined
+): void {
+  if (minSubscriptionTier === undefined) {
+    return;
+  }
+  if (minSubscriptionTier === null) {
+    formData.append('minSubscriptionTier', '');
+    return;
+  }
+  formData.append('minSubscriptionTier', String(minSubscriptionTier));
+}
+
+function appendChapterSubscriptionTierToJson(
+  jsonData: Record<string, unknown>,
+  minSubscriptionTier: number | null | undefined
+): void {
+  if (minSubscriptionTier !== undefined) {
+    jsonData.minSubscriptionTier = minSubscriptionTier;
+  }
+}
+
 export async function createChapter(
   chapterData: CreateChapterRequest
 ): Promise<ChapterApiResponse> {
@@ -1331,6 +1692,9 @@ export async function createChapter(
     ) {
       formData.append('scheduledAt', String(chapterData.scheduledAt).trim());
     }
+    if (chapterData.minSubscriptionTier !== undefined) {
+      appendChapterSubscriptionTier(formData, chapterData.minSubscriptionTier);
+    }
 
     // Use fetch with FormData - browser will automatically set Content-Type: multipart/form-data
     // with the correct boundary parameter. DO NOT set Content-Type manually.
@@ -1344,7 +1708,7 @@ export async function createChapter(
 
     if (!response.ok) {
       const error: ApiError = {
-        message: data.message || data.error || 'Failed to create chapter',
+        message: data.message || data.error || 'Failed to create Chapter. Try again later.',
         error: data.error,
         statusCode: response.status,
       };
@@ -1352,6 +1716,45 @@ export async function createChapter(
     }
 
     // Handle response structure
+    if (data.success && data.data) {
+      return data.data as ChapterApiResponse;
+    }
+    return data as ChapterApiResponse;
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Fetches a single chapter by ID
+ * @param chapterId - The ID of the chapter
+ * @returns Promise resolving to chapter data or throwing an error
+ */
+export async function getChapter(
+  chapterId: string
+): Promise<ChapterApiResponse> {
+  try {
+    const headers = getAuthHeaders();
+
+    const response = await fetch(
+      `${getContentApiBaseUrl()}/api/v1/chapters/${chapterId}`,
+      {
+        method: 'GET',
+        headers,
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to fetch chapter',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
     if (data.success && data.data) {
       return data.data as ChapterApiResponse;
     }
@@ -1450,6 +1853,7 @@ export async function updateChapter(
       if (chapterData.coverImage !== undefined) {
         formData.append('coverImage', chapterData.coverImage);
       }
+      appendChapterSubscriptionTier(formData, chapterData.minSubscriptionTier);
       body = formData;
     } else {
       // Use JSON for non-file updates
@@ -1479,6 +1883,7 @@ export async function updateChapter(
       if (chapterData.scheduledAt !== undefined) {
         jsonData.scheduledAt = chapterData.scheduledAt;
       }
+      appendChapterSubscriptionTierToJson(jsonData, chapterData.minSubscriptionTier);
       body = JSON.stringify(jsonData);
     }
 
@@ -1563,6 +1968,256 @@ export async function deleteChapter(chapterId: string): Promise<void> {
     ) {
       throw error;
     }
+    throw handleApiError(error);
+  }
+}
+
+function normalizePageResponse(raw: unknown): PageApiResponse {
+  if (!raw || typeof raw !== 'object') {
+    throw new Error('Invalid page response');
+  }
+  const page = raw as Record<string, unknown>;
+  return {
+    id: String(page.id),
+    chapterId: String(page.chapterId),
+    pageNumber: Number(page.pageNumber),
+    plainText: String(page.plainText ?? ''),
+    richText: (page.richText ?? { type: 'doc', content: [] }) as
+      | Record<string, unknown>
+      | unknown[],
+    createdAt: typeof page.createdAt === 'string' ? page.createdAt : undefined,
+    updatedAt: typeof page.updatedAt === 'string' ? page.updatedAt : undefined,
+  };
+}
+
+function normalizePagesApiResponse(data: unknown): PagesApiResponse {
+  const response = data as PagesApiResponse;
+  return {
+    ...response,
+    data: Array.isArray(response.data)
+      ? response.data.map(item => normalizePageResponse(item))
+      : Array.isArray(data)
+        ? (data as unknown[]).map(item => normalizePageResponse(item))
+        : [],
+  };
+}
+
+/**
+ * Fetches pages for a specific chapter (authoring mode).
+ */
+export async function getPagesByChapterId(
+  chapterId: string
+): Promise<PagesApiResponse> {
+  try {
+    const headers = getAuthHeaders();
+
+    const response = await fetch(
+      `${getContentApiBaseUrl()}/api/v1/chapters/${chapterId}/pages`,
+      {
+        method: 'GET',
+        headers,
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to fetch pages',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    if (data.success && Array.isArray(data.data)) {
+      return normalizePagesApiResponse(data);
+    }
+    return normalizePagesApiResponse(data);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Creates a new page for an authoring chapter.
+ */
+export async function createPage(
+  chapterId: string,
+  pageData: CreatePageRequest
+): Promise<PageApiResponse> {
+  try {
+    const headers = getAuthHeaders();
+
+    const response = await fetch(
+      `${getContentApiBaseUrl()}/api/v1/chapters/${chapterId}/pages`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          chapterId: pageData.chapterId,
+          pageNumber: pageData.pageNumber,
+          plainText: pageData.plainText,
+          richText: pageData.richText,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to create Page. Try again later.',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    if (data.success && data.data) {
+      return normalizePageResponse(data.data);
+    }
+    return normalizePageResponse(data);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Updates an existing page.
+ */
+export async function updatePage(
+  pageId: string,
+  pageData: UpdatePageRequest
+): Promise<PageApiResponse> {
+  try {
+    const headers = getAuthHeaders();
+
+    const response = await fetch(
+      `${getContentApiBaseUrl()}/api/v1/pages/${pageId}`,
+      {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({
+          chapterId: pageData.chapterId,
+          pageNumber: pageData.pageNumber,
+          plainText: pageData.plainText,
+          richText: pageData.richText,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to update page',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    if (data.success && data.data) {
+      return normalizePageResponse(data.data);
+    }
+    return normalizePageResponse(data);
+  } catch (error) {
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Deletes a page.
+ */
+export async function deletePage(pageId: string): Promise<void> {
+  try {
+    const headers = getAuthHeaders();
+
+    const response = await fetch(
+      `${getContentApiBaseUrl()}/api/v1/pages/${pageId}`,
+      {
+        method: 'DELETE',
+        headers,
+      }
+    );
+
+    let data: ApiError | null = null;
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const text = await response.text();
+      if (text.trim()) {
+        try {
+          data = JSON.parse(text) as ApiError;
+        } catch {
+          data = null;
+        }
+      }
+    }
+
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data?.message || data?.error || 'Failed to delete page',
+        error: data?.error || 'DeleteFailed',
+        statusCode: response.status,
+      };
+      throw error;
+    }
+  } catch (error) {
+    if (
+      error &&
+      typeof error === 'object' &&
+      'message' in error &&
+      'error' in error
+    ) {
+      throw error;
+    }
+    throw handleApiError(error);
+  }
+}
+
+/**
+ * Creates an authoring chapter (JSON body, no audio/cover required).
+ */
+export async function createAuthoringChapter(
+  chapterData: CreateAuthoringChapterRequest
+): Promise<ChapterApiResponse> {
+  try {
+    const headers = getAuthHeaders();
+
+    const body: Record<string, unknown> = {
+      audiobookId: chapterData.audiobookId,
+      title: chapterData.title,
+      description: chapterData.description,
+      chapterNumber: chapterData.chapterNumber,
+    };
+
+    if (chapterData.pages && chapterData.pages.length > 0) {
+      body.pages = chapterData.pages;
+    }
+
+    const response = await fetch(`${getContentApiBaseUrl()}/api/v1/chapters`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const error: ApiError = {
+        message: data.message || data.error || 'Failed to create Chapter. Try again later.',
+        error: data.error,
+        statusCode: response.status,
+      };
+      throw error;
+    }
+
+    if (data.success && data.data) {
+      return data.data as ChapterApiResponse;
+    }
+    return data as ChapterApiResponse;
+  } catch (error) {
     throw handleApiError(error);
   }
 }

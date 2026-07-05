@@ -1,83 +1,91 @@
 /**
- * Management page with tabbed interface for managing Genres, Tags, and Authors
+ * Manage page — team, collaborations, and assets
  */
-import React, { useEffect, useMemo, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAppSelector } from '../../hooks/redux';
-import ManageTab from './components/ManageTab';
-import AuthorsTab from './components/AuthorsTab';
+import { isOrgMarketplaceContext } from '../../utils/marketplaceContext';
+import TeamTab from './components/TeamTab';
+import InvitationsTab from './components/InvitationsTab';
+import CollaborationsTab from './components/CollaborationsTab';
 import '../../styles/pages/management/Management.css';
-type TabType = 'manage' | 'authors';
-const ALL_TABS = [
-  { id: 'manage' as TabType, label: 'Manage', icon: '⚙️' },
-  { id: 'authors' as TabType, label: 'Authors', icon: '✍️' },
-] as const;
+import '../../styles/pages/audiobooks/Audiobooks.css';
+
+type ManageTabId = 'team' | 'invitations' | 'collaborations' | 'assets';
+
+const ALL_TABS: { id: ManageTabId; label: string }[] = [
+  { id: 'team', label: 'Team' },
+  { id: 'invitations', label: 'Invitations' },
+  { id: 'collaborations', label: 'Collaborations' },
+  { id: 'assets', label: 'Assets' },
+];
+
 const Management: React.FC = () => {
-  const { role } = useAppSelector(state => state.auth);
-  const [activeTab, setActiveTab] = useState<TabType>('manage');
-  const showAuthorsTab = role !== 'AUTHOR';
-  const tabs = useMemo(() => {
-    if (!showAuthorsTab) {
-      return ALL_TABS.filter(tab => tab.id !== 'authors');
+  const { role, appType } = useAppSelector(state => state.auth);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const showTeamTab = isOrgMarketplaceContext(appType, role);
+
+  const visibleTabs = useMemo(
+    () =>
+      ALL_TABS.filter(tab => (tab.id === 'team' ? showTeamTab : true)),
+    [showTeamTab]
+  );
+
+  const activeTab = useMemo(() => {
+    const requested = searchParams.get('tab') as ManageTabId | null;
+    if (requested && visibleTabs.some(tab => tab.id === requested)) {
+      return requested;
     }
-    return ALL_TABS;
-  }, [showAuthorsTab]);
+    return showTeamTab ? 'team' : 'invitations';
+  }, [searchParams, showTeamTab, visibleTabs]);
+
   useEffect(() => {
-    if (!showAuthorsTab && activeTab === 'authors') {
-      setActiveTab('manage');
+    const requested = searchParams.get('tab');
+    if (requested === activeTab) {
+      return;
     }
-  }, [showAuthorsTab, activeTab]);
+    setSearchParams({ tab: activeTab }, { replace: true });
+  }, [activeTab, searchParams, setSearchParams]);
+
+  const handleTabChange = (tabId: ManageTabId) => {
+    setSearchParams({ tab: tabId });
+  };
+
   return (
     <div className="management-page">
       <div className="management-header">
-        <h1 className="page-title">Management</h1>
+        <h1 className="page-title">Manage</h1>
         <p className="page-subtitle">
-          {showAuthorsTab
-            ? 'Manage genres, tags, and authors'
-            : 'Manage genres and tags'}
+          Manage your team, invitations, collaborations, and publishing assets.
         </p>
       </div>
-      <div className="tabs-container">
-        <div className="tabs-header">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
-              type="button"
-            >
-              <span className="tab-icon">{tab.icon}</span>
-              <span className="tab-label">{tab.label}</span>
-            </button>
-          ))}
-        </div>
-        <div className="tabs-content">
-          <AnimatePresence mode="wait">
-            {activeTab === 'manage' && (
-              <motion.div
-                key="manage"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-              >
-                <ManageTab />
-              </motion.div>
-            )}
-            {activeTab === 'authors' && showAuthorsTab && (
-              <motion.div
-                key="authors"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.2 }}
-              >
-                <AuthorsTab />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+
+      <div className="audiobooks-tabs authors-tabs">
+        {visibleTabs.map(tab => (
+          <button
+            key={tab.id}
+            type="button"
+            className={`audiobooks-tab ${activeTab === tab.id ? 'active' : ''}`}
+            onClick={() => handleTabChange(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
+
+      {activeTab === 'team' && <TeamTab />}
+      {activeTab === 'invitations' && <InvitationsTab />}
+      {activeTab === 'collaborations' && <CollaborationsTab />}
+      {activeTab === 'assets' && (
+        <section className="manage-assets-section marketing-card">
+          <h2 className="manage-assets-heading">Assets</h2>
+          <div className="manage-assets-empty">
+            <p className="manage-assets-empty-message">
+              No assets yet. Asset management will be available here.
+            </p>
+          </div>
+        </section>
+      )}
     </div>
   );
 };

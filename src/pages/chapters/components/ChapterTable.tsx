@@ -9,15 +9,23 @@ import '../../../styles/pages/chapters/components/ChapterTranscodingStatus.css';
 interface ChapterTableProps {
   chapters: ChapterApiResponse[];
   statusByChapter: Record<string, ChapterTranscodingStatus>;
+  selectedChapterId: string | null;
+  onRowSelect: (chapter: ChapterApiResponse) => void;
   onEdit: (chapter: ChapterApiResponse) => void;
   onDelete: (chapter: ChapterApiResponse) => void;
+  onRefresh: (chapterId: string) => void;
+  refreshingChapterId: string | null;
 }
 
 function ChapterTable({
   chapters,
   statusByChapter,
+  selectedChapterId,
+  onRowSelect,
   onEdit,
   onDelete,
+  onRefresh,
+  refreshingChapterId,
 }: ChapterTableProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
@@ -47,6 +55,7 @@ function ChapterTable({
               <th>Chapter</th>
               <th>#</th>
               <th>Status</th>
+              <th>Subscription</th>
               <th>Duration</th>
               <th>Stream</th>
               <th>Transcoding</th>
@@ -59,11 +68,15 @@ function ChapterTable({
                 key={chapter.id}
                 chapter={chapter}
                 transcodingStatus={statusByChapter[chapter.id]}
+                isSelected={selectedChapterId === chapter.id}
                 openMenuId={openMenuId}
                 onMenuToggle={handleMenuToggle}
                 onMenuClose={() => setOpenMenuId(null)}
+                onRowSelect={onRowSelect}
                 onEdit={onEdit}
                 onDelete={onDelete}
+                onRefresh={onRefresh}
+                refreshingChapterId={refreshingChapterId}
               />
             ))}
           </tbody>

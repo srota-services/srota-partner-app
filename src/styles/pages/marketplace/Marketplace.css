@@ -1,0 +1,115 @@
+.marketplace-page {
+  max-width: 900px;
+  margin: 0;
+  padding: 0;
+}
+
+.marketplace-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.marketplace-panel-description {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.marketplace-search {
+  width: 100%;
+  max-width: 420px;
+}
+
+.marketplace-loading {
+  display: flex;
+  justify-content: center;
+  padding: 32px 0;
+}
+
+.marketplace-empty {
+  margin: 0;
+  padding: 24px 0;
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}
+
+.marketplace-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.marketplace-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.marketplace-list-item:last-child {
+  border-bottom: none;
+}
+
+.marketplace-list-thumb {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.marketplace-list-thumb.app-image--author {
+  border-radius: 50%;
+}
+
+.marketplace-list-thumb.app-image--loaded {
+  object-fit: cover;
+}
+
+.marketplace-list-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.marketplace-list-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.marketplace-list-name {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+}
+
+.marketplace-list-meta {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+.marketplace-list-badge {
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+}
+
+.marketplace-unavailable {
+  margin: 0;
+  padding: 32px 0;
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+}

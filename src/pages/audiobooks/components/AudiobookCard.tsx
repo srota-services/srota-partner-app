@@ -6,6 +6,7 @@ import React from 'react';
 import { formatDuration } from '../../../utils/formatting';
 import type { AudiobookApiResponse } from '../../../types/audiobook';
 import Button from '../../../components/common/Button';
+import AppImage from '../../../components/common/AppImage';
 import '../../../styles/pages/audiobooks/components/AudiobookCard.css';
 
 interface AudiobookCardProps {
@@ -46,13 +47,11 @@ const AudiobookCard: React.FC<AudiobookCardProps> = ({
   return (
     <div className="audiobook-card" onClick={handleCardClick}>
       <div className="audiobook-card-cover">
-        {audiobook.coverImage ? (
-          <img src={audiobook.coverImage} alt={audiobook.title} />
-        ) : (
-          <div className="audiobook-card-placeholder">
-            <span>📚</span>
-          </div>
-        )}
+        <AppImage
+          src={audiobook.coverImage}
+          alt={audiobook.title}
+          variant="cover"
+        />
       </div>
       <div className="audiobook-card-content">
         <h3 className="audiobook-card-title">{audiobook.title}</h3>

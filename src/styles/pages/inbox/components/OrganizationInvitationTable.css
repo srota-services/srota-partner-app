@@ -1,0 +1,32 @@
+.inbox-table-wrapper {
+  overflow: visible;
+}
+
+.inbox-table-scroll {
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+.inbox-table {
+  width: 100%;
+  min-width: 800px;
+}
+
+.inbox-table-row {
+  cursor: default;
+}
+
+.inbox-table-row:hover {
+  background: var(--color-bg-secondary);
+}
+
+.inbox-table-cell {
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.inbox-table-actions-cell {
+  min-width: 320px;
+  vertical-align: top;
+}
