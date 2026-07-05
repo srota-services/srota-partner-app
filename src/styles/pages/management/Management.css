@@ -58,14 +58,14 @@
 }
 .tab-button:hover {
   color: var(--color-primary);
-  background: rgba(79, 70, 229, 0.05);
+  background: var(--color-primary-surface);
 }
 .tab-button.active {
   color: var(--color-primary);
   border-bottom-color: var(--color-primary);
   background: var(--color-bg-primary);
   font-weight: 700;
-  box-shadow: 0 -2px 8px rgba(79, 70, 229, 0.1);
+  box-shadow: 0 -2px 8px var(--color-primary-surface-strong);
 }
 .tab-icon {
   font-size: 18px;
