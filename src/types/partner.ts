@@ -6,34 +6,14 @@ export type PartnerType = 'organization' | 'individual';
 export type TeamSize = '1-10' | '11-50' | '51-200' | '200+';
 
 export interface UserProfile {
-  id: string;
+  id?: string;
   userId?: string;
   email?: string;
   firstName?: string;
   lastName?: string;
+  username?: string;
   avatarUrl?: string;
   avatar?: string;
-}
-
-/** App-service author profile (avatar) for authenticated authors */
-export interface AuthorAppProfile {
-  id: string;
-  authorId: string;
-  avatar?: string | null;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface AuthorAppProfileResponse {
-  success: boolean;
-  data: AuthorAppProfile;
-  message?: string;
-}
-
-export interface UserProfileResponse {
-  success: boolean;
-  data: UserProfile;
-  message?: string;
 }
 
 export interface OrganizationItem {
@@ -163,6 +143,9 @@ export interface AuthorProfileDto {
   lastName?: string | null;
   address?: string | null;
   contact?: string | null;
+  avatar?: string | null;
+  discoverable?: boolean;
+  imageAssets?: Record<string, string>;
   organizations?: Array<{ id: string; name: string; slug: string }>;
   createdAt?: string;
   updatedAt?: string;

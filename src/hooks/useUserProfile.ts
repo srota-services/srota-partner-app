@@ -1,13 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from './redux';
 import { setUser } from '../store/slices/authSlice';
+import { getMyAuthorProfile, getUserProfile } from '../utils/partnerApi';
 import {
-  getMyAuthorAppProfile,
-  getMyAuthorProfile,
-  getUserProfile,
-} from '../utils/partnerApi';
-import {
-  mapAuthorProfilesToAuthUser,
+  mapAuthorProfileToAuthUser,
   mapProfileToAuthUser,
 } from '../utils/userProfileAuth';
 
@@ -30,18 +26,11 @@ export function useUserProfile() {
     const loadProfile = async () => {
       try {
         if (appType === 'author') {
-          const [appProfile, authorProfile] = await Promise.all([
-            getMyAuthorAppProfile(),
-            getMyAuthorProfile(),
-          ]);
+          const authorProfile = await getMyAuthorProfile();
           if (!cancelled) {
             dispatch(
               setUser(
-                mapAuthorProfilesToAuthUser(
-                  appProfile,
-                  authorProfile,
-                  userRef.current
-                )
+                mapAuthorProfileToAuthUser(authorProfile, userRef.current)
               )
             );
           }

@@ -10,7 +10,7 @@ vi.mock('../src/utils/config', () => ({
     Authorization: 'Bearer test-token',
     'Content-Type': 'application/json',
   })),
-  getContentApiBaseUrl: vi.fn(() => 'https://api.example.com'),
+  getAuthApiBaseUrl: vi.fn(() => 'https://auth.example.com'),
   handleApiError: vi.fn((error: unknown) => error),
 }));
 
@@ -27,8 +27,7 @@ describe('user profile API', () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       ok: true,
       json: async () => ({
-        success: true,
-        data: { id: 'profile-1', email: 'user@example.com' },
+        user: { id: 'profile-1', email: 'user@example.com' },
       }),
     } as Response);
 
@@ -36,7 +35,7 @@ describe('user profile API', () => {
 
     expect(profile.id).toBe('profile-1');
     expect(globalThis.fetch).toHaveBeenCalledWith(
-      'https://api.example.com/api/v1/user/profile',
+      'https://auth.example.com/auth/user/profile',
       expect.objectContaining({ method: 'GET' })
     );
   });
@@ -45,10 +44,9 @@ describe('user profile API', () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       ok: true,
       json: async () => ({
-        success: true,
-        data: {
-          id: 'profile-3',
+        profile: {
           userId: 'user-99',
+          username: 'user99',
           avatar: 'https://cdn.example.com/avatar.jpg',
         },
       }),
@@ -58,7 +56,7 @@ describe('user profile API', () => {
 
     expect(profile?.userId).toBe('user-99');
     expect(globalThis.fetch).toHaveBeenCalledWith(
-      'https://api.example.com/api/v1/users/user-99/profile',
+      'https://auth.example.com/auth/users/user-99/profile',
       expect.objectContaining({ method: 'GET' })
     );
   });
@@ -67,7 +65,7 @@ describe('user profile API', () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue({
       ok: false,
       status: 404,
-      json: async () => ({ message: 'Not found', statusCode: 404 }),
+      json: async () => ({ error: 'User profile not found' }),
     } as Response);
 
     const profile = await getUserProfileByUserId('missing-user');
@@ -91,8 +89,7 @@ describe('user profile API', () => {
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          success: true,
-          data: { id: 'profile-2' },
+          user: { id: 'profile-2' },
         }),
       } as Response);
 
@@ -128,38 +125,5 @@ describe('user profile API', () => {
     });
 
     expect(fetchMock).toHaveBeenCalledTimes(3);
-  });
-});
-
-describe('author app profile API', () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  it('fetches author app profile from content API', async () => {
-    const { getMyAuthorAppProfile } = await import('../src/utils/partnerApi');
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        success: true,
-        data: {
-          id: 'profile-1',
-          authorId: 'author-1',
-          avatar: 'https://cdn.example.com/avatar.jpg',
-        },
-      }),
-    } as Response);
-
-    const profile = await getMyAuthorAppProfile();
-
-    expect(profile.authorId).toBe('author-1');
-    expect(globalThis.fetch).toHaveBeenCalledWith(
-      'https://api.example.com/api/v1/author-profiles/me',
-      expect.objectContaining({ method: 'GET' })
-    );
   });
 });
