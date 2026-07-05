@@ -37,4 +37,25 @@ describe('collaborationRequestPreview', () => {
       'Jane Author',
     ]);
   });
+
+  it('uses the description placeholder when description is empty', () => {
+    const lines = buildCollaborationRequestPreviewLines({
+      organizationName: 'Acme Audio',
+      description: '',
+      authorBudget: '75000',
+      hasAttachment: false,
+      userName: 'Jane Author',
+    });
+
+    expect(lines).toEqual([
+      'Hi Acme Audio,',
+      '',
+      'Describe the collaboration scope, deliverables, or timeline',
+      '',
+      'My proposed budget is ₹75,000',
+      '',
+      'Thanks & Regards,',
+      'Jane Author',
+    ]);
+  });
 });

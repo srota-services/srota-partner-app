@@ -1,5 +1,6 @@
 import { Eye } from 'lucide-react';
 import {
+  COLLABORATION_DESCRIPTION_PLACEHOLDER,
   formatCollaborationRequestBudget,
   type CollaborationRequestPreviewInput,
 } from '../../../utils/collaborationRequestPreview';
@@ -55,7 +56,11 @@ function CollaborationRequestPreview({
           <p className="collaboration-request-preview-description">
             {trimmedDescription}
           </p>
-        ) : null}
+        ) : (
+          <p className="collaboration-request-preview-description collaboration-request-preview-placeholder">
+            {COLLABORATION_DESCRIPTION_PLACEHOLDER}
+          </p>
+        )}
 
         <p>
           My proposed budget is{' '}

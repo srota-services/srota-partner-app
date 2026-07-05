@@ -19,6 +19,7 @@ import {
   type CatalogOrganizationItem,
 } from '../../utils/audiobookApi';
 import { showApiError, showSuccess } from '../../utils/toast';
+import { COLLABORATION_DESCRIPTION_PLACEHOLDER } from '../../utils/collaborationRequestPreview';
 import CollaborationRequestPreview from './components/CollaborationRequestPreview';
 import '../../styles/components/wizard/WizardShell.css';
 import '../../styles/pages/management/CollaborationCreate.css';
@@ -226,7 +227,7 @@ function CollaborationCreate() {
                 id="collaboration-description"
                 value={description}
                 onChange={event => setDescription(event.target.value)}
-                placeholder="Describe the collaboration scope, deliverables, or timeline"
+                placeholder={COLLABORATION_DESCRIPTION_PLACEHOLDER}
                 rows={5}
                 disabled={saving}
               />

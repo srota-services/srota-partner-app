@@ -1,6 +1,9 @@
 import { COLLABORATION_CURRENCY } from '../types/authorCollaboration';
 import { formatBudget } from './collaborationDisplay';
 
+export const COLLABORATION_DESCRIPTION_PLACEHOLDER =
+  'Describe the collaboration scope, deliverables, or timeline';
+
 export interface CollaborationRequestPreviewInput {
   organizationName: string;
   description: string;
@@ -37,6 +40,8 @@ export function buildCollaborationRequestPreviewLines({
   const trimmedDescription = description.trim();
   if (trimmedDescription) {
     lines.push('', trimmedDescription);
+  } else {
+    lines.push('', COLLABORATION_DESCRIPTION_PLACEHOLDER);
   }
 
   const budget = formatCollaborationRequestBudget(authorBudget);
